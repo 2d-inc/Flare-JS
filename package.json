@@ -1,0 +1,32 @@
+{
+	"name": "Flare-JS",
+	"version": "1.0.0",
+	"description": "",
+	"main": "source/Flare.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/2d-inc/Flare-JS"
+	},
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/2d-inc/Flare-JS/issues"
+	},
+	"homepage": "https://github.com/2d-inc/Flare-JS#readme",
+	"devDependencies": {
+		"babel-core": "^6.24.1",
+		"babel-eslint": "^6.1.2",
+		"babel-loader": "^7.0.0",
+		"babel-preset-es2016": "^6.24.1",
+		"eslint": "^3.19.0",
+		"eslint-loader": "^1.7.1",
+		"gl-matrix": "^2.3.2",
+		"webpack": "^2.5.1"
+	},
+	"dependencies": {
+		"npm": "^5.7.1"
+	}
+}
