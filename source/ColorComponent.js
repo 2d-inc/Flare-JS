@@ -29,6 +29,12 @@ export class ActorColor extends ActorComponent
 
 		vec4.copy(this._Color, node._Color);
 	}
+
+	get cssColor()
+	{
+		const c = this._Color;
+		return "rgba(" + Math.round(c[0]*255) + ", " + Math.round(c[1]*255) + ", " + Math.round(c[2]*255) + ", " + c[3] + ")";
+	}
 }
 
 export class ColorFill extends ActorColor
@@ -52,6 +58,30 @@ export class ColorFill extends ActorColor
 
 		this._FillRule = node._FillRule;
 	}
+
+	fill(ctx)
+	{
+		ctx.fillStyle = this.cssColor;
+		
+		switch(this._FillRule)
+		{
+			case FillRule.EvenOdd:
+				ctx.fill("evenodd");
+				break;
+			case FillRule.NonZero:
+				ctx.fill("nonzero");
+				break;
+		}
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		if(this._Parent)
+		{
+			this._Parent.addFill(this);
+		}
+	}
 }
 
 export class ColorStroke extends ActorColor
@@ -74,6 +104,22 @@ export class ColorStroke extends ActorColor
 		super.copy(node, resetActor);
 
 		this._Width = node._Width;
+	}
+
+	stroke(ctx)
+	{
+		ctx.strokeStyle = this.cssColor;
+		ctx.lineWidth = this._Width;
+		ctx.stroke();
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		if(this._Parent)
+		{
+			this._Parent.addStroke(this);
+		}
 	}
 }
 
@@ -118,6 +164,41 @@ export class GradientFill extends GradientColor
 
 		this._FillRule = node._FillRule;
 	}
+
+	fill(ctx)
+	{
+		let {_Start:start, _End:end, _ColorStops:stops} = this;
+		var gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
+
+		const numStops = stops.length/5;
+		let idx = 0;
+		for(let i = 0; i < numStops; i++)
+		{
+			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + stops[idx++] + ")";
+			const value = stops[idx++];
+			gradient.addColorStop(value, style);
+		}
+		
+		ctx.fillStyle = gradient;
+		switch(this._FillRule)
+		{
+			case FillRule.EvenOdd:
+				ctx.fill("evenodd");
+				break;
+			case FillRule.NonZero:
+				ctx.fill("nonzero");
+				break;
+		}
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		if(this._Parent)
+		{
+			this._Parent.addFill(this);
+		}
+	}
 }
 
 export class GradientStroke extends GradientColor
@@ -140,6 +221,34 @@ export class GradientStroke extends GradientColor
 		super.copy(node, resetActor);
 
 		this._Width = node._Width;
+	}
+
+	stroke(ctx)
+	{
+		let {_Start:start, _End:end, _ColorStops:stops} = this;
+		var gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
+
+		const numStops = stops.length/5;
+		let idx = 0;
+		for(let i = 0; i < numStops; i++)
+		{
+			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + stops[idx++] + ")";
+			const value = stops[idx++];
+			gradient.addColorStop(value, style);
+		}
+		
+		ctx.lineWidth = this._Width;
+		ctx.strokeStyle = gradient;
+		ctx.stroke();
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		if(this._Parent)
+		{
+			this._Parent.addStroke(this);
+		}
 	}
 }
 
@@ -180,6 +289,51 @@ export class RadialGradientFill extends RadialGradientColor
 
 		this._FillRule = node._FillRule;
 	}
+
+	fill(ctx)
+	{
+		let {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
+		var gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
+
+		const numStops = stops.length/5;
+		let idx = 0;
+		for(let i = 0; i < numStops; i++)
+		{
+			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + stops[idx++] + ")";
+			const value = stops[idx++];
+			gradient.addColorStop(value, style);
+		}
+		
+		ctx.fillStyle = gradient;
+
+		const squash = Math.max(0.00001, secondaryRadiusScale);
+
+		let angle = vec2.getAngle(vec2.subtract(vec2.create(), end, start));
+		ctx.save();
+		ctx.translate(start[0], start[1]);
+		ctx.rotate(angle);
+		ctx.scale(1.0, squash);
+
+		switch(this._FillRule)
+		{
+			case FillRule.EvenOdd:
+				ctx.fill("evenodd");
+				break;
+			case FillRule.NonZero:
+				ctx.fill("nonzero");
+				break;
+		}
+		ctx.restore();
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		if(this._Parent)
+		{
+			this._Parent.addFill(this);
+		}
+	}
 }
 
 export class RadialGradientStroke extends RadialGradientColor
@@ -202,5 +356,43 @@ export class RadialGradientStroke extends RadialGradientColor
 		super.copy(node, resetActor);
 
 		this._Width = node._Width;
+	}
+
+	stroke(ctx)
+	{
+		let {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
+		var gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
+
+		const numStops = stops.length/5;
+		let idx = 0;
+		for(let i = 0; i < numStops; i++)
+		{
+			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + stops[idx++] + ")";
+			const value = stops[idx++];
+			gradient.addColorStop(value, style);
+		}
+		
+		ctx.lineWidth = this._Width;
+		ctx.strokeStyle = gradient;
+
+		const squash = Math.max(0.00001, secondaryRadiusScale);
+
+		let angle = vec2.getAngle(vec2.subtract(vec2.create(), end, start));
+		ctx.save();
+		ctx.translate(start[0], start[1]);
+		ctx.rotate(angle);
+		ctx.scale(1.0, squash);
+
+		ctx.stroke();
+		ctx.restore();
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		if(this._Parent)
+		{
+			this._Parent.addStroke(this);
+		}
 	}
 }

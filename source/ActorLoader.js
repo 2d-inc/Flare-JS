@@ -1147,6 +1147,7 @@ function _ReadActorPath(reader, component)
 		{
 			throw new Error("Invalid point type " + type);
 		}
+		point._PointType = type;
 		points[i] = point;
 	}
 	component._Points = points;

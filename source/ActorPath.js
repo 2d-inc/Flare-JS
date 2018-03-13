@@ -184,4 +184,127 @@ export default class ActorPath extends ActorNode
 			this._Points[i] = p.makeInstance();
 		}
 	}
+
+	draw(ctx)
+	{
+		let transform = this._WorldTransform;
+		ctx.save();
+		ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
+
+		let points = this._Points;
+
+		if(points.length)
+		{
+			let renderPoints = [];
+			let pl = points.length;
+			const isClosed = this._IsClosed;
+			const arcConstant = 0.55;
+			const iarcConstant = 1.0-arcConstant;
+			let previous = isClosed ? points[points.length-1] : null;
+			for(let i = 0; i < points.length; i++)
+			{
+				let point = points[i];
+				
+				switch(point.pointType)
+				{
+					case PointType.Straight:
+					{
+						const radius = point.radius;
+						if(radius > 0)
+						{
+							if(!isClosed && (i === 0 || i === pl-1))
+							{
+								renderPoints.push(point);
+								previous = point;
+							}
+							else
+							{
+								let next = points[(i+1)%pl];
+								previous = previous.pointType === PointType.Straight ? previous.translation : previous.out;
+								next = next.pointType === PointType.Straight ? next.translation : next.in;
+
+								let pos = point.translation;
+
+								let toPrev = vec2.subtract(vec2.create(), previous, pos);
+								let toPrevLength = vec2.length(toPrev);
+								toPrev[0] /= toPrevLength;
+								toPrev[1] /= toPrevLength;
+
+								let toNext = vec2.subtract(vec2.create(), next, pos);
+								let toNextLength = vec2.length(toNext);
+								toNext[0] /= toNextLength;
+								toNext[1] /= toNextLength;
+
+								let renderRadius = Math.min(toPrevLength, Math.min(toNextLength, radius));
+
+								let translation = vec2.scaleAndAdd(vec2.create(), pos, toPrev, renderRadius);
+								renderPoints.push({
+									pointType:PointType.Disconnected,
+									translation:translation,
+									out:vec2.scaleAndAdd(vec2.create(), pos, toPrev, iarcConstant*renderRadius),
+									in:translation//vec2.scaleAndAdd(vec2.create(), translation, toPrev, arcConstant*renderRadius)
+								});
+
+								translation = vec2.scaleAndAdd(vec2.create(), pos, toNext, renderRadius);
+
+								previous = {
+									pointType:PointType.Disconnected,
+									translation:translation,
+									in:vec2.scaleAndAdd(vec2.create(), pos, toNext, iarcConstant*renderRadius),
+									out:translation//vec2.scaleAndAdd(vec2.create(), translation, toNext, arcConstant*renderRadius)
+								};
+								renderPoints.push(previous);
+							}
+						}
+						else
+						{
+							renderPoints.push(point);
+							previous = point;
+						}
+						break;
+					}
+					case PointType.Mirror:
+					case PointType.Disconnected:
+					case PointType.Asymmetric:
+						renderPoints.push(point);
+						previous = point;
+						break;
+				}
+			}
+			let firstPoint = renderPoints[0];
+			ctx.moveTo(firstPoint.translation[0], firstPoint.translation[1]);
+			for(let i = 0, l = isClosed ? renderPoints.length : renderPoints.length-1, pl = renderPoints.length; i < l; i++)
+			{
+				let point = renderPoints[i];
+				let nextPoint = renderPoints[(i+1)%pl];
+				let cin = nextPoint.pointType === PointType.Straight ? null : nextPoint.in, cout = point.pointType === PointType.Straight ? null : point.out;
+				if(cin === null && cout === null)
+				{
+					ctx.lineTo(nextPoint.translation[0], nextPoint.translation[1]);	
+				}
+				else
+				{
+					if(cout === null)
+					{
+						cout = point.translation;
+					}
+					if(cin === null)
+					{
+						cin = nextPoint.translation;
+					}
+					ctx.bezierCurveTo(
+						cout[0], cout[1],
+
+						cin[0], cin[1],
+
+						nextPoint.translation[0], nextPoint.translation[1]);
+				}
+			}
+			if(isClosed)
+			{
+				ctx.closePath();
+			}
+		}
+		ctx.restore();	
+	}
 }

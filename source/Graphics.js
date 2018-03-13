@@ -22,7 +22,7 @@ export default class Graphics
 
 	dispose()
 	{
-		
+
 	}
 
 	get width()

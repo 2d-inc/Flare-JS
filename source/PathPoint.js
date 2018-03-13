@@ -48,6 +48,7 @@ export class PathPoint
 
 	copy(from)
 	{
+		this._PointType = from._PointType;
 		vec2.copy(this._Translation, from._Translation);
 	}
 }
@@ -100,8 +101,8 @@ export class CubicPathPoint extends PathPoint
 	
 	makeInstance()
 	{
-		var node = new StraightPathPoint();
-		StraightPathPoint.prototype.copy.call(node, this);
+		var node = new CubicPathPoint();
+		CubicPathPoint.prototype.copy.call(node, this);
 		return node;	
 	}
 

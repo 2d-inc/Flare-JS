@@ -1,5 +1,7 @@
 import ActorNode from "./ActorNode.js";
 import ActorPath from "./ActorPath.js";
+import {RadialGradientFill, GradientFill, ColorFill, ColorStroke, GradientStroke, RadialGradientStroke} from "./ColorComponent.js";
+
 import {vec2, mat2d} from "gl-matrix";
 
 export default class ActorShape extends ActorNode
@@ -9,6 +11,27 @@ export default class ActorShape extends ActorNode
 		super();
 		this._DrawOrder = 0;
 		this._IsHidden = false;
+
+		this._Fills = null;
+		this._Strokes = null;
+	}
+
+	addFill(fill)
+	{
+		if(!this._Fills)
+		{
+			this._Fills = [];
+		}
+		this._Fills.push(fill);
+	}
+
+	addStroke(stroke)
+	{
+		if(!this._Strokes)
+		{
+			this._Strokes = [];
+		}
+		this._Strokes.push(stroke);
 	}
 
 	get isHidden()
@@ -106,6 +129,34 @@ export default class ActorShape extends ActorNode
 			return;
 		}
 
+		let ctx = graphics.ctx;
+		ctx.save();
+		ctx.globalAlpha = this._RenderOpacity;
+		this.drawShape(ctx, true);
+
+		let {_Fills:fills, _Strokes:strokes} = this;
+		
+		let transform = this._WorldTransform;
+		ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
+		if(fills)
+		{
+			for(let fill of fills)
+			{
+				fill.fill(ctx);
+			}
+		}
+		if(strokes)
+		{
+			for(let stroke of strokes)
+			{
+				if(stroke._Width > 0)
+				{
+					stroke.stroke(ctx);
+				}
+			}
+		}
+
+		ctx.restore();
 
 		// var t = this._WorldTransform;
 		// switch(this._BlendMode)
@@ -140,6 +191,66 @@ export default class ActorShape extends ActorNode
 
 		// graphics.prep(this._Texture, White, this._RenderOpacity, t, this._VertexBuffer, this._ConnectedBones ? this._BoneMatrices : null, this._DeformVertexBuffer, uvBuffer, uvOffset);
 		// graphics.draw(this._IndexBuffer);
+	}
+
+	drawShape(ctx, clip)
+	{
+		let shape = this.node;
+
+		// Find clips.
+		// if(clip)
+		// {
+		// 	let clipSearch = this.node;
+		// 	let clips = null;
+		// 	while(clipSearch)
+		// 	{
+		// 		if(clipSearch.clips)
+		// 		{
+		// 			clips = clipSearch.clips;
+		// 			break;
+		// 		}
+		// 		clipSearch = clipSearch.parent;
+		// 	}
+
+		// 	if(clips)
+		// 	{
+		// 		for(let clip of clips)
+		// 		{
+		// 			let shapes = new Set();
+		// 			clip.all(function(node)
+		// 			{
+		// 				if(node.constructor === ActorShape)
+		// 				{
+		// 					shapes.add(node);
+		// 				}
+		// 			});
+		// 			for(let shape of shapes)
+		// 			{
+		// 				ctx.beginPath();
+		// 				for(let node of shape.children)
+		// 				{
+		// 					if(node.constructor !== ActorPath)
+		// 					{
+		// 						continue;
+		// 					}
+		// 					node.stageItem.drawPath(ctx);
+		// 				}
+		// 			}
+		// 		}
+		// 		ctx.clip();
+		// 	}
+		// }
+
+		ctx.beginPath();
+		for(let path of this._Children)
+		{
+			if(path.constructor !== ActorPath || path.isHidden)
+			{
+				continue;
+			}
+
+			path.draw(ctx);
+		}
 	}
 
 	resolveComponentIndices(components)
