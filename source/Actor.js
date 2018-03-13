@@ -240,12 +240,12 @@ export default class Actor extends Dispatcher
 		if(!this._IsInstance)
 		{
 			// Load all the atlases.
-			let atlases = this._Atlases;
-			for(let i = 0; i < atlases.length; i++)
-			{
-				let atlas = atlases[i];
-				atlases[i] = graphics.loadTexture(atlas);
-			}
+			// let atlases = this._Atlases;
+			// for(let i = 0; i < atlases.length; i++)
+			// {
+			// 	let atlas = atlases[i];
+			// 	atlases[i] = graphics.loadTexture(atlas);
+			// }
 
 			for(let nested of this._NestedActorAssets)
 			{

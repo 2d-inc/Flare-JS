@@ -213,7 +213,6 @@ function _ReadComponentsBlock(actor, reader)
 				component = _ReadColorStroke(block.reader, new ColorStroke());
 				break;
 			case _BlockTypes.GradientFill:
-				console.log("A");
 				component = _ReadGradientFill(block.reader, new GradientFill());
 				break;
 			case _BlockTypes.GradientStroke:
@@ -1029,6 +1028,8 @@ function _ReadActorShape(reader, component)
 	component._IsHidden = !reader.readUint8();
 	/*component._BlendMode =*/ reader.readUint8();
 	component._DrawOrder = reader.readUint16();
+
+	return component;
 }
 
 function _ReadColorFill(reader, component)
@@ -1037,6 +1038,8 @@ function _ReadColorFill(reader, component)
 
 	reader.readFloat32Array(component._Color);
 	component._FillRule = reader.readUint8();
+
+	return component;
 }
 
 function _ReadColorStroke(reader, component)
@@ -1045,6 +1048,8 @@ function _ReadColorStroke(reader, component)
 
 	reader.readFloat32Array(component._Color);
 	component._Width = reader.readFloat32();
+
+	return component;
 }
 
 function _ReadGradient(reader, component)
@@ -1056,12 +1061,16 @@ function _ReadGradient(reader, component)
 
 	reader.readFloat32Array(component._Start);
 	reader.readFloat32Array(component._End);
+
+	return component;
 }
 
 function _ReadRadialGradient(reader, component)
 {
 	_ReadGradient(reader, component);
 	component._SecondaryRadiusScale = reader.readFloat32();
+
+	return component;
 }
 
 function _ReadGradientFill(reader, component)
@@ -1070,6 +1079,8 @@ function _ReadGradientFill(reader, component)
 
 	_ReadGradient(reader, component);
 	component._FillRule = reader.readUint8();
+
+	return component;
 }
 
 function _ReadGradientStroke(reader, component)
@@ -1078,6 +1089,8 @@ function _ReadGradientStroke(reader, component)
 
 	_ReadGradient(reader, component);
 	component._Width = reader.readFloat32();
+
+	return component;
 }
 
 function _ReadRadialGradientFill(reader, component)
@@ -1086,6 +1099,8 @@ function _ReadRadialGradientFill(reader, component)
 
 	_ReadRadialGradient(reader, component);
 	component._FillRule = reader.readUint8();
+
+	return component;
 }
 
 function _ReadRadialGradientStroke(reader, component)
@@ -1094,6 +1109,8 @@ function _ReadRadialGradientStroke(reader, component)
 
 	_ReadRadialGradient(reader, component);
 	component._Width = reader.readFloat32();
+
+	return component;
 }
 
 function _ReadActorPath(reader, component)
@@ -1133,6 +1150,8 @@ function _ReadActorPath(reader, component)
 		points[i] = point;
 	}
 	component._Points = points;
+	
+	return component;
 }
 
 function _ReadActorImage(reader, component)
