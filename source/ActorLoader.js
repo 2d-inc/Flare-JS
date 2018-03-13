@@ -26,6 +26,10 @@ import ActorTransformConstraint from "./ActorTransformConstraint.js";
 import ActorTranslationConstraint from "./ActorTranslationConstraint.js";
 import ActorScaleConstraint from "./ActorScaleConstraint.js";
 import ActorRotationConstraint from "./ActorRotationConstraint.js";
+import ActorShape from "./ActorShape.js";
+import ActorPath from "./ActorPath.js";
+import {ColorFill, ColorStroke, GradientFill, GradientStroke, RadialGradientFill, RadialGradientStroke} from "./ColorComponent.js";
+import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
 import KeyFrame from "./KeyFrame.js";
 import {mat2d, vec2} from "gl-matrix";
 
@@ -66,7 +70,16 @@ let _BlockTypes = {
 	ActorTranslationConstraint: 32,
 	ActorRotationConstraint: 33,
 	ActorScaleConstraint: 34,
-	ActorTransformConstraint: 35
+	ActorTransformConstraint: 35,
+
+	ActorShape:100,
+	ActorPath:101,
+	ColorFill:102,
+	ColorStroke:103,
+	GradientFill:104,
+	GradientStroke:105,
+	RadialGradientFill:106,
+	RadialGradientStroke:107
 };
 
 function _ReadNextBlock(reader, error)
@@ -112,6 +125,7 @@ function _ReadComponentsBlock(actor, reader)
 	while((block=_ReadNextBlock(reader, function(err) {actor.error = err;})) !== null)
 	{
 		let component = null;
+
 		switch(block.type)
 		{
 			case _BlockTypes.CustomIntProperty:
@@ -185,6 +199,31 @@ function _ReadComponentsBlock(actor, reader)
 				break;
 			case _BlockTypes.ActorRotationConstraint:
 				component = _ReadRotationConstraint(block.reader, new ActorRotationConstraint());
+				break;
+			case _BlockTypes.ActorShape:
+				component = _ReadActorShape(block.reader, new ActorShape());
+				break;
+			case _BlockTypes.ActorPath:
+				component = _ReadActorPath(block.reader, new ActorPath());
+				break;
+			case _BlockTypes.ColorFill:
+				component = _ReadColorFill(block.reader, new ColorFill());
+				break;
+			case _BlockTypes.ColorStroke:
+				component = _ReadColorStroke(block.reader, new ColorStroke());
+				break;
+			case _BlockTypes.GradientFill:
+				console.log("A");
+				component = _ReadGradientFill(block.reader, new GradientFill());
+				break;
+			case _BlockTypes.GradientStroke:
+				component = _ReadGradientStroke(block.reader, new GradientStroke());
+				break;
+			case _BlockTypes.RadialGradientFill:
+				component = _ReadRadialGradientFill(block.reader, new RadialGradientFill());
+				break;
+			case _BlockTypes.RadialGradientStroke:
+				component = _ReadRadialGradientStroke(block.reader, new RadialGradientStroke());
 				break;
 		}
 		if(component)
@@ -982,6 +1021,118 @@ function _ReadAxisConstraint(reader, component)
 	component._MinMaxSpace = reader.readUint8();
 
 	return component;
+}
+
+function _ReadActorShape(reader, component)
+{
+	_ReadActorNode(reader, component);
+	component._IsHidden = !reader.readUint8();
+	/*component._BlendMode =*/ reader.readUint8();
+	component._DrawOrder = reader.readUint16();
+}
+
+function _ReadColorFill(reader, component)
+{
+	_ReadActorComponent(reader, component);
+
+	reader.readFloat32Array(component._Color);
+	component._FillRule = reader.readUint8();
+}
+
+function _ReadColorStroke(reader, component)
+{
+	_ReadActorComponent(reader, component);
+
+	reader.readFloat32Array(component._Color);
+	component._Width = reader.readFloat32();
+}
+
+function _ReadGradient(reader, component)
+{
+	let numStops = reader.readUint8();
+	let stops = new Float32Array(numStops*5);
+	reader.readFloat32Array(stops);
+	component._ColorStops = stops;
+
+	reader.readFloat32Array(component._Start);
+	reader.readFloat32Array(component._End);
+}
+
+function _ReadRadialGradient(reader, component)
+{
+	_ReadGradient(reader, component);
+	component._SecondaryRadiusScale = reader.readFloat32();
+}
+
+function _ReadGradientFill(reader, component)
+{
+	_ReadActorComponent(reader, component);
+
+	_ReadGradient(reader, component);
+	component._FillRule = reader.readUint8();
+}
+
+function _ReadGradientStroke(reader, component)
+{
+	_ReadActorComponent(reader, component);
+
+	_ReadGradient(reader, component);
+	component._Width = reader.readFloat32();
+}
+
+function _ReadRadialGradientFill(reader, component)
+{
+	_ReadActorComponent(reader, component);
+
+	_ReadRadialGradient(reader, component);
+	component._FillRule = reader.readUint8();
+}
+
+function _ReadRadialGradientStroke(reader, component)
+{
+	_ReadActorComponent(reader, component);
+
+	_ReadRadialGradient(reader, component);
+	component._Width = reader.readFloat32();
+}
+
+function _ReadActorPath(reader, component)
+{
+	_ReadActorNode(reader, component);
+	component._IsHidden = !reader.readUint8();
+	component._IsClosed = reader.readUint8();
+
+	const pointCount = reader.readUint16();
+	let points = new Array(pointCount);
+	for(let i = 0; i < pointCount; i++)
+	{
+		let type = reader.readUint8();
+		let point = null;
+		switch(type)
+		{
+			case PointType.Straight:
+			{
+				point = new StraightPathPoint();
+				reader.readFloat32Array(point._Translation);
+				point._Radius = reader.readFloat32();
+				break;
+			}
+			default:
+			{
+				point = new CubicPathPoint();
+				reader.readFloat32Array(point._Translation);
+				reader.readFloat32Array(point._In);
+				reader.readFloat32Array(point._Out);
+				break;
+			}
+		}
+		if(!point)
+		{
+			throw new Error("Invalid point type " + type);
+		}
+		points[i] = point;
+	}
+	component._Points = points;
 }
 
 function _ReadActorImage(reader, component)
