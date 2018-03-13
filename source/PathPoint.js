@@ -31,6 +31,16 @@ export class PathPoint
 		this._Translation = vec2.create();
 	}
 
+	get pointType()
+	{
+		return this._PointType;
+	}
+
+	get translation()
+	{
+		return this._Translation;
+	}
+
 	makeInstance()
 	{
 		return null;
@@ -50,6 +60,11 @@ export class StraightPathPoint extends PathPoint
 		this._Radius = 0;
 	}
 
+	get radius()
+	{
+		return this._Radius;
+	}
+	
 	makeInstance()
 	{
 		var node = new StraightPathPoint();
@@ -72,7 +87,17 @@ export class CubicPathPoint extends PathPoint
 		this._In = vec2.create();
 		this._Out = vec2.create();
 	}
-
+	
+	get in()
+	{
+		return this._In;
+	}
+	
+	get out()
+	{
+		return this._Out;
+	}
+	
 	makeInstance()
 	{
 		var node = new StraightPathPoint();

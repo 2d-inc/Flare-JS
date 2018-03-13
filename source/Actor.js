@@ -1,5 +1,6 @@
 import Dispatcher from "./Dispatcher.js";
 import ActorNode from "./ActorNode.js";
+import ActorShape from "./ActorShape.js";
 import ActorImage from "./ActorImage.js";
 import NestedActorNode from "./NestedActorNode.js";
 import AnimationInstance from "./AnimationInstance.js";
@@ -220,14 +221,14 @@ export default class Actor extends Dispatcher
 
 	dispose(graphics)
 	{
-		if(!this._IsInstance)
-		{
-			let atlases = this._Atlases;
-			for(let atlas of atlases)
-			{
-				graphics.deleteTexture(atlas);
-			}
-		}
+		// if(!this._IsInstance)
+		// {
+		// 	let atlases = this._Atlases;
+		// 	for(let atlas of atlases)
+		// 	{
+		// 		graphics.deleteTexture(atlas);
+		// 	}
+		// }
 		let drawables = this._Drawables;
 		for(let drawable of drawables)
 		{
@@ -449,6 +450,7 @@ export default class Actor extends Dispatcher
 			let instanceNode = component.makeInstance(this);
 			switch(instanceNode.constructor)
 			{
+				case ActorShape:
 				case NestedActorNode:
 				case ActorImage:
 					this._Drawables.push(instanceNode);

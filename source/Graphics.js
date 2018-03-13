@@ -20,6 +20,11 @@ export default class Graphics
 		return this._Context;
 	}
 
+	dispose()
+	{
+		
+	}
+
 	get width()
 	{
 		return this._Canvas.width;

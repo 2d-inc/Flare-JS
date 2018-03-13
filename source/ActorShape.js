@@ -1,4 +1,5 @@
 import ActorNode from "./ActorNode.js";
+import ActorPath from "./ActorPath.js";
 import {vec2, mat2d} from "gl-matrix";
 
 export default class ActorShape extends ActorNode
@@ -25,12 +26,86 @@ export default class ActorShape extends ActorNode
 		
 	}
 
+	computeAABB()
+	{
+		let aabb = null;
+		for(let path of this._Children)
+		{
+			if(path.constructor !== ActorPath)
+			{
+				continue;
+			}
+
+			// This is the axis aligned bounding box in the space of the parent (this case our shape).
+			let pathAABB = path.getPathAABB();
+
+			if(!aabb)
+			{
+				aabb = pathAABB;
+			}
+			else
+			{
+				// Combine.
+				aabb[0] = Math.min(aabb[0], pathAABB[0]);
+				aabb[1] = Math.min(aabb[1], pathAABB[1]);
+
+				aabb[2] = Math.max(aabb[2], pathAABB[2]);
+				aabb[3] = Math.max(aabb[3], pathAABB[3]);
+			}
+		}
+
+		let world = this._WorldTransform;
+		//vec2.transformMat2d(vec2.create(), [], world);
+
+		var min_x = Number.MAX_VALUE;
+		var min_y = Number.MAX_VALUE;
+		var max_x = -Number.MAX_VALUE;
+		var max_y = -Number.MAX_VALUE;
+
+		var points = [
+			vec2.set(vec2.create(), aabb[0], aabb[1]),
+			vec2.set(vec2.create(), aabb[2], aabb[1]),
+			vec2.set(vec2.create(), aabb[2], aabb[3]),
+			vec2.set(vec2.create(), aabb[0], aabb[3])
+		];
+		for(var i = 0; i < points.length; i++)
+		{
+			var pt = points[i];
+			var wp = vec2.transformMat2d(pt, pt, world);
+			if(wp[0] < min_x)
+			{
+				min_x = wp[0];
+			}
+			if(wp[1] < min_y)
+			{
+				min_y = wp[1];
+			}
+
+			if(wp[0] > max_x)
+			{
+				max_x = wp[0];
+			}
+			if(wp[1] > max_y)
+			{
+				max_y = wp[1];
+			}
+		}
+
+		return new Float32Array([min_x, min_y, max_x, max_y]);
+	}
+
+	dispose(actor, graphics)
+	{
+
+	}
+
 	draw(graphics)
 	{
 		if(this._RenderCollapsed || this._IsHidden)
 		{
 			return;
 		}
+
 
 		// var t = this._WorldTransform;
 		// switch(this._BlendMode)
