@@ -77,13 +77,19 @@ export default class ActorShape extends ActorNode
 			}
 		}
 
-		let world = this._WorldTransform;
-		//vec2.transformMat2d(vec2.create(), [], world);
-
 		var min_x = Number.MAX_VALUE;
 		var min_y = Number.MAX_VALUE;
 		var max_x = -Number.MAX_VALUE;
 		var max_y = -Number.MAX_VALUE;
+
+		if(!aabb)
+		{
+			console.log("WHAT?", this, this._Children);
+			return new Float32Array([min_x, min_y, max_x, max_y]);
+		}
+		let world = this._WorldTransform;
+		//vec2.transformMat2d(vec2.create(), [], world);
+
 
 		var points = [
 			vec2.set(vec2.create(), aabb[0], aabb[1]),
@@ -198,48 +204,48 @@ export default class ActorShape extends ActorNode
 		let shape = this.node;
 
 		// Find clips.
-		// if(clip)
-		// {
-		// 	let clipSearch = this.node;
-		// 	let clips = null;
-		// 	while(clipSearch)
-		// 	{
-		// 		if(clipSearch.clips)
-		// 		{
-		// 			clips = clipSearch.clips;
-		// 			break;
-		// 		}
-		// 		clipSearch = clipSearch.parent;
-		// 	}
+		if(clip)
+		{
+			let clipSearch = this;
+			let clips = null;
+			while(clipSearch)
+			{
+				if(clipSearch._Clips)
+				{
+					clips = clipSearch._Clips;
+					break;
+				}
+				clipSearch = clipSearch._Parent;
+			}
 
-		// 	if(clips)
-		// 	{
-		// 		for(let clip of clips)
-		// 		{
-		// 			let shapes = new Set();
-		// 			clip.all(function(node)
-		// 			{
-		// 				if(node.constructor === ActorShape)
-		// 				{
-		// 					shapes.add(node);
-		// 				}
-		// 			});
-		// 			for(let shape of shapes)
-		// 			{
-		// 				ctx.beginPath();
-		// 				for(let node of shape.children)
-		// 				{
-		// 					if(node.constructor !== ActorPath)
-		// 					{
-		// 						continue;
-		// 					}
-		// 					node.stageItem.drawPath(ctx);
-		// 				}
-		// 			}
-		// 		}
-		// 		ctx.clip();
-		// 	}
-		// }
+			if(clips)
+			{
+				for(let clip of clips)
+				{
+					let shapes = new Set();
+					clip.all(function(node)
+					{
+						if(node.constructor === ActorShape)
+						{
+							shapes.add(node);
+						}
+					});
+					for(let shape of shapes)
+					{
+						ctx.beginPath();
+						for(let node of shape._Children)
+						{
+							if(node.constructor !== ActorPath)
+							{
+								continue;
+							}
+							node.draw(ctx);
+						}
+					}
+				}
+				ctx.clip();
+			}
+		}
 
 		ctx.beginPath();
 		for(let path of this._Children)

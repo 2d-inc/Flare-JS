@@ -34,7 +34,6 @@ import KeyFrame from "./KeyFrame.js";
 import {mat2d, vec2} from "gl-matrix";
 
 
-let _FirstVersion = 1065353216;
 let _BlockTypes = {
 	Components:1,
 	ActorNode:2,
@@ -118,7 +117,6 @@ function _ReadComponentsBlock(actor, reader)
 {
 	let componentCount = reader.readUint16();
 	let actorComponents = actor._Components;
-	_ReadActorNode = actor.dataVersion >= 13 ? _ReadActorNode13 : _ReadActorNode12;
 
 	// Guaranteed from the exporter to be in index order.
 	let block = null;
@@ -339,44 +337,40 @@ function _ReadAnimationBlock(actor, reader)
 
 						keyFrame._Time = propertyReader.readFloat64();
 
-						// On newer version we write the interpolation first.
-						if(actor.dataVersion >= 11)
+						switch(propertyType)
 						{
-							switch(propertyType)
-							{
-								case AnimatedProperty.Properties.IsCollisionEnabled:
-								case AnimatedProperty.Properties.BooleanProperty:
-								case AnimatedProperty.Properties.StringProperty:
-								case AnimatedProperty.Properties.Trigger:
-								case AnimatedProperty.Properties.DrawOrder:
-								case AnimatedProperty.Properties.ActiveChildIndex:
-									// These do not interpolate.
-									break;
-								default:
-									keyFrame._Type = propertyReader.readUint8();
-									switch(keyFrame._Type)
-									{
-										case KeyFrame.Type.Asymmetric:
-										case KeyFrame.Type.Mirrored:
-										case KeyFrame.Type.Disconnected:
-											keyFrame._InFactor = propertyReader.readFloat64();
-											keyFrame._InValue = propertyReader.readFloat32();
-											keyFrame._OutFactor = propertyReader.readFloat64();
-											keyFrame._OutValue = propertyReader.readFloat32();
-											break;
+							case AnimatedProperty.Properties.IsCollisionEnabled:
+							case AnimatedProperty.Properties.BooleanProperty:
+							case AnimatedProperty.Properties.StringProperty:
+							case AnimatedProperty.Properties.Trigger:
+							case AnimatedProperty.Properties.DrawOrder:
+							case AnimatedProperty.Properties.ActiveChildIndex:
+								// These do not interpolate.
+								break;
+							default:
+								keyFrame._Type = propertyReader.readUint8();
+								switch(keyFrame._Type)
+								{
+									case KeyFrame.Type.Asymmetric:
+									case KeyFrame.Type.Mirrored:
+									case KeyFrame.Type.Disconnected:
+										keyFrame._InFactor = propertyReader.readFloat64();
+										keyFrame._InValue = propertyReader.readFloat32();
+										keyFrame._OutFactor = propertyReader.readFloat64();
+										keyFrame._OutValue = propertyReader.readFloat32();
+										break;
 
-										case KeyFrame.Type.Hold:
-											keyFrame._InFactor = propertyReader.readFloat64();
-											keyFrame._InValue = propertyReader.readFloat32();
-											break;
+									case KeyFrame.Type.Hold:
+										keyFrame._InFactor = propertyReader.readFloat64();
+										keyFrame._InValue = propertyReader.readFloat32();
+										break;
 
-										default:
-											keyFrame._InValue = keyFrame._Value;
-											keyFrame._OutValue = keyFrame._Value;
-											break;
-									}
-									break;
-							}
+									default:
+										keyFrame._InValue = keyFrame._Value;
+										keyFrame._OutValue = keyFrame._Value;
+										break;
+								}
+								break;
 						}
 
 						if(propertyType === AnimatedProperty.Properties.Trigger)
@@ -420,46 +414,19 @@ function _ReadAnimationBlock(actor, reader)
 						{
 							keyFrame._Value = propertyReader.readFloat32();
 						}
-						if(actor.dataVersion === 1)
+
+						switch(keyFrame._Type)
 						{
-							keyFrame._Type = propertyReader.readUint8();
-							switch(keyFrame._Type)
-							{
-								case KeyFrame.Type.Asymmetric:
-								case KeyFrame.Type.Mirrored:
-								case KeyFrame.Type.Disconnected:
-									keyFrame._InFactor = propertyReader.readFloat64();
-									keyFrame._InValue = propertyReader.readFloat32();
-									keyFrame._OutFactor = propertyReader.readFloat64();
-									keyFrame._OutValue = propertyReader.readFloat32();
-									break;
+							case KeyFrame.Type.Asymmetric:
+							case KeyFrame.Type.Mirrored:
+							case KeyFrame.Type.Disconnected:
+							case KeyFrame.Type.Hold:
+								break;
 
-								case KeyFrame.Type.Hold:
-									keyFrame._InFactor = propertyReader.readFloat64();
-									keyFrame._InValue = propertyReader.readFloat32();
-									break;
-
-								default:
-									keyFrame._InValue = keyFrame._Value;
-									keyFrame._OutValue = keyFrame._Value;
-									break;
-							}
-						}
-						else
-						{
-							switch(keyFrame._Type)
-							{
-								case KeyFrame.Type.Asymmetric:
-								case KeyFrame.Type.Mirrored:
-								case KeyFrame.Type.Disconnected:
-								case KeyFrame.Type.Hold:
-									break;
-
-								default:
-									keyFrame._InValue = keyFrame._Value;
-									keyFrame._OutValue = keyFrame._Value;
-									break;
-							}
+							default:
+								keyFrame._InValue = keyFrame._Value;
+								keyFrame._OutValue = keyFrame._Value;
+								break;
 						}
 						if(propertyType === AnimatedProperty.Properties.DrawOrder)
 						{
@@ -486,10 +453,6 @@ function _ReadAnimationBlock(actor, reader)
 			}
 		}
 
-		if(actor.dataVersion == 1)
-		{
-			animation._FPS  = reader.readUint8();
-		}
 		animation._DisplayStart = reader.readFloat32();
 		animation._DisplayEnd = reader.readFloat32();
 		//animation._DisplayStart = 0;
@@ -667,16 +630,16 @@ function _ReadShot(loader, data, callback)
 {
 	let reader = new BinaryReader(new Uint8Array(data));
 	// Check signature
-	if(reader.readUint8() !== 78 || reader.readUint8() !== 73 || reader.readUint8() !== 77 || reader.readUint8() !== 65)
+	if(reader.readUint8() !== 70 || reader.readUint8() !== 76 || reader.readUint8() !== 65 || reader.readUint8() !== 82 || reader.readUint8() !== 69)
 	{
-		console.error("Bad nima signature.");
+		console.error("Bad flare signature.");
 		callback(null);
 		return;
 	}
 
 	let version = reader.readUint32();
 	let actor = new Actor();
-	actor.dataVersion = version === _FirstVersion ? 1 : version;
+	actor.dataVersion = version;
 	let block = null;
 	let waitForAtlas = false;
 	while((block=_ReadNextBlock(reader, function(err) {actor.error = err;})) !== null)
@@ -814,17 +777,7 @@ function _ReadActorEvent(reader, component)
 	return component;
 }
 
-let _ReadActorNode = null;
-
-function _ReadActorNode13(reader, component)
-{
-	_ReadActorNode12(reader, component);
-	component._IsCollapsedVisibility = reader.readUint8() === 1;
-
-	return component;
-}
-
-function _ReadActorNode12(reader, component)
+function _ReadActorNode(reader, component)
 {
 	_ReadActorComponent(reader, component);
 
@@ -832,7 +785,17 @@ function _ReadActorNode12(reader, component)
 	component._Rotation = reader.readFloat32();
 	reader.readFloat32Array(component._Scale);
 	component._Opacity = reader.readFloat32();
+	component._IsCollapsedVisibility = reader.readUint8() === 1;
 
+	let clipCount = reader.readUint8();
+	if(clipCount)
+	{
+		component._Clips = [];
+		for(let i = 0; i < clipCount; i++)
+		{
+			component._Clips.push(reader.readUint16());
+		}
+	}
 	return component;
 }
 
@@ -883,11 +846,6 @@ function _ReadActorIKTarget(version, reader, component)
 {
 	_ReadActorNode(reader, component);
 
-	// We no longer read order in versions above 14 as order is implicit.
-	if(version < 14)
-	{
-		component._Order = reader.readUint16();
-	}
 	component._Strength = reader.readFloat32();
 	component._InvertDirection = reader.readUint8() === 1;
 

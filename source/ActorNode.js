@@ -43,6 +43,47 @@ export default class ActorNode extends ActorComponent
 
 		this._IsCollapsedVisibility = false;
 		this._RenderCollapsed = false;
+		this._Clips = null;
+	}
+
+	eachChildRecursive(cb)
+	{
+		const children = this._Children;
+		for(let child of children)
+		{
+			if(cb(child) === false)
+			{
+				continue;
+			}
+
+			if(child.eachChildRecursive)
+			{
+				child.eachChildRecursive(cb);
+			}
+		}
+	}
+
+	all(cb)
+	{
+		if(cb(this) === false)
+		{
+			return false;
+		}
+		const children = this._Children;
+		for(let child of children)
+		{
+			if(cb(child) === false)
+			{
+				continue;
+			}
+
+			if(child.eachChildRecursive)
+			{
+				child.eachChildRecursive(cb);
+			}
+		}
+
+		return true;
 	}
 
 	addConstraint(constraint)
@@ -319,6 +360,18 @@ export default class ActorNode extends ActorComponent
 		this._Opacity = node._Opacity;
 		this._RenderOpacity = node._RenderOpacity;
 		this._OverrideWorldTransform = node._OverrideWorldTransform;
+		if(node._Clips)
+		{
+			this._Clips = [];	
+			for(let clip of node._Clips)
+			{
+				this._Clips.push(clip._Idx);
+			}
+		}
+		else
+		{
+			this._Clips = null;
+		}
 	}
 
 	overrideWorldTransform(transform)
@@ -326,5 +379,21 @@ export default class ActorNode extends ActorComponent
 		this._OverrideWorldTransform = transform ? true : false;
 		mat2d.copy(this._WorldTransform, transform);
 		this.markTransformDirty();
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		let clips = this._Clips;
+		if(!clips)
+		{
+			return;
+		}
+
+		for(let i = 0; i < clips.length; i++)
+		{
+			let idx = clips[i];
+			clips[i] = components[idx];
+		}
 	}
 }
