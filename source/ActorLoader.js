@@ -32,6 +32,7 @@ import {ColorFill, ColorStroke, GradientFill, GradientStroke, RadialGradientFill
 import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
 import KeyFrame from "./KeyFrame.js";
 import {mat2d, vec2} from "gl-matrix";
+import {Hold, Linear, Cubic} from "./Interpolation.js";
 
 
 let _BlockTypes = {
@@ -237,13 +238,10 @@ function _ReadAnimationBlock(actor, reader)
 	let animation = new Animation(actor);
 	actor._Animations.push(animation);
 
-	if(actor.dataVersion >= 11)
-	{
-		animation._Name = reader.readString();
-		animation._FPS = reader.readUint8();
-		animation._Duration = reader.readFloat32();
-		animation._Loop = reader.readUint8() === 1;
-	}
+	animation._Name = reader.readString();
+	animation._FPS = reader.readUint8();
+	animation._Duration = reader.readFloat32();
+	animation._Loop = reader.readUint8() === 1;
 
 	// Read the number of keyed nodes.
 	let numKeyedComponents = reader.readUint16();
@@ -346,29 +344,42 @@ function _ReadAnimationBlock(actor, reader)
 							case AnimatedProperty.Properties.DrawOrder:
 							case AnimatedProperty.Properties.ActiveChildIndex:
 								// These do not interpolate.
+								keyFrame._Interpolator = Hold.instance;
 								break;
 							default:
-								keyFrame._Type = propertyReader.readUint8();
-								switch(keyFrame._Type)
+								const type = propertyReader.readUint8();
+								switch(type)
 								{
-									case KeyFrame.Type.Asymmetric:
-									case KeyFrame.Type.Mirrored:
-									case KeyFrame.Type.Disconnected:
-										keyFrame._InFactor = propertyReader.readFloat64();
-										keyFrame._InValue = propertyReader.readFloat32();
-										keyFrame._OutFactor = propertyReader.readFloat64();
-										keyFrame._OutValue = propertyReader.readFloat32();
+									case 0:
+										keyFrame._Interpolator = Hold.instance;
 										break;
+									case 1:
+										keyFrame._Interpolator = Linear.instance;
+										break;
+									case 2:
+										keyFrame._Interpolator = new Cubic(propertyReader.readFloat32(), propertyReader.readFloat32(), propertyReader.readFloat32(), propertyReader.readFloat32());
+										break;
+									// Hold: 0
+									// Linear: 1
+									// Cubic: 2
+									// case KeyFrame.Type.Asymmetric:
+									// case KeyFrame.Type.Mirrored:
+									// case KeyFrame.Type.Disconnected:
+									// 	keyFrame._InFactor = propertyReader.readFloat64();
+									// 	keyFrame._InValue = propertyReader.readFloat32();
+									// 	keyFrame._OutFactor = propertyReader.readFloat64();
+									// 	keyFrame._OutValue = propertyReader.readFloat32();
+									// 	break;
 
-									case KeyFrame.Type.Hold:
-										keyFrame._InFactor = propertyReader.readFloat64();
-										keyFrame._InValue = propertyReader.readFloat32();
-										break;
+									// case KeyFrame.Type.Hold:
+									// 	keyFrame._InFactor = propertyReader.readFloat64();
+									// 	keyFrame._InValue = propertyReader.readFloat32();
+									// 	break;
 
-									default:
-										keyFrame._InValue = keyFrame._Value;
-										keyFrame._OutValue = keyFrame._Value;
-										break;
+									// default:
+									// 	keyFrame._InValue = keyFrame._Value;
+									// 	keyFrame._OutValue = keyFrame._Value;
+									// 	break;
 								}
 								break;
 						}
