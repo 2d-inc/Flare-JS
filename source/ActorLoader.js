@@ -315,6 +315,7 @@ function _ReadAnimationBlock(actor, reader)
 						case AnimatedProperty.Properties.IsCollisionEnabled:
 						case AnimatedProperty.Properties.ActiveChildIndex:
 						case AnimatedProperty.Properties.Sequence:
+						case AnimatedProperty.Properties.Paths:
 							validProperty = true;
 							break;
 						default:
@@ -383,8 +384,38 @@ function _ReadAnimationBlock(actor, reader)
 								}
 								break;
 						}
+						if(propertyType === AnimatedProperty.Properties.Paths)
+						{
+							const numPaths = propertyReader.readUint16();
+							for(let i = 0; i < numPaths; i++)
+							{
+								const pathId = propertyReader.readUint16();
+								let path = actor._Components[pathId];
 
-						if(propertyType === AnimatedProperty.Properties.Trigger)
+								const pointCount = path._Points.length;
+								
+								// todo: Store these keyframe values instead of just reading them in.
+								for(let j = 0; j < pointCount; j++)
+								{
+									let point = path._Points[j];
+									let translation = vec2.create();
+									propertyReader.readFloat32Array(translation);
+									if(point.constructor === StraightPathPoint)
+									{
+										let radius = propertyReader.readFloat32();
+									}
+									else
+									{
+										let controlIn = vec2.create();
+										propertyReader.readFloat32Array(controlIn);
+
+										let controlOut = vec2.create();
+										propertyReader.readFloat32Array(controlOut);
+									}
+								}
+							}
+						}
+						else if(propertyType === AnimatedProperty.Properties.Trigger)
 						{
 							// No value on keyframe.
 						}

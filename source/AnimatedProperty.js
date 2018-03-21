@@ -27,5 +27,13 @@ AnimatedProperty.Properties =
 	BooleanProperty:15,
 	IsCollisionEnabled:16,
 	Sequence:17,
-	ActiveChildIndex: 18
+	ActiveChildIndex: 18,
+	Paths:19,
+	FillColor:20,
+	FillGradient:21,
+	FillRadial:22,
+	StrokeColor:23,
+	StrokeGradient:24,
+	StrokeRadial:25,
+	StrokeWidth:26
 };
