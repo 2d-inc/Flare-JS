@@ -416,7 +416,18 @@ export default class Animation
 						}
 						break;
 					}
+					case AnimatedProperty.Properties.StrokeWidth:
+						if(mix === 1.0)
+						{
+							component._Width = value;	
+						}
+						else
+						{
+							component._Width = component._Width * imix + value * mix;
+						}
+						break;
 					case AnimatedProperty.Properties.FillColor:
+					case AnimatedProperty.Properties.StrokeColor:
 					{
 						let color = component._Color;
 						if(mix === 1.0)
@@ -432,6 +443,41 @@ export default class Animation
 							color[1] = color[1] * imix + value[1] * mix;
 							color[2] = color[2] * imix + value[2] * mix;
 							color[3] = color[3] * imix + value[3] * mix;
+						}
+						break;
+					}
+					case AnimatedProperty.Properties.FillGradient:
+					{
+						if(mix === 1.0)
+						{
+							let ridx = 0;
+							component._Start[0] = value[ridx++];
+							component._Start[1] = value[ridx++];
+							component._End[0] = value[ridx++];
+							component._End[1] = value[ridx++];
+
+							let cs = component._ColorStops;
+							let wi = 0;
+							while(ridx < value.length && wi < cs.length)
+							{
+								cs[wi++] = value[ridx++];
+							}
+						}
+						else
+						{
+							let ridx = 0;
+							component._Start[0] = component._Start[0] * imix + value[ridx++] * mix;
+							component._Start[1] = component._Start[1] * imix + value[ridx++] * mix;
+							component._End[0] = component._End[0] * imix + value[ridx++] * mix;
+							component._End[1] = component._End[1] * imix + value[ridx++] * mix;
+
+							let cs = component._ColorStops;
+							let wi = 0;
+							while(ridx < value.length && wi < cs.length)
+							{
+								cs[wi] = cs[wi] * imix + value[ridx++];
+								wi++;
+							}
 						}
 						break;
 					}

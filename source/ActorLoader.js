@@ -317,6 +317,9 @@ function _ReadAnimationBlock(actor, reader)
 						case AnimatedProperty.Properties.Sequence:
 						case AnimatedProperty.Properties.Paths:
 						case AnimatedProperty.Properties.FillColor:
+						case AnimatedProperty.Properties.StrokeColor:
+						case AnimatedProperty.Properties.StrokeWidth:
+						case AnimatedProperty.Properties.FillGradient:
 							validProperty = true;
 							break;
 						default:
@@ -428,6 +431,15 @@ function _ReadAnimationBlock(actor, reader)
 						else if(propertyType === AnimatedProperty.Properties.FillColor)
 						{
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4));
+						}
+						else if(propertyType === AnimatedProperty.Properties.StrokeColor)
+						{
+							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4));
+						}
+						else if(propertyType === AnimatedProperty.Properties.FillGradient)
+						{
+							const fillLength = propertyReader.readUint16();
+							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(fillLength));
 						}
 						else if(propertyType === AnimatedProperty.Properties.Trigger)
 						{
