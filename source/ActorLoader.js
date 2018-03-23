@@ -30,7 +30,7 @@ import ActorShape from "./ActorShape.js";
 import ActorPath from "./ActorPath.js";
 import {ColorFill, ColorStroke, GradientFill, GradientStroke, RadialGradientFill, RadialGradientStroke} from "./ColorComponent.js";
 import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
-import KeyFrame from "./KeyFrame.js";
+import {KeyFrame, PathsKeyFrame} from "./KeyFrame.js";
 import {mat2d, vec2} from "gl-matrix";
 import {Hold, Linear, Cubic} from "./Interpolation.js";
 
@@ -316,6 +316,7 @@ function _ReadAnimationBlock(actor, reader)
 						case AnimatedProperty.Properties.ActiveChildIndex:
 						case AnimatedProperty.Properties.Sequence:
 						case AnimatedProperty.Properties.Paths:
+						case AnimatedProperty.Properties.FillColor:
 							validProperty = true;
 							break;
 						default:
@@ -332,7 +333,7 @@ function _ReadAnimationBlock(actor, reader)
 					let lastKeyFrame = null;
 					for(let k = 0; k < keyFrameCount; k++)
 					{
-						let keyFrame = new KeyFrame();
+						let keyFrame = propertyType === AnimatedProperty.Properties.Paths ? new PathsKeyFrame(animatedProperty) : new KeyFrame(animatedProperty);
 
 						keyFrame._Time = propertyReader.readFloat64();
 
@@ -387,33 +388,46 @@ function _ReadAnimationBlock(actor, reader)
 						if(propertyType === AnimatedProperty.Properties.Paths)
 						{
 							const numPaths = propertyReader.readUint16();
+							let paths = new Map();
 							for(let i = 0; i < numPaths; i++)
 							{
 								const pathId = propertyReader.readUint16();
 								let path = actor._Components[pathId];
 
 								const pointCount = path._Points.length;
-								
+								let points = [];
+
 								// todo: Store these keyframe values instead of just reading them in.
 								for(let j = 0; j < pointCount; j++)
 								{
 									let point = path._Points[j];
-									let translation = vec2.create();
-									propertyReader.readFloat32Array(translation);
+									let framePoint = point.makeInstance();
+
+
+									let pos = propertyReader.readFloat32Array(new Float32Array(2));
+									points.push(pos[0], pos[1]);
+
 									if(point.constructor === StraightPathPoint)
 									{
-										let radius = propertyReader.readFloat32();
+										points.push(propertyReader.readFloat32());
 									}
 									else
 									{
-										let controlIn = vec2.create();
-										propertyReader.readFloat32Array(controlIn);
+										let p = propertyReader.readFloat32Array(new Float32Array(2));
+										points.push(p[0], p[1]);
 
-										let controlOut = vec2.create();
-										propertyReader.readFloat32Array(controlOut);
+										p = propertyReader.readFloat32Array(new Float32Array(2));
+										points.push(p[0], p[1]);
 									}
 								}
+
+								paths.set(pathId, new Float32Array(points));
 							}
+							keyFrame._Value = paths;
+						}
+						else if(propertyType === AnimatedProperty.Properties.FillColor)
+						{
+							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4));
 						}
 						else if(propertyType === AnimatedProperty.Properties.Trigger)
 						{

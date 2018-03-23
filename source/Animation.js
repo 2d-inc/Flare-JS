@@ -1,5 +1,6 @@
 import AnimatedProperty from "./AnimatedProperty.js";
 import ActorBone from "./ActorBone.js";
+import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
 
 function keyFrameLocation(seconds, list, start, end)
 {
@@ -159,7 +160,14 @@ export default class Animation
 						}
 						else
 						{
-							value = fromFrame.interpolate(time, toFrame);
+							let mix = (time - fromFrame._Time)/(toFrame._Time-fromFrame._Time);
+							let interpolator = fromFrame._Interpolator;
+							
+							if(interpolator)
+							{
+								mix = interpolator.getEasedMix(mix);
+							}
+							value = fromFrame.interpolate(mix, toFrame);
 						}
 					}
 					else
@@ -354,6 +362,79 @@ export default class Animation
 						component.activeChildIndex = value;
 						markDirty = true;
 						break;
+
+					case AnimatedProperty.Properties.Paths:
+					{
+						if(mix !== 1.0)
+						{
+							for(let [pathId, mixedPointData] of value)
+							{
+								let readIdx = 0;
+								let path = actorComponents[pathId];
+								for(let point of path._Points)
+								{
+									point._Translation[0] = point._Translation[0] * imix + mixedPointData[readIdx++] * mix;
+									point._Translation[1] = point._Translation[1] * imix + mixedPointData[readIdx++] * mix;
+									if(point.constructor === StraightPathPoint)
+									{
+										point._Radius = point._Radius * imix + mixedPointData[readIdx++] * mix;
+									}
+									else
+									{
+										point._In[0] = point._In[0] * imix + mixedPointData[readIdx++] * mix;
+										point._In[1] = point._In[1] * imix + mixedPointData[readIdx++] * mix;
+										point._Out[0] = point._Out[0] * imix + mixedPointData[readIdx++] * mix;
+										point._Out[1] = point._Out[1] * imix + mixedPointData[readIdx++] * mix;
+									}
+								}
+							}
+						}
+						else
+						{
+							for(let [pathId, mixedPointData] of value)
+							{
+								let readIdx = 0;
+								let path = actorComponents[pathId];
+
+								for(let point of path._Points)
+								{
+									point._Translation[0] = mixedPointData[readIdx++];
+									point._Translation[1] = mixedPointData[readIdx++];
+									if(point.constructor === StraightPathPoint)
+									{
+										point._Radius = mixedPointData[readIdx++];
+									}
+									else
+									{
+										point._In[0] = mixedPointData[readIdx++];
+										point._In[1] = mixedPointData[readIdx++];
+										point._Out[0] = mixedPointData[readIdx++];
+										point._Out[1] = mixedPointData[readIdx++];
+									}
+								}
+							}
+						}
+						break;
+					}
+					case AnimatedProperty.Properties.FillColor:
+					{
+						let color = component._Color;
+						if(mix === 1.0)
+						{
+							color[0] = value[0];
+							color[1] = value[1];
+							color[2] = value[2];
+							color[3] = value[3];
+						}
+						else
+						{
+							color[0] = color[0] * imix + value[0] * mix;
+							color[1] = color[1] * imix + value[1] * mix;
+							color[2] = color[2] * imix + value[2] * mix;
+							color[3] = color[3] * imix + value[3] * mix;
+						}
+						break;
+					}
 				}
 
 				if(markDirty)
