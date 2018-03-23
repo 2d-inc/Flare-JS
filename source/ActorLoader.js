@@ -320,6 +320,7 @@ function _ReadAnimationBlock(actor, reader)
 						case AnimatedProperty.Properties.StrokeColor:
 						case AnimatedProperty.Properties.StrokeWidth:
 						case AnimatedProperty.Properties.FillGradient:
+						case AnimatedProperty.Properties.StrokeGradient:
 							validProperty = true;
 							break;
 						default:
@@ -428,15 +429,12 @@ function _ReadAnimationBlock(actor, reader)
 							}
 							keyFrame._Value = paths;
 						}
-						else if(propertyType === AnimatedProperty.Properties.FillColor)
+						else if(propertyType === AnimatedProperty.Properties.FillColor || propertyType === AnimatedProperty.Properties.StrokeColor)
 						{
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4));
 						}
-						else if(propertyType === AnimatedProperty.Properties.StrokeColor)
-						{
-							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4));
-						}
-						else if(propertyType === AnimatedProperty.Properties.FillGradient)
+
+						else if(propertyType === AnimatedProperty.Properties.FillGradient || propertyType === AnimatedProperty.Properties.StrokeGradient)
 						{
 							const fillLength = propertyReader.readUint16();
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(fillLength));

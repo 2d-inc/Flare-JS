@@ -447,6 +447,7 @@ export default class Animation
 						break;
 					}
 					case AnimatedProperty.Properties.FillGradient:
+					case AnimatedProperty.Properties.StrokeGradient:
 					{
 						if(mix === 1.0)
 						{
