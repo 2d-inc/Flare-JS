@@ -321,6 +321,8 @@ function _ReadAnimationBlock(actor, reader)
 						case AnimatedProperty.Properties.StrokeWidth:
 						case AnimatedProperty.Properties.FillGradient:
 						case AnimatedProperty.Properties.StrokeGradient:
+						case AnimatedProperty.Properties.FillRadial:
+						case AnimatedProperty.Properties.StrokeRadial:
 							validProperty = true;
 							break;
 						default:
@@ -434,7 +436,7 @@ function _ReadAnimationBlock(actor, reader)
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4));
 						}
 
-						else if(propertyType === AnimatedProperty.Properties.FillGradient || propertyType === AnimatedProperty.Properties.StrokeGradient)
+						else if(propertyType === AnimatedProperty.Properties.FillGradient || propertyType === AnimatedProperty.Properties.StrokeGradient || propertyType === AnimatedProperty.Properties.StrokeRadial || propertyType === AnimatedProperty.Properties.FillRadial)
 						{
 							const fillLength = propertyReader.readUint16();
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(fillLength));

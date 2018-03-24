@@ -482,6 +482,44 @@ export default class Animation
 						}
 						break;
 					}
+					case AnimatedProperty.Properties.FillRadial:
+					case AnimatedProperty.Properties.StrokeRadial:
+					{
+						if(mix === 1.0)
+						{
+							let ridx = 0;
+							component._SecondaryRadiusScale = value[ridx++];
+							component._Start[0] = value[ridx++];
+							component._Start[1] = value[ridx++];
+							component._End[0] = value[ridx++];
+							component._End[1] = value[ridx++];
+
+							let cs = component._ColorStops;
+							let wi = 0;
+							while(ridx < value.length && wi < cs.length)
+							{
+								cs[wi++] = value[ridx++];
+							}
+						}
+						else
+						{
+							let ridx = 0;
+							component._SecondaryRadiusScale = component._SecondaryRadiusScale * imix + value[ridx++] * mix;
+							component._Start[0] = component._Start[0] * imix + value[ridx++] * mix;
+							component._Start[1] = component._Start[1] * imix + value[ridx++] * mix;
+							component._End[0] = component._End[0] * imix + value[ridx++] * mix;
+							component._End[1] = component._End[1] * imix + value[ridx++] * mix;
+
+							let cs = component._ColorStops;
+							let wi = 0;
+							while(ridx < value.length && wi < cs.length)
+							{
+								cs[wi] = cs[wi] * imix + value[ridx++];
+								wi++;
+							}
+						}
+						break;
+					}
 				}
 
 				if(markDirty)
