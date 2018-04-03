@@ -363,54 +363,44 @@ export default class Animation
 						markDirty = true;
 						break;
 
-					case AnimatedProperty.Properties.Paths:
+					case AnimatedProperty.Properties.PathVertices:
 					{
+						let readIdx = 0;
 						if(mix !== 1.0)
 						{
-							for(let [pathId, mixedPointData] of value)
+							for(let point of component._Points)
 							{
-								let readIdx = 0;
-								let path = actorComponents[pathId];
-								for(let point of path._Points)
+								point._Translation[0] = point._Translation[0] * imix + value[readIdx++] * mix;
+								point._Translation[1] = point._Translation[1] * imix + value[readIdx++] * mix;
+								if(point.constructor === StraightPathPoint)
 								{
-									point._Translation[0] = point._Translation[0] * imix + mixedPointData[readIdx++] * mix;
-									point._Translation[1] = point._Translation[1] * imix + mixedPointData[readIdx++] * mix;
-									if(point.constructor === StraightPathPoint)
-									{
-										point._Radius = point._Radius * imix + mixedPointData[readIdx++] * mix;
-									}
-									else
-									{
-										point._In[0] = point._In[0] * imix + mixedPointData[readIdx++] * mix;
-										point._In[1] = point._In[1] * imix + mixedPointData[readIdx++] * mix;
-										point._Out[0] = point._Out[0] * imix + mixedPointData[readIdx++] * mix;
-										point._Out[1] = point._Out[1] * imix + mixedPointData[readIdx++] * mix;
-									}
+									point._Radius = point._Radius * imix + value[readIdx++] * mix;
+								}
+								else
+								{
+									point._In[0] = point._In[0] * imix + value[readIdx++] * mix;
+									point._In[1] = point._In[1] * imix + value[readIdx++] * mix;
+									point._Out[0] = point._Out[0] * imix + value[readIdx++] * mix;
+									point._Out[1] = point._Out[1] * imix + value[readIdx++] * mix;
 								}
 							}
 						}
 						else
 						{
-							for(let [pathId, mixedPointData] of value)
+							for(let point of component._Points)
 							{
-								let readIdx = 0;
-								let path = actorComponents[pathId];
-
-								for(let point of path._Points)
+								point._Translation[0] = value[readIdx++];
+								point._Translation[1] = value[readIdx++];
+								if(point.constructor === StraightPathPoint)
 								{
-									point._Translation[0] = mixedPointData[readIdx++];
-									point._Translation[1] = mixedPointData[readIdx++];
-									if(point.constructor === StraightPathPoint)
-									{
-										point._Radius = mixedPointData[readIdx++];
-									}
-									else
-									{
-										point._In[0] = mixedPointData[readIdx++];
-										point._In[1] = mixedPointData[readIdx++];
-										point._Out[0] = mixedPointData[readIdx++];
-										point._Out[1] = mixedPointData[readIdx++];
-									}
+									point._Radius = value[readIdx++];
+								}
+								else
+								{
+									point._In[0] = value[readIdx++];
+									point._In[1] = value[readIdx++];
+									point._Out[0] = value[readIdx++];
+									point._Out[1] = value[readIdx++];
 								}
 							}
 						}

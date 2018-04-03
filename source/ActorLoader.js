@@ -315,7 +315,7 @@ function _ReadAnimationBlock(actor, reader)
 						case AnimatedProperty.Properties.IsCollisionEnabled:
 						case AnimatedProperty.Properties.ActiveChildIndex:
 						case AnimatedProperty.Properties.Sequence:
-						case AnimatedProperty.Properties.Paths:
+						case AnimatedProperty.Properties.PathVertices:
 						case AnimatedProperty.Properties.FillColor:
 						case AnimatedProperty.Properties.StrokeColor:
 						case AnimatedProperty.Properties.StrokeWidth:
@@ -339,7 +339,7 @@ function _ReadAnimationBlock(actor, reader)
 					let lastKeyFrame = null;
 					for(let k = 0; k < keyFrameCount; k++)
 					{
-						let keyFrame = propertyType === AnimatedProperty.Properties.Paths ? new PathsKeyFrame(animatedProperty) : new KeyFrame(animatedProperty);
+						let keyFrame = new KeyFrame(animatedProperty);
 
 						keyFrame._Time = propertyReader.readFloat64();
 
@@ -391,45 +391,36 @@ function _ReadAnimationBlock(actor, reader)
 								}
 								break;
 						}
-						if(propertyType === AnimatedProperty.Properties.Paths)
+						if(propertyType === AnimatedProperty.Properties.PathVertices)
 						{
-							const numPaths = propertyReader.readUint16();
-							let paths = new Map();
-							for(let i = 0; i < numPaths; i++)
+							let path = actor._Components[animatedComponent._ComponentIndex];
+							const pointCount = path._Points.length;
+							let points = [];
+							
+							for(let j = 0; j < pointCount; j++)
 							{
-								const pathId = propertyReader.readUint16();
-								let path = actor._Components[pathId];
+								let point = path._Points[j];
+								let framePoint = point.makeInstance();
 
-								const pointCount = path._Points.length;
-								let points = [];
 
-								// todo: Store these keyframe values instead of just reading them in.
-								for(let j = 0; j < pointCount; j++)
+								let pos = propertyReader.readFloat32Array(new Float32Array(2));
+								points.push(pos[0], pos[1]);
+
+								if(point.constructor === StraightPathPoint)
 								{
-									let point = path._Points[j];
-									let framePoint = point.makeInstance();
-
-
-									let pos = propertyReader.readFloat32Array(new Float32Array(2));
-									points.push(pos[0], pos[1]);
-
-									if(point.constructor === StraightPathPoint)
-									{
-										points.push(propertyReader.readFloat32());
-									}
-									else
-									{
-										let p = propertyReader.readFloat32Array(new Float32Array(2));
-										points.push(p[0], p[1]);
-
-										p = propertyReader.readFloat32Array(new Float32Array(2));
-										points.push(p[0], p[1]);
-									}
+									points.push(propertyReader.readFloat32());
 								}
+								else
+								{
+									let p = propertyReader.readFloat32Array(new Float32Array(2));
+									points.push(p[0], p[1]);
 
-								paths.set(pathId, new Float32Array(points));
+									p = propertyReader.readFloat32Array(new Float32Array(2));
+									points.push(p[0], p[1]);
+								}
 							}
-							keyFrame._Value = paths;
+
+							keyFrame._Value = new Float32Array(points);
 						}
 						else if(propertyType === AnimatedProperty.Properties.FillColor || propertyType === AnimatedProperty.Properties.StrokeColor)
 						{

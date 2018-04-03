@@ -28,7 +28,7 @@ AnimatedProperty.Properties =
 	IsCollisionEnabled:16,
 	Sequence:17,
 	ActiveChildIndex: 18,
-	Paths:19,
+	PathVertices:19,
 	FillColor:20,
 	FillGradient:21,
 	FillRadial:22,

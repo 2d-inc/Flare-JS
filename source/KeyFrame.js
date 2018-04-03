@@ -56,52 +56,6 @@ export class KeyFrame
 	}
 }
 
-export class PathsKeyFrame
-{
-	constructor(property)
-	{
-		this._Value = 0.0;
-		this._Time = 0.0;
-		this._Type = 0;
-		this._Interpolator = null;
-		this._Property = property;
-		property.pathBuffers = [];
-	}
-
-	setNext(nxt)
-	{
-
-	}
-
-	interpolate(mix, nxt)
-	{
-		let pathBuffers = this._Property.pathBuffers;
-		let pathBufferIdx = 0;
-		let result = new Map();
-		for(let [pathId, pathPoints] of this._Value)
-		{
-			let nextPathPoints = nxt._Value.get(pathId);
-			if(!nextPathPoints)
-			{
-				continue;
-			}
-
-			let pathBuffer = pathBuffers[pathBufferIdx++];
-			if(!pathBuffer)
-			{
-				pathBuffer = new Float32Array(32);
-				pathBuffers.push(pathBuffer);
-			}
-
-			let mixed = (pathBuffer=InterpolateVertexBuffer(pathBuffer, pathPoints, nextPathPoints, mix));
-			pathBuffers[pathBufferIdx-1] = pathBuffer;
-			result.set(pathId, mixed);
-		}
-		return result;
-	}
-}
-
-
 KeyFrame.Type =
 {
 	Hold:0,
