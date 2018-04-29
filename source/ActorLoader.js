@@ -400,8 +400,6 @@ function _ReadAnimationBlock(actor, reader)
 							for(let j = 0; j < pointCount; j++)
 							{
 								let point = path._Points[j];
-								let framePoint = point.makeInstance();
-
 
 								let pos = propertyReader.readFloat32Array(new Float32Array(2));
 								points.push(pos[0], pos[1]);
