@@ -63,6 +63,16 @@ export default class Graphics
 		ctx.restore();
 	}
 
+	get viewportWidth()
+	{
+		return this._Canvas.width;
+	}
+
+	get viewportHeight()
+	{
+		return this._Canvas.height;
+	}
+
 	setSize(width, height)
 	{
 		if(this.width !== width || this.height !== height)
