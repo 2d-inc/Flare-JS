@@ -323,6 +323,8 @@ function _ReadAnimationBlock(actor, reader)
 						case AnimatedProperty.Properties.StrokeGradient:
 						case AnimatedProperty.Properties.FillRadial:
 						case AnimatedProperty.Properties.StrokeRadial:
+						case AnimatedProperty.Properties.StrokeOpacity:
+						case AnimatedProperty.Properties.FillOpacity:
 							validProperty = true;
 							break;
 						default:

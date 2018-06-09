@@ -35,5 +35,7 @@ AnimatedProperty.Properties =
 	StrokeColor:23,
 	StrokeGradient:24,
 	StrokeRadial:25,
-	StrokeWidth:26
+	StrokeWidth:26,
+	StrokeOpacity:27,
+	FillOpacity:28
 };
