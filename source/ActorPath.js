@@ -2,6 +2,9 @@ import ActorNode from "./ActorNode.js";
 import {vec2, mat2d} from "gl-matrix";
 import {PathPoint, PointType} from "./PathPoint.js";
 
+const CircleConstant = 0.552284749831;
+const InverseCircleConstant = 1.0-CircleConstant;
+
 export default class ActorPath extends ActorNode
 {
 	constructor()
@@ -198,8 +201,6 @@ export default class ActorPath extends ActorNode
 			let renderPoints = [];
 			let pl = points.length;
 			const isClosed = this._IsClosed;
-			const arcConstant = 0.55;
-			const iarcConstant = 1.0-arcConstant;
 			let previous = isClosed ? points[points.length-1] : null;
 			for(let i = 0; i < points.length; i++)
 			{
@@ -241,7 +242,7 @@ export default class ActorPath extends ActorNode
 								renderPoints.push({
 									pointType:PointType.Disconnected,
 									translation:translation,
-									out:vec2.scaleAndAdd(vec2.create(), pos, toPrev, iarcConstant*renderRadius),
+									out:vec2.scaleAndAdd(vec2.create(), pos, toPrev, InverseCircleConstant*renderRadius),
 									in:translation//vec2.scaleAndAdd(vec2.create(), translation, toPrev, arcConstant*renderRadius)
 								});
 
@@ -250,7 +251,7 @@ export default class ActorPath extends ActorNode
 								previous = {
 									pointType:PointType.Disconnected,
 									translation:translation,
-									in:vec2.scaleAndAdd(vec2.create(), pos, toNext, iarcConstant*renderRadius),
+									in:vec2.scaleAndAdd(vec2.create(), pos, toNext, InverseCircleConstant*renderRadius),
 									out:translation//vec2.scaleAndAdd(vec2.create(), translation, toNext, arcConstant*renderRadius)
 								};
 								renderPoints.push(previous);
