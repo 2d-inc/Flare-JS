@@ -355,6 +355,7 @@ function _ReadAnimationBlock(actor, reader)
 								keyFrame._Interpolator = Hold.instance;
 								break;
 							default:
+							{
 								const type = propertyReader.readUint8();
 								switch(type)
 								{
@@ -390,6 +391,7 @@ function _ReadAnimationBlock(actor, reader)
 									// 	break;
 								}
 								break;
+							}
 						}
 						if(propertyType === AnimatedProperty.Properties.PathVertices)
 						{
