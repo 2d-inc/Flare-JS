@@ -21,6 +21,7 @@ export class ActorColor extends ActorComponent
 	{
 		super();
 		this._Color = new Float32Array(4);
+		this._Opacity = 1.0;
 	}
 
 	copy(node, resetActor)
@@ -28,12 +29,13 @@ export class ActorColor extends ActorComponent
 		super.copy(node, resetActor);
 
 		vec4.copy(this._Color, node._Color);
+		this._Opacity = node._Opacity;
 	}
 
 	get cssColor()
 	{
 		const c = this._Color;
-		return "rgba(" + Math.round(c[0]*255) + ", " + Math.round(c[1]*255) + ", " + Math.round(c[2]*255) + ", " + c[3] + ")";
+		return "rgba(" + Math.round(c[0]*255) + ", " + Math.round(c[1]*255) + ", " + Math.round(c[2]*255) + ", " + (c[3]*this._Opacity) + ")";
 	}
 }
 
@@ -129,6 +131,7 @@ export class GradientColor extends ActorComponent
 	{
 		super();
 		this._ColorStops = new Float32Array(10);
+		this._Opacity = 1.0;
 		this._Start = vec2.create();
 		this._End = vec2.create();
 	}
@@ -140,6 +143,7 @@ export class GradientColor extends ActorComponent
 		this._ColorStops = new Float32Array(node._ColorStops);
 		vec2.copy(this._Start, node._Start);
 		vec2.copy(this._End, node._End);
+		this._Opacity = node._Opacity;
 	}
 }
 
@@ -170,11 +174,12 @@ export class GradientFill extends GradientColor
 		let {_Start:start, _End:end, _ColorStops:stops} = this;
 		var gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
 
+		const opacity = this._Opacity;
 		const numStops = stops.length/5;
 		let idx = 0;
 		for(let i = 0; i < numStops; i++)
 		{
-			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + stops[idx++] + ")";
+			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
 			const value = stops[idx++];
 			gradient.addColorStop(value, style);
 		}
@@ -228,11 +233,12 @@ export class GradientStroke extends GradientColor
 		let {_Start:start, _End:end, _ColorStops:stops} = this;
 		var gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
 
+		const opacity = this._Opacity;
 		const numStops = stops.length/5;
 		let idx = 0;
 		for(let i = 0; i < numStops; i++)
 		{
-			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + stops[idx++] + ")";
+			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
 			const value = stops[idx++];
 			gradient.addColorStop(value, style);
 		}
@@ -295,11 +301,12 @@ export class RadialGradientFill extends RadialGradientColor
 		let {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
 		var gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
 
+		const opacity = this._Opacity;
 		const numStops = stops.length/5;
 		let idx = 0;
 		for(let i = 0; i < numStops; i++)
 		{
-			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + stops[idx++] + ")";
+			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
 			const value = stops[idx++];
 			gradient.addColorStop(value, style);
 		}
@@ -363,11 +370,12 @@ export class RadialGradientStroke extends RadialGradientColor
 		let {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
 		var gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
 
+		const opacity = this._Opacity;
 		const numStops = stops.length/5;
 		let idx = 0;
 		for(let i = 0; i < numStops; i++)
 		{
-			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + stops[idx++] + ")";
+			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
 			const value = stops[idx++];
 			gradient.addColorStop(value, style);
 		}

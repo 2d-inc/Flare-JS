@@ -416,6 +416,17 @@ export default class Animation
 							component._Width = component._Width * imix + value * mix;
 						}
 						break;
+						case AnimatedProperty.Properties.FillOpacity:
+					case AnimatedProperty.Properties.StrokeOpacity:
+						if(mix === 1.0)
+						{
+							component._Opacity = value;	
+						}
+						else
+						{
+							component._Opacity = component._Opacity * imix + value * mix;
+						}
+						break;
 					case AnimatedProperty.Properties.FillColor:
 					case AnimatedProperty.Properties.StrokeColor:
 					{
