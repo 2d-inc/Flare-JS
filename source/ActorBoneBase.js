@@ -13,7 +13,7 @@ export default class ActorBoneBase extends ActorNode
 
 	get tipWorldTranslation()
 	{
-		var transform = mat2d.create();
+		const transform = mat2d.create();
 		transform[4] = this._Length;
 		mat2d.mul(transform, this._WorldTransform, transform);
 		return vec2.set(vec2.create(), transform[4], transform[5]);

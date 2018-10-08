@@ -68,7 +68,7 @@ export class StraightPathPoint extends PathPoint
 	
 	makeInstance()
 	{
-		var node = new StraightPathPoint();
+		const node = new StraightPathPoint();
 		StraightPathPoint.prototype.copy.call(node, this);
 		return node;	
 	}
@@ -101,7 +101,7 @@ export class CubicPathPoint extends PathPoint
 	
 	makeInstance()
 	{
-		var node = new CubicPathPoint();
+		const node = new CubicPathPoint();
 		CubicPathPoint.prototype.copy.call(node, this);
 		return node;	
 	}

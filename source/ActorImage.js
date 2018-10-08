@@ -1,7 +1,7 @@
 import ActorNode from "./ActorNode.js";
-import {vec2, mat2d} from "gl-matrix";
+import {mat2d} from "gl-matrix";
 
-let White = [1.0, 1.0, 1.0, 1.0];
+const White = [1.0, 1.0, 1.0, 1.0];
 export default class ActorImage extends ActorNode
 {
 	constructor()
@@ -51,10 +51,10 @@ export default class ActorImage extends ActorNode
 		this._AnimationDeformedVertices = new Float32Array(this._NumVertices * 2);
 
 		// Copy the deform verts from the rig verts.
-		var writeIdx = 0;
-		var readIdx = 0;
-		var readStride = this._VertexStride;
-		for(var i = 0; i < this._NumVertices; i++)
+		let writeIdx = 0;
+		let readIdx = 0;
+		const readStride = this._VertexStride;
+		for(let i = 0; i < this._NumVertices; i++)
 		{
 			this._AnimationDeformedVertices[writeIdx++] = this._Vertices[readIdx];
 			this._AnimationDeformedVertices[writeIdx++] = this._Vertices[readIdx+1];
@@ -64,8 +64,8 @@ export default class ActorImage extends ActorNode
 
 	computeAABB()
 	{
-		let worldVertices = this.computeWorldVertices();
-		let nv = worldVertices.length/2;
+		const worldVertices = this.computeWorldVertices();
+		const nv = worldVertices.length/2;
 		let min_x = Number.MAX_VALUE;
 		let min_y = Number.MAX_VALUE;
 		let max_x = -Number.MAX_VALUE;
@@ -99,24 +99,24 @@ export default class ActorImage extends ActorNode
 
 	computeWorldVertices()
 	{
-		let vertices = this._HasVertexDeformAnimation ? this._AnimationDeformedVertices : this._Vertices;
+		const vertices = this._HasVertexDeformAnimation ? this._AnimationDeformedVertices : this._Vertices;
 
-		let stride = this._HasVertexDeformAnimation ? 2 : this._VertexStride;
+		const stride = this._HasVertexDeformAnimation ? 2 : this._VertexStride;
 		let readIdx = 0;
 		let writeIdx = 0;
 
-		let world = this._WorldTransform;
+		const world = this._WorldTransform;
 
-		let nv = this._NumVertices;
-		let deformed = new Float32Array(nv*2);
+		const nv = this._NumVertices;
+		const deformed = new Float32Array(nv*2);
 
 		if(this._ConnectedBones)
 		{
 			let weightIndex = 4;
-			let weightStride = 12;
-			let weightVertices = this._Vertices;
+			const weightStride = 12;
+			const weightVertices = this._Vertices;
 
-			var bones = this._BoneMatrices;
+			const bones = this._BoneMatrices;
 
 			for(let i = 0; i < nv; i++)
 			{
@@ -125,16 +125,16 @@ export default class ActorImage extends ActorNode
 				
 				readIdx += stride;
 
-				var px = world[0] * x + world[2] * y + world[4];
-				var py = world[1] * x + world[3] * y + world[5];
+				const px = world[0] * x + world[2] * y + world[4];
+				const py = world[1] * x + world[3] * y + world[5];
 
-				var fm = new Float32Array(6);
-				for(var wi = 0; wi < 4; wi++)
+				const fm = new Float32Array(6);
+				for(let wi = 0; wi < 4; wi++)
 				{
-					var boneIndex = weightVertices[weightIndex+wi];
-					var weight = weightVertices[weightIndex+wi+4];
+					const boneIndex = weightVertices[weightIndex+wi];
+					const weight = weightVertices[weightIndex+wi+4];
 
-					var bb = boneIndex*6;
+					const bb = boneIndex*6;
 
 					for(let j = 0; j < 6; j++)
 					{
@@ -155,8 +155,8 @@ export default class ActorImage extends ActorNode
 		{
 			for(let i = 0; i < nv; i++)
 			{
-				let x = vertices[readIdx];
-				let y = vertices[readIdx+1];
+				const x = vertices[readIdx];
+				const y = vertices[readIdx+1];
 
 				deformed[writeIdx++] = world[0] * x + world[2] * y + world[4];
 				deformed[writeIdx++] = world[1] * x + world[3] * y + world[5];
@@ -233,7 +233,7 @@ export default class ActorImage extends ActorNode
 
 		if(this._IsInstance && this._ConnectedBones)
 		{
-			var bt = this._BoneMatrices = new Float32Array((this._ConnectedBones.length+1) * 6);
+			const bt = this._BoneMatrices = new Float32Array((this._ConnectedBones.length+1) * 6);
 
 			// First bone transform is always identity.
 			bt[0] = 1;
@@ -260,14 +260,14 @@ export default class ActorImage extends ActorNode
 
 		if(this._ConnectedBones)
 		{
-			var bt = this._BoneMatrices;
-			var bidx = 6; // Start after first identity.
+			const bt = this._BoneMatrices;
+			let bidx = 6; // Start after first identity.
 
-			var mat = mat2d.create();
+			const mat = mat2d.create();
 
-			for(var i = 0; i < this._ConnectedBones.length; i++)
+			for(let i = 0; i < this._ConnectedBones.length; i++)
 			{
-				var cb = this._ConnectedBones[i];
+				const cb = this._ConnectedBones[i];
 				if(!cb.node)
 				{
 					bt[bidx++] = 1;
@@ -278,7 +278,7 @@ export default class ActorImage extends ActorNode
 					bt[bidx++] = 0;
 					continue;
 				}
-				var wt = mat2d.mul(mat, cb.node._WorldTransform, cb.ibind);
+				const wt = mat2d.mul(mat, cb.node._WorldTransform, cb.ibind);
 
 				bt[bidx++] = wt[0];
 				bt[bidx++] = wt[1];
@@ -297,7 +297,7 @@ export default class ActorImage extends ActorNode
 			return;
 		}
 
-		var t = this._WorldTransform;
+		const t = this._WorldTransform;
 		switch(this._BlendMode)
 		{
 			case ActorImage.BlendModes.Normal:
@@ -315,11 +315,11 @@ export default class ActorImage extends ActorNode
 
 		}
 
-		let uvBuffer =  this._SequenceUVBuffer || null;
+		const uvBuffer =  this._SequenceUVBuffer || null;
 		let uvOffset;
 		if(this._SequenceUVBuffer)
 		{
-			let numFrames = this._SequenceFrames.length;
+			const numFrames = this._SequenceFrames.length;
 			let frame = this._SequenceFrame%numFrames;
 			if(uvOffset < 0)
 			{
@@ -338,9 +338,9 @@ export default class ActorImage extends ActorNode
 
 		if(this._ConnectedBones)
 		{
-			for(var j = 0; j < this._ConnectedBones.length; j++)
+			for(let j = 0; j < this._ConnectedBones.length; j++)
 			{
-				var cb = this._ConnectedBones[j];
+				const cb = this._ConnectedBones[j];
 				cb.node = components[cb.componentIndex];
 				if(cb.node)
 				{
@@ -352,7 +352,7 @@ export default class ActorImage extends ActorNode
 
 	makeInstance(resetActor)
 	{
-		var node = new ActorImage();
+		const node = new ActorImage();
 		node._IsInstance = true;
 		ActorImage.prototype.copy.call(node, this, resetActor);
 		return node;	
@@ -377,7 +377,7 @@ export default class ActorImage extends ActorNode
 		this._SequenceFrames = node._SequenceFrames;
 		if (node._HasVertexDeformAnimation)
 		{
-			let deformedVertexLength = this._NumVertices * 2;
+			const deformedVertexLength = this._NumVertices * 2;
 			this._AnimationDeformedVertices = new Float32Array(deformedVertexLength);
 			for(let i = 0; i < deformedVertexLength; i++)
 			{
@@ -388,7 +388,7 @@ export default class ActorImage extends ActorNode
 		if(node._ConnectedBones)
 		{
 			this._ConnectedBones = [];
-			for(let cb of  node._ConnectedBones)
+			for(const cb of  node._ConnectedBones)
 			{
 				// Copy all props except for the actual node reference which will update in our resolve.
 				this._ConnectedBones.push({

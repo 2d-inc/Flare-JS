@@ -120,7 +120,7 @@ export default class ActorNode extends ActorComponent
 
 	updateWorldTransform()
 	{
-		var parent = this._Parent;
+		const parent = this._Parent;
 
 		this._RenderOpacity = this._Opacity;
 		
@@ -326,7 +326,7 @@ export default class ActorNode extends ActorComponent
 
 	get worldTranslation()
 	{
-		var transform = this._WorldTransform;
+		const transform = this._WorldTransform;
 		return vec2.set(vec2.create(), transform[4], transform[5]);
 	}
 
@@ -343,7 +343,7 @@ export default class ActorNode extends ActorComponent
 
 	makeInstance(resetActor)
 	{
-		var node = new ActorNode();
+		const node = new ActorNode();
 		node.copy(this, resetActor);
 		return node;	
 	}

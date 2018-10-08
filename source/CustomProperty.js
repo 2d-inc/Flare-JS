@@ -21,7 +21,7 @@ export default class CustomProperty extends ActorComponent
 
 	makeInstance(resetActor)
 	{
-		var node = new CustomProperty();
+		const node = new CustomProperty();
 		node.copy(this, resetActor);
 		return node;	
 	}

@@ -12,10 +12,10 @@ function InterpolateVertexBuffer(buffer, from, to, mix)
 		buffer = new Float32Array(to.length);
 	}
 
-	var mixi = 1.0 - mix;
-	var l = to.length;
+	const mixi = 1.0 - mix;
+	const l = to.length;
 
-	for(var i = 0; i < l; i++)
+	for(let i = 0; i < l; i++)
 	{
 		buffer[i] = from[i] * mixi + to[i] * mix;
 	}

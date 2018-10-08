@@ -9,7 +9,7 @@ export default class ActorRootBone extends ActorNode
 	
 	makeInstance(resetActor)
 	{
-		var node = new ActorRootBone();
+		const node = new ActorRootBone();
 		node.copy(this, resetActor);
 		return node;	
 	}

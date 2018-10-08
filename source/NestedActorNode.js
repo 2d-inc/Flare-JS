@@ -15,7 +15,7 @@ export default class NestedActorNode extends ActorNode
 
 	makeInstance(resetActor)
 	{
-		var node = new NestedActorNode();
+		const node = new NestedActorNode();
 		node.copy(this, resetActor);
 		
 		if(this._Asset.actor)

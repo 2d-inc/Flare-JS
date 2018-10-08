@@ -34,9 +34,9 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 		this._InfluencedBones = [];
 		if(node._InfluencedBones)
 		{
-			for (var i = 0; i < node._InfluencedBones.length; i++)
+			for (let i = 0; i < node._InfluencedBones.length; i++)
 			{
-				var ib = node._InfluencedBones[i];
+				const ib = node._InfluencedBones[i];
 				if(!ib)
 				{
 					continue;
@@ -57,7 +57,7 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 	{
 		super.resolveComponentIndices(components);
 
-		let bones = this._InfluencedBones;
+		const bones = this._InfluencedBones;
 		if(!bones || !bones.length)
 		{
 			return;
@@ -70,14 +70,14 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 			{
 				componentIndex = componentIndex._Idx;
 			}
-			let bone = components[componentIndex];
+			const bone = components[componentIndex];
 			bones[j] = bone;
 		}
 	}
 
 	markDirty()
 	{
-		for(let item of this._FKChain)
+		for(const item of this._FKChain)
 		{
 			item.bone.markTransformDirty();
 		}
@@ -87,24 +87,24 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 	{
 		super.completeResolve();
 		
-		let bones = this._InfluencedBones;
+		const bones = this._InfluencedBones;
 		if(!bones || !bones.length)
 		{
 			return;
 		}
 
 		// Initialize solver.
-		let start = bones[0];
+		const start = bones[0];
 		let end = bones[bones.length-1];
-		let chain = this._FKChain = [];
-		let boneData = this._BoneData = [];
+		const chain = this._FKChain = [];
+		const boneData = this._BoneData = [];
 		while(end && end !== start._Parent)
 		{
 			chain.unshift({bone:end, ikAngle:0, transformComponents:new Float32Array(6), in:false});
 			end = end._Parent;
 		}
 
-		let allIn = chain.length < 3;
+		const allIn = chain.length < 3;
 		for(let i = 0; i < chain.length; i++)
 		{
 			let fk = chain[i];
@@ -112,9 +112,9 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 			fk.in = allIn;
 		}
 
-		for(let bone of bones)
+		for(const bone of bones)
 		{
-			let fk = chain.find(fk => fk.bone === bone);
+			const fk = chain.find(fk => fk.bone === bone);
 			if(!fk)
 			{
 				console.warn("Bone not in chain?", fk, bone);
@@ -127,15 +127,15 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 		{
 			for(let i = 0; i < boneData.length-1; i++)
 			{
-				let fk = boneData[i];
+				const fk = boneData[i];
 				fk.in = true;
 				chain[fk.idx+1].in = true;
 			}
 		}
 
 		// Mark dependencies.
-		let actor = this._Actor;
-		for(let bone of bones)
+		const actor = this._Actor;
+		for(const bone of bones)
 		{
 			// Don't mark dependency on parent as ActorComponent already does this.
 			if(bone === this.parent)
@@ -154,22 +154,22 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 		// All the first level children of the influenced bones should depend on the final bone.
 		if(chain.length)
 		{
-			let tip = chain[chain.length-1];
-			for(let fk of chain)
+			const tip = chain[chain.length-1];
+			for(const fk of chain)
 			{
 				if(fk === tip)
 				{
 					continue;
 				}
-				let bone = fk.bone;
-				let children = bone._Children;
-				for(let child of children)
+				const bone = fk.bone;
+				const children = bone._Children;
+				for(const child of children)
 				{
 					if(!(child instanceof ActorNode))
 					{
 						continue;
 					}
-					let item = chain.find(item => item.bone === child);
+					const item = chain.find(item => item.bone === child);
 					if(item)
 					{
 						// we are in the FK chain.
@@ -186,22 +186,22 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 		const target = this._Target;
 		if(target)
 		{
-			let wt = target.worldTransform;
+			const wt = target.worldTransform;
 			this.solve(vec2.set(vec2.create(), wt[4], wt[5]), this._Strength);
 		}
 	}
 
 	solve1(fk1, worldTargetTranslation)
 	{
-		let iworld = fk1.parentWorldInverse;
-		var pA = fk1.bone.worldTranslation;
-		var pBT = vec2.copy(vec2.create(), worldTargetTranslation);
+		const iworld = fk1.parentWorldInverse;
+		const pA = fk1.bone.worldTranslation;
+		const pBT = vec2.copy(vec2.create(), worldTargetTranslation);
 
 		// To target in worldspace
-		let toTarget = vec2.subtract(vec2.create(), pBT, pA);
+		const toTarget = vec2.subtract(vec2.create(), pBT, pA);
 		// Note this is directional, hence not transformMat2d
-		let toTargetLocal = vec2.transformMat2(vec2.create(), toTarget, iworld);
-		var r = Math.atan2(toTargetLocal[1], toTargetLocal[0]);
+		const toTargetLocal = vec2.transformMat2(vec2.create(), toTarget, iworld);
+		const r = Math.atan2(toTargetLocal[1], toTargetLocal[0]);
 		
 		constrainRotation(fk1, r);
 		fk1.ikAngle = r;
@@ -212,17 +212,17 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 	solve2(fk1, fk2, worldTargetTranslation)
 	{
 		const invertDirection = this._InvertDirection;
-		let b1 = fk1.bone;
-		let b2 = fk2.bone;
-		let chain = this._FKChain;
-		let firstChild = chain[fk1.idx+1];
+		const b1 = fk1.bone;
+		const b2 = fk2.bone;
+		const chain = this._FKChain;
+		const firstChild = chain[fk1.idx+1];
 
-		let iworld = fk1.parentWorldInverse;
+		const iworld = fk1.parentWorldInverse;
 
-		var pA = b1.worldTranslation;
-		var pC = firstChild.bone.worldTranslation;
-		var pB = b2.tipWorldTranslation;
-		var pBT = vec2.copy(vec2.create(), worldTargetTranslation);
+		let pA = b1.worldTranslation;
+		let pC = firstChild.bone.worldTranslation;
+		let pB = b2.tipWorldTranslation;
+		let pBT = vec2.copy(vec2.create(), worldTargetTranslation);
 
 		pA = vec2.transformMat2d(pA, pA, iworld);
 		pC = vec2.transformMat2d(pC, pC, iworld);
@@ -230,31 +230,31 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 		pBT = vec2.transformMat2d(pBT, pBT, iworld);
 
 		// http://mathworld.wolfram.com/LawofCosines.html
-		var av = vec2.subtract(vec2.create(), pB, pC);
-		var a = vec2.length(av);
+		const av = vec2.subtract(vec2.create(), pB, pC);
+		const a = vec2.length(av);
 
-		var bv = vec2.subtract(vec2.create(), pC, pA);
-		var b = vec2.length(bv);
+		const bv = vec2.subtract(vec2.create(), pC, pA);
+		const b = vec2.length(bv);
 
-		var cv = vec2.subtract(vec2.create(), pBT, pA);
-		var c = vec2.length(cv);
+		const cv = vec2.subtract(vec2.create(), pBT, pA);
+		const c = vec2.length(cv);
 
-		var A = Math.acos(Math.max(-1,Math.min(1,(-a*a+b*b+c*c)/(2*b*c))));
-		var C = Math.acos(Math.max(-1, Math.min(1,(a*a+b*b-c*c)/(2*a*b))));
+		const A = Math.acos(Math.max(-1,Math.min(1,(-a*a+b*b+c*c)/(2*b*c))));
+		const C = Math.acos(Math.max(-1, Math.min(1,(a*a+b*b-c*c)/(2*a*b))));
 
 		let r1, r2;
 		if(b2.parent != b1)
 		{
-			let secondChild = chain[fk1.idx+2];
+			const secondChild = chain[fk1.idx+2];
 			
-			let iworld = secondChild.parentWorldInverse;
+			const iworld = secondChild.parentWorldInverse;
 
 			pC = firstChild.bone.worldTranslation;
 			pB = b2.tipWorldTranslation;
 
-			let av = vec2.subtract(vec2.create(), pB, pC);
-			let avLocal = vec2.transformMat2(vec2.create(), av, iworld);
-			let angleCorrection = -Math.atan2(avLocal[1], avLocal[0]);
+			const av = vec2.subtract(vec2.create(), pB, pC);
+			const avLocal = vec2.transformMat2(vec2.create(), av, iworld);
+			const angleCorrection = -Math.atan2(avLocal[1], avLocal[0]);
 
 			if(invertDirection)
 			{
@@ -282,7 +282,7 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 		constrainRotation(firstChild, r2);
 		if(firstChild !== fk2)
 		{
-			let bone = fk2.bone;
+			const bone = fk2.bone;
 			mat2d.mul(bone.worldTransform, bone.parent.worldTransform, bone.transform);
 		}
 
@@ -295,20 +295,20 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 
 	solve(worldTargetTranslation, strength)
 	{
-		let bones = this._BoneData;
+		const bones = this._BoneData;
 		if(!bones.length)
 		{
 			return;
 		}
 
 		// Decompose the chain.
-		let fkChain = this._FKChain;
+		const fkChain = this._FKChain;
 		for(let i = 0; i < fkChain.length; i++)
 		{
-			let fk = fkChain[i];
-			let parentWorld = fk.bone.parent.worldTransform;
-			var parentWorldInverse = mat2d.invert(mat2d.create(), parentWorld);
-			let local = mat2d.mul(fk.bone.transform, parentWorldInverse, fk.bone.worldTransform);
+			const fk = fkChain[i];
+			const parentWorld = fk.bone.parent.worldTransform;
+			const parentWorldInverse = mat2d.invert(mat2d.create(), parentWorld);
+			const local = mat2d.mul(fk.bone.transform, parentWorldInverse, fk.bone.worldTransform);
 			Decompose(local, fk.transformComponents);
 			fk.parentWorldInverse = parentWorldInverse;
 		}
@@ -323,34 +323,34 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 		}
 		else
 		{
-			let tip = bones[bones.length-1];
+			const tip = bones[bones.length-1];
 			for(let i = 0; i < bones.length-1; i++)
 			{
-				let fk = bones[i];
+				const fk = bones[i];
 				this.solve2(fk, tip, worldTargetTranslation);
 				for(let j = fk.idx+1; j < fkChain.length-1; j++)
 				{
-					let fk = fkChain[j];
-					let parentWorld = fk.bone.parent.worldTransform;
+					const fk = fkChain[j];
+					const parentWorld = fk.bone.parent.worldTransform;
 					fk.parentWorldInverse = mat2d.invert(mat2d.create(), parentWorld);
 				}
 			}
 		}
 
 		// At the end, mix the FK angle with the IK angle by strength
-		let m = strength;
+		const m = strength;
 		if(m != 1.0)
 		{
-			for(let fk of fkChain)
+			for(const fk of fkChain)
 			{
 				if(!fk.in)
 				{
-					let bone = fk.bone;
+					const bone = fk.bone;
 					mat2d.mul(bone.worldTransform, bone.parent.worldTransform, bone.transform);
 					continue;
 				}
-				let fromAngle = fk.transformComponents[4]%PI2;
-				let toAngle = fk.ikAngle%PI2;
+				const fromAngle = fk.transformComponents[4]%PI2;
+				const toAngle = fk.ikAngle%PI2;
 				let diff = toAngle - fromAngle;
 				if(diff > Math.PI)
 				{
@@ -360,7 +360,7 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 				{
 					diff += PI2;
 				}
-				let angle = fromAngle + diff * m;
+				const angle = fromAngle + diff * m;
 				constrainRotation(fk, angle);
 			}
 		}
@@ -369,10 +369,10 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 
 function constrainRotation(fk, rotation)
 {
-	let parentWorld = fk.bone.parent.worldTransform;
+	const parentWorld = fk.bone.parent.worldTransform;
 
-	let transform = fk.bone.transform;
-	let c = fk.transformComponents;
+	const transform = fk.bone.transform;
+	const c = fk.transformComponents;
 
 	if(rotation === 0)
 	{
@@ -386,14 +386,14 @@ function constrainRotation(fk, rotation)
 	transform[4] = c[0];
 	transform[5] = c[1];
 	// Scale
-	let scaleX = c[2];
-	let scaleY = c[3];
+	const scaleX = c[2];
+	const scaleY = c[3];
 	transform[0] *= scaleX;
 	transform[1] *= scaleX;
 	transform[2] *= scaleY;
 	transform[3] *= scaleY;
 	// Skew
-	let skew = c[5];
+	const skew = c[5];
 	if(skew !== 0)
 	{
 		transform[2] = transform[0] * skew + transform[2];

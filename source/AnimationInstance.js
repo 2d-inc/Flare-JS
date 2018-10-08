@@ -37,8 +37,8 @@ export default class AnimationInstance extends Dispatcher
 
 	set time(newTime)
 	{
-		var delta = newTime - this._Time;
-		var time = this._Time + (delta % this._Range);
+		const delta = newTime - this._Time;
+		let time = this._Time + (delta % this._Range);
 
 		if(time < this._Min)
 		{
@@ -72,9 +72,9 @@ export default class AnimationInstance extends Dispatcher
 
 	advance(seconds)
 	{
-		var triggeredEvents = [];
-		var actorComponents = this._Actor._Components;
-		var time = this._Time;
+		const triggeredEvents = [];
+		const actorComponents = this._Actor._Components;
+		let time = this._Time;
 		time += seconds%this._Range;
 		if(time < this._Min)
 		{
@@ -119,9 +119,9 @@ export default class AnimationInstance extends Dispatcher
 			this._Animation.triggerEvents(actorComponents, time, this._Time, triggeredEvents);
 		}
 
-		for(var i = 0; i < triggeredEvents.length; i++)
+		for(let i = 0; i < triggeredEvents.length; i++)
 		{
-			var event = triggeredEvents[i];
+			const event = triggeredEvents[i];
 			this.dispatch("animationEvent", event);
 			this._Actor.dispatch("animationEvent", event);
 		}

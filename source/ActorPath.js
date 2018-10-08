@@ -133,10 +133,10 @@ export default class ActorPath extends ActorNode
 			vec2.fromValues(obb[0], obb[3])
 		];
 		let transform = this._Transform;
-		for(var i = 0; i < points.length; i++)
+		for(let i = 0; i < points.length; i++)
 		{
-			var pt = points[i];
-			var wp = vec2.transformMat2d(pt, pt, transform);
+			const pt = points[i];
+			const wp = vec2.transformMat2d(pt, pt, transform);
 			if(wp[0] < min_x)
 			{
 				min_x = wp[0];
@@ -167,7 +167,7 @@ export default class ActorPath extends ActorNode
 
 	makeInstance(resetActor)
 	{
-		var node = new ActorPath();
+		const node = new ActorPath();
 		ActorPath.prototype.copy.call(node, this, resetActor);
 		return node;	
 	}

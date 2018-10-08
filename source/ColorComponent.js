@@ -49,7 +49,7 @@ export class ColorFill extends ActorColor
 
 	makeInstance(resetActor)
 	{
-		var node = new ColorFill();
+		const node = new ColorFill();
 		ColorFill.prototype.copy.call(node, this, resetActor);
 		return node;	
 	}
@@ -96,7 +96,7 @@ export class ColorStroke extends ActorColor
 
 	makeInstance(resetActor)
 	{
-		var node = new ColorStroke();
+		const node = new ColorStroke();
 		ColorStroke.prototype.copy.call(node, this, resetActor);
 		return node;	
 	}
@@ -157,7 +157,7 @@ export class GradientFill extends GradientColor
 
 	makeInstance(resetActor)
 	{
-		var node = new GradientFill();
+		const node = new GradientFill();
 		GradientFill.prototype.copy.call(node, this, resetActor);
 		return node;	
 	}
@@ -171,8 +171,8 @@ export class GradientFill extends GradientColor
 
 	fill(ctx)
 	{
-		let {_Start:start, _End:end, _ColorStops:stops} = this;
-		var gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
+		const {_Start:start, _End:end, _ColorStops:stops} = this;
+		const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
 
 		const opacity = this._Opacity;
 		const numStops = stops.length/5;
@@ -216,7 +216,7 @@ export class GradientStroke extends GradientColor
 
 	makeInstance(resetActor)
 	{
-		var node = new GradientStroke();
+		const node = new GradientStroke();
 		GradientStroke.prototype.copy.call(node, this, resetActor);
 		return node;	
 	}
@@ -230,8 +230,8 @@ export class GradientStroke extends GradientColor
 
 	stroke(ctx)
 	{
-		let {_Start:start, _End:end, _ColorStops:stops} = this;
-		var gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
+		const {_Start:start, _End:end, _ColorStops:stops} = this;
+		const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
 
 		const opacity = this._Opacity;
 		const numStops = stops.length/5;
@@ -284,7 +284,7 @@ export class RadialGradientFill extends RadialGradientColor
 
 	makeInstance(resetActor)
 	{
-		var node = new RadialGradientFill();
+		const node = new RadialGradientFill();
 		RadialGradientFill.prototype.copy.call(node, this, resetActor);
 		return node;	
 	}
@@ -299,7 +299,7 @@ export class RadialGradientFill extends RadialGradientColor
 	fill(ctx)
 	{
 		let {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
-		var gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
+		const gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
 
 		const opacity = this._Opacity;
 		const numStops = stops.length/5;
@@ -353,7 +353,7 @@ export class RadialGradientStroke extends RadialGradientColor
 
 	makeInstance(resetActor)
 	{
-		var node = new RadialGradientStroke();
+		const node = new RadialGradientStroke();
 		RadialGradientStroke.prototype.copy.call(node, this, resetActor);
 		return node;	
 	}
@@ -367,8 +367,8 @@ export class RadialGradientStroke extends RadialGradientColor
 
 	stroke(ctx)
 	{
-		let {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
-		var gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
+		const {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
+		let gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
 
 		const opacity = this._Opacity;
 		const numStops = stops.length/5;
@@ -385,7 +385,7 @@ export class RadialGradientStroke extends RadialGradientColor
 
 		const squash = Math.max(0.00001, secondaryRadiusScale);
 
-		let angle = vec2.getAngle(vec2.subtract(vec2.create(), end, start));
+		const angle = vec2.getAngle(vec2.subtract(vec2.create(), end, start));
 		ctx.save();
 		ctx.translate(start[0], start[1]);
 		ctx.rotate(angle);

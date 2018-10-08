@@ -12,7 +12,7 @@ export default class ActorTargetedConstraint extends ActorConstraint
 
 	makeInstance(resetActor)
 	{
-		var node = new ActorTargetedConstraint();
+		const node = new ActorTargetedConstraint();
 		node.copy(this, resetActor);
 		return node;	
 	}
@@ -29,7 +29,7 @@ export default class ActorTargetedConstraint extends ActorConstraint
 
 		if(this._TargetIdx !== 0)
 		{
-			let target = components[this._TargetIdx];
+			const target = components[this._TargetIdx];
 			if(target)
 			{
 				this._Target = target;
