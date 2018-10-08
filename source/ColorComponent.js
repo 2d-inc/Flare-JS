@@ -315,7 +315,7 @@ export class RadialGradientFill extends RadialGradientColor
 
 		const squash = Math.max(0.00001, secondaryRadiusScale);
 		const diff = vec2.subtract(vec2.create(), end, start);
-		const angle = Math.atan2(diff[1], diff[0])
+		const angle = Math.atan2(diff[1], diff[0]);
 		ctx.save();
 		ctx.translate(start[0], start[1]);
 		ctx.rotate(angle);

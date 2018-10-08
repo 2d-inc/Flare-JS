@@ -124,15 +124,15 @@ export default class ActorPath extends ActorNode
 		let max_y = -Number.MAX_VALUE;
 
 
-		let obb = this.getPathOBB();
+		const obb = this.getPathOBB();
 
-		let points = [
+		const points = [
 			vec2.fromValues(obb[0], obb[1]),
 			vec2.fromValues(obb[2], obb[1]),
 			vec2.fromValues(obb[2], obb[3]),
 			vec2.fromValues(obb[0], obb[3])
 		];
-		let transform = this._Transform;
+		const transform = this._Transform;
 		for(let i = 0; i < points.length; i++)
 		{
 			const pt = points[i];
