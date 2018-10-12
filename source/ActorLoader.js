@@ -1252,8 +1252,8 @@ function _ReadRadialGradientStroke(reader, component)
 function _ReadActorPath(reader, component)
 {
 	_ReadActorNode(reader, component);
-	component._IsHidden = !reader.readUint8("isVisible");
-	component._IsClosed = reader.readUint8("isClosed");
+	component._IsHidden = !reader.readBool("isVisible");
+	component._IsClosed = reader.readBool("isClosed");
 
 	reader.openArray("Points");
 	const pointCount = reader.readUint16Length();
