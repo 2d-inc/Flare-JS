@@ -406,6 +406,7 @@ export default class Animation
 						}
 						break;
 					}
+					case AnimatedProperty.Properties.ShapeWidth:
 					case AnimatedProperty.Properties.StrokeWidth:
 						if(mix === 1.0)
 						{
@@ -416,7 +417,7 @@ export default class Animation
 							component._Width = component._Width * imix + value * mix;
 						}
 						break;
-						case AnimatedProperty.Properties.FillOpacity:
+					case AnimatedProperty.Properties.FillOpacity:
 					case AnimatedProperty.Properties.StrokeOpacity:
 						if(mix === 1.0)
 						{
@@ -521,6 +522,29 @@ export default class Animation
 						}
 						break;
 					}
+					case AnimatedProperty.Properties.ShapeHeight:
+						if(mix === 1.0)
+						{
+							component._Height = value;	
+						}
+						else
+						{
+							component._Height = component._Height * imix + value * mix;
+						}
+						break;
+					case AnimatedProperty.Properties.CornerRadius:
+						console.log("ANIMATION CORNER RADIUS:", mix, value);
+						
+						if(mix === 1.0)
+						{
+							component._CornerRadius = value;
+						}
+						else
+						{
+							component._CornerRadius = component._CornerRadius * imix + value * mix;
+						}
+						break;
+						
 				}
 
 				if(markDirty)

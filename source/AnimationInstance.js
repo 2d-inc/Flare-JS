@@ -9,8 +9,8 @@ export default class AnimationInstance extends Dispatcher
 		this._Animation = animation;
 		this._Time = 0;
 
-		this._Min = 0;
-		this._Max = animation._Duration;
+		this._Min = animation._DisplayStart || 0;
+		this._Max = animation._DisplayEnd || animation._Duration;
 		this._Loop = animation._Loop;
 		this._Range = this._Max - this._Min;
 	}

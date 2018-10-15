@@ -32,12 +32,12 @@ export default class JSONReader extends StreamReader
 	// Reads the array into ar
 	readFloat32Array(ar, label)
 	{
-		this.readArray(ar, label);
+		return this.readArray(ar, label);
 	}
 
 	readFloat32ArrayOffset(ar, length, offset, label)
 	{
-		this.readFloat32Array(ar, label);
+		return this.readFloat32Array(ar, label);
 	}
 
 	readArray(ar, label)
@@ -47,6 +47,7 @@ export default class JSONReader extends StreamReader
 		{
 			ar[i] = array[i];
 		}
+		return ar;
 	}
 
 	readFloat64(label)

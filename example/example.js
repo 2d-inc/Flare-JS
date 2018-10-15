@@ -1,7 +1,7 @@
 const FlareExample = (function ()
 {
-	const _ViewCenter = [0.0, 2000.0];
-	const _Scale = 0.2;
+	const _ViewCenter = [500.0, 500.0];
+	const _Scale = 0.5;
 	const _ScreenScale = 1.0;
 
 	const _ScreenMouse = vec2.create();

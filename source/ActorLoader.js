@@ -7,6 +7,7 @@ import ActorNode from "./ActorNode.js";
 import ActorNodeSolo from "./ActorNodeSolo.js";
 import ActorBone from "./ActorBone.js";
 import ActorEllipse from "./ActorEllipse.js";
+import ActorRectangle from "./ActorRectangle.js";
 import ActorJellyBone from "./ActorJellyBone.js";
 import JellyComponent from "./JellyComponent.js";
 import ActorRootBone from "./ActorRootBone.js";
@@ -82,7 +83,8 @@ const _BlockTypes = {
 	GradientStroke:105,
 	RadialGradientFill:106,
 	RadialGradientStroke:107,
-	ActorEllipse: 108
+	ActorEllipse: 108,
+	ActorRectangle: 109
 };
 
 const _Readers = {
@@ -245,6 +247,9 @@ function _ReadComponentsBlock(actor, reader)
 			case _BlockTypes.ActorEllipse:
 				component = _ReadActorEllipse(block.reader, new ActorEllipse());
 				break;
+			case _BlockTypes.ActorRectangle:
+				component = _ReadActorRectangle(block.reader, new ActorRectangle());
+				break;
 		}
 		if(component)
 		{
@@ -350,6 +355,10 @@ function _ReadAnimationBlock(actor, reader)
 						case AnimatedProperty.Properties.StrokeRadial:
 						case AnimatedProperty.Properties.StrokeOpacity:
 						case AnimatedProperty.Properties.FillOpacity:
+						case AnimatedProperty.Properties.ShapeWidth:
+						case AnimatedProperty.Properties.ShapeHeight:
+						case AnimatedProperty.Properties.CornerRadius:
+						case AnimatedProperty.Properties.InnerRadius:
 							validProperty = true;
 							break;
 						default:
@@ -370,6 +379,8 @@ function _ReadAnimationBlock(actor, reader)
 						let keyFrame = new KeyFrame(animatedProperty);
 
 						propertyReader.openObject("KeyFrame");
+						console.log("JUST GOT KEYFRAME:", propertyReader);
+						
 						keyFrame._Time = propertyReader.readFloat64("time");
 
 						switch(propertyType)
@@ -1160,11 +1171,24 @@ function _ReadActorShape(reader, component)
 	return component;
 }
 
-function _ReadActorEllipse(reader, component)
+function _ReadProceduralPath(reader, component)
 {
 	_ReadActorNode(reader, component);
 	component._Width = reader.readFloat32("width");
 	component._Height = reader.readFloat32("height");
+	return component;
+}
+
+function _ReadActorRectangle(reader, component)
+{
+	_ReadProceduralPath(reader, component);
+	component._CornerRadius = reader.readFloat32("cornerRadius");
+	return component;
+}
+
+function _ReadActorEllipse(reader, component)
+{
+	_ReadProceduralPath(reader, component);
 	return component;
 }
 
