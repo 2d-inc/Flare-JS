@@ -533,8 +533,6 @@ export default class Animation
 						}
 						break;
 					case AnimatedProperty.Properties.CornerRadius:
-						console.log("ANIMATION CORNER RADIUS:", mix, value);
-						
 						if(mix === 1.0)
 						{
 							component._CornerRadius = value;

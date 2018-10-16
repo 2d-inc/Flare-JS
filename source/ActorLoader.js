@@ -379,7 +379,6 @@ function _ReadAnimationBlock(actor, reader)
 						let keyFrame = new KeyFrame(animatedProperty);
 
 						propertyReader.openObject("KeyFrame");
-						console.log("JUST GOT KEYFRAME:", propertyReader);
 						
 						keyFrame._Time = propertyReader.readFloat64("time");
 
@@ -564,11 +563,15 @@ function _ReadAnimationBlock(actor, reader)
 			reader.closeObject();
 		}
 		reader.closeArray();
-
+		
 		animation._DisplayStart = reader.readFloat32("animationStart");
 		animation._DisplayEnd = reader.readFloat32("animationEnd");
 		//animation._DisplayStart = 0;
 		//animation._DisplayEnd = 50/60;
+	}
+	else
+	{
+		reader.closeArray();
 	}
 }
 
