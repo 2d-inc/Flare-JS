@@ -367,8 +367,9 @@ export class RadialGradientStroke extends RadialGradientColor
 
 	stroke(ctx)
 	{
+		
 		const {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
-		let gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
+		const gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
 
 		const opacity = this._Opacity;
 		const numStops = stops.length/5;
@@ -384,13 +385,13 @@ export class RadialGradientStroke extends RadialGradientColor
 		ctx.strokeStyle = gradient;
 
 		const squash = Math.max(0.00001, secondaryRadiusScale);
-
-		const angle = vec2.getAngle(vec2.subtract(vec2.create(), end, start));
+		const angleVector = vec2.subtract(vec2.create(), end, start);
+		const angle = Math.atan2(angleVector[1], angleVector[0]);
+		
 		ctx.save();
 		ctx.translate(start[0], start[1]);
 		ctx.rotate(angle);
 		ctx.scale(1.0, squash);
-
 		ctx.stroke();
 		ctx.restore();
 	}
