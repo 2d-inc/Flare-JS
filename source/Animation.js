@@ -542,6 +542,16 @@ export default class Animation
 							component._CornerRadius = component._CornerRadius * imix + value * mix;
 						}
 						break;
+					case AnimatedProperty.Properties.InnerRadius:
+						if(mix === 1.0)
+						{
+							component._InnerRadius = value;
+						}
+						else
+						{
+							component._InnerRadius = component._CornerRadius * imix + value * mix;
+						}
+						break;
 						
 				}
 

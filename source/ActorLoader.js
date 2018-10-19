@@ -8,6 +8,7 @@ import ActorNodeSolo from "./ActorNodeSolo.js";
 import ActorBone from "./ActorBone.js";
 import ActorEllipse from "./ActorEllipse.js";
 import ActorRectangle from "./ActorRectangle.js";
+import ActorStar from "./ActorStar.js";
 import ActorTriangle from "./ActorTriangle.js";
 import ActorJellyBone from "./ActorJellyBone.js";
 import JellyComponent from "./JellyComponent.js";
@@ -86,7 +87,8 @@ const _BlockTypes = {
 	RadialGradientStroke:107,
 	ActorEllipse: 108,
 	ActorRectangle: 109,
-	ActorTriangle: 110
+	ActorTriangle: 110,
+	ActorStar: 111
 };
 
 const _Readers = {
@@ -254,6 +256,10 @@ function _ReadComponentsBlock(actor, reader)
 				break;
 			case _BlockTypes.ActorTriangle:
 				component = _ReadActorTriangle(block.reader, new ActorTriangle());
+				break;
+
+			case _BlockTypes.ActorStar:
+				component = _ReadActorStar(block.reader, new ActorStar());
 				break;
 		}
 		if(component)
@@ -1184,6 +1190,15 @@ function _ReadProceduralPath(reader, component)
 	_ReadActorNode(reader, component);
 	component._Width = reader.readFloat32("width");
 	component._Height = reader.readFloat32("height");
+	return component;
+}
+
+function _ReadActorStar(reader, component)
+{
+	_ReadProceduralPath(reader, component);
+	component._Points = reader.readUint32("points");
+	component._InnerRadius = reader.readFloat32("innerRadius");
+	
 	return component;
 }
 
