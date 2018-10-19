@@ -236,7 +236,7 @@ export default class ActorShape extends ActorNode
 						ctx.beginPath();
 						for(const node of shape._Children)
 						{
-							if(node.constructor !== ActorPath)
+							if(node.constructor !== ActorPath && !(node instanceof ActorProceduralPath))
 							{
 								continue;
 							}
