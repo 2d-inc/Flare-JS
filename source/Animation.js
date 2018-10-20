@@ -549,7 +549,7 @@ export default class Animation
 						}
 						else
 						{
-							component._InnerRadius = component._CornerRadius * imix + value * mix;
+							component._InnerRadius = component._InnerRadius * imix + value * mix;
 						}
 						break;
 						

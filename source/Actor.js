@@ -316,7 +316,6 @@ export default class Actor extends Dispatcher
 		// 		solver._SuppressMarkDirty = false;
 		// 	}
 		// }
-
 		this.update();
 
 		let components = this._Components;

@@ -14,10 +14,15 @@ export default class ActorStar extends ActorProceduralPath
 	{
 		const node = new ActorStar();
         node.copy(this, resetActor);
+		return node;
+    }
+    
+    copy(node, resetActor)
+    {
+        super.copy(node, resetActor);
         this._Points = node._Points;
         this._InnerRadius = node._InnerRadius;
-		return node;
-	}
+    }
 
     getOBB(transform)
 	{

@@ -1,5 +1,5 @@
 import ActorNode from "./ActorNode.js";
-import {vec2,mat2d} from "gl-matrix";
+import {vec2} from "gl-matrix";
 
 export default class ActorProceduralPath extends ActorNode
 {

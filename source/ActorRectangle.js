@@ -17,9 +17,14 @@ export default class ActorRectangle extends ActorProceduralPath
 	{
 		const node = new ActorRectangle();
         node.copy(this, resetActor);
-        this._CornerRadius = node._CornerRadius;
 		return node;
-	}
+    }
+    
+    copy(node, resetActor)
+    {
+        super.copy(node, resetActor);
+        this._CornerRadius = node._CornerRadius;
+    }
 
     draw(ctx)
     {

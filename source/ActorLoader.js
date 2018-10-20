@@ -7,6 +7,7 @@ import ActorNode from "./ActorNode.js";
 import ActorNodeSolo from "./ActorNodeSolo.js";
 import ActorBone from "./ActorBone.js";
 import ActorEllipse from "./ActorEllipse.js";
+import ActorPolygon from "./ActorPolygon.js";
 import ActorRectangle from "./ActorRectangle.js";
 import ActorStar from "./ActorStar.js";
 import ActorTriangle from "./ActorTriangle.js";
@@ -88,7 +89,8 @@ const _BlockTypes = {
 	ActorEllipse: 108,
 	ActorRectangle: 109,
 	ActorTriangle: 110,
-	ActorStar: 111
+	ActorStar: 111,
+	ActorPolygon: 112
 };
 
 const _Readers = {
@@ -257,9 +259,11 @@ function _ReadComponentsBlock(actor, reader)
 			case _BlockTypes.ActorTriangle:
 				component = _ReadActorTriangle(block.reader, new ActorTriangle());
 				break;
-
 			case _BlockTypes.ActorStar:
 				component = _ReadActorStar(block.reader, new ActorStar());
+				break;
+			case _BlockTypes.ActorPolygon:
+				component = _ReadActorPolygon(block.reader, new ActorPolygon());
 				break;
 		}
 		if(component)
@@ -1206,6 +1210,13 @@ function _ReadActorRectangle(reader, component)
 {
 	_ReadProceduralPath(reader, component);
 	component._CornerRadius = reader.readFloat32("cornerRadius");
+	return component;
+}
+
+function _ReadActorPolygon(reader, component)
+{
+	_ReadProceduralPath(reader, component);
+	component._Sides = reader.readUint32("sides");
 	return component;
 }
 
