@@ -234,7 +234,7 @@ export default class BinaryReader extends StreamReader
 
 	readUint32Length()
 	{
-		return this.readUint16();
+		return this.readUint32();
 	}
 
 	get containerType() { return "bin"; }

@@ -55,7 +55,7 @@ export default class ActorShape extends ActorNode
 		let aabb = null;
 		for(const path of this._Children)
 		{
-			if(path.constructor !== ActorPath)
+			if (path.constructor !== ActorPath && !(path instanceof ActorProceduralPath))
 			{
 				continue;
 			}
@@ -226,7 +226,7 @@ export default class ActorShape extends ActorNode
 					const shapes = new Set();
 					clip.all(function(node)
 					{
-						if(node.constructor === ActorShape)
+						if(node.constructor === ActorShape && !(node instanceof ActorProceduralPath))
 						{
 							shapes.add(node);
 						}
