@@ -1,12 +1,15 @@
-export default class BinaryReader
+import StreamReader from "./StreamReader.js";
+
+export default class BinaryReader extends StreamReader
 {
 	constructor(uint8Array)
 	{
+		super();
 		this.isBigEndian = function()
 		{
-			var b = new ArrayBuffer(4);
-			var a = new Uint32Array(b);
-			var c = new Uint8Array(b);
+			const b = new ArrayBuffer(4);
+			const a = new Uint32Array(b);
+			const c = new Uint8Array(b);
 			a[0] = 0xdeadbeef;
 			return c[0] == 0xde;
 		}();
@@ -18,12 +21,12 @@ export default class BinaryReader
 
 	readFloat32()
 	{
-		var v = this.dataView.getFloat32(this.readIndex, !this.isBigEndian);
+		const v = this.dataView.getFloat32(this.readIndex, !this.isBigEndian);
 		this.readIndex += 4;
 		return v;
 	}
 
-	readFloat32Array(ar, length, offset)
+	readFloat32ArrayOffset(ar, length, offset)
 	{
 		if(!offset)
 		{
@@ -42,9 +45,20 @@ export default class BinaryReader
 		return ar;
 	}
 
+		
+	readFloat32Array(ar)
+	{
+		for (let i = 0; i < ar.length; i++)
+		{
+			ar[i] = this.dataView.getFloat32(this.readIndex, !this.isBigEndian);
+			this.readIndex += 4;
+		}
+		return ar;
+	}
+
 	readFloat64()
 	{
-		var v = this.dataView.getFloat64(this.readIndex, !this.isBigEndian);
+		const v = this.dataView.getFloat64(this.readIndex, !this.isBigEndian);
 		this.readIndex += 8;
 		return v;
 	}
@@ -61,14 +75,14 @@ export default class BinaryReader
 
 	readInt8()
 	{
-		var v = this.dataView.getInt8(this.readIndex);
+		const v = this.dataView.getInt8(this.readIndex);
 		this.readIndex += 1;
 		return v;
 	}
 
 	readUint16()
 	{
-		var v = this.dataView.getUint16(this.readIndex, !this.isBigEndian);
+		const v = this.dataView.getUint16(this.readIndex, !this.isBigEndian);
 		this.readIndex += 2;
 		return v;
 	}
@@ -79,7 +93,7 @@ export default class BinaryReader
 		{
 			length = ar.length;
 		}
-		for (var i = 0; i < length; i++)
+		for (let i = 0; i < length; i++)
 		{
 			ar[i] = this.dataView.getUint16(this.readIndex, !this.isBigEndian);
 			this.readIndex += 2;
@@ -89,21 +103,21 @@ export default class BinaryReader
 
 	readInt16()
 	{
-		var v = this.dataView.getInt16(this.readIndex, !this.isBigEndian);
+		const v = this.dataView.getInt16(this.readIndex, !this.isBigEndian);
 		this.readIndex += 2;
 		return v;
 	}
 
 	readUint32()
 	{
-		var v = this.dataView.getUint32(this.readIndex, !this.isBigEndian);
+		const v = this.dataView.getUint32(this.readIndex, !this.isBigEndian);
 		this.readIndex += 4;
 		return v;
 	}
 
 	readInt32()
 	{
-		var v = this.dataView.getInt32(this.readIndex, !this.isBigEndian);
+		const v = this.dataView.getInt32(this.readIndex, !this.isBigEndian);
 		this.readIndex += 4;
 		return v;
 	}
@@ -149,9 +163,9 @@ export default class BinaryReader
 
 	readString()
 	{
-		var length = this.readUint32();
-		var ua = new Uint8Array(length);
-		for (var i = 0; i < length; i++)
+		const length = this.readUint32();
+		const ua = new Uint8Array(length);
+		for (let i = 0; i < length; i++)
 		{
 			ua[i] = this.raw[this.readIndex++];
 		}
@@ -160,11 +174,70 @@ export default class BinaryReader
 
 	readRaw(to, length)
 	{
-		for (var i = 0; i < length; i++)
+		for (let i = 0; i < length; i++)
 		{
 			to[i] = this.raw[this.readIndex++];
 		}
 	}
+
+	readBool()
+	{
+		return this.readUint8() === 1;
+	}
+
+	readBlockType() 
+	{
+		return this.readUint8();
+	}
+
+	readImage(isOOB, cb)
+	{
+		if(isOOB)
+		{
+			const image = this.readString();
+			const req = new XMLHttpRequest();
+			req.open("GET", image, true);
+			req.responseType = "blob";
+
+			req.onload = function()
+			{
+				const blob = this.response;
+				cb(blob);
+			};
+			req.send();
+		}
+		else
+		{
+			const size = this.readUint32();
+			const atlasData = new Uint8Array(size);
+			this.readRaw(atlasData, atlasData.length);
+			const blob = new Blob([atlasData], {type: "image/png"});
+
+			cb(blob);
+		}
+	}
+	
+	readId(label)
+	{
+		return this.readUint16();
+	}
+	
+	readUint8Length() 
+	{
+		return this.readUint8();
+	}
+
+	readUint16Length()
+	{
+		return this.readUint16();
+	}
+
+	readUint32Length()
+	{
+		return this.readUint32();
+	}
+
+	get containerType() { return "bin"; }
 }
 
 BinaryReader.alignment = 1024;

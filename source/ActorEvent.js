@@ -9,7 +9,7 @@ export default class ActorEvent extends ActorComponent
 
 	makeInstance(resetActor)
 	{
-		var node = new ActorEvent();
+		const node = new ActorEvent();
 		node.copy(this, resetActor);
 		return node;	
 	}

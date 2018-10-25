@@ -18,11 +18,11 @@ export default class ActorIKTarget extends ActorNode
 	{
 		super.resolveComponentIndices(components);
 
-		let constraint = new ActorIKConstraint();
+		const constraint = new ActorIKConstraint();
 		this._Constraint = constraint;
 
 
-		let bones = this._InfluencedBones;
+		const bones = this._InfluencedBones;
 		constraint._Actor = this._Actor;
 		constraint._TargetIdx = this._Idx;
 		constraint._ParentIdx = bones ? bones[bones.length-1] : -1;
@@ -59,7 +59,7 @@ export default class ActorIKTarget extends ActorNode
 
 	makeInstance(resetActor)
 	{
-		let node = new ActorIKTarget();
+		const node = new ActorIKTarget();
 		node.copy(this, resetActor);
 		return node;	
 	}
@@ -74,9 +74,9 @@ export default class ActorIKTarget extends ActorNode
 		this._InfluencedBones = [];
 		if(node._InfluencedBones)
 		{
-			for (var i = 0; i < node._InfluencedBones.length; i++)
+			for (let i = 0; i < node._InfluencedBones.length; i++)
 			{
-				var ib = node._InfluencedBones[i];
+				const ib = node._InfluencedBones[i];
 				if(!ib)
 				{
 					continue;

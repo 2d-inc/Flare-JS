@@ -11,7 +11,7 @@ export default class ActorBone extends ActorBoneBase
 
 	makeInstance(resetActor)
 	{
-		var node = new ActorBone();
+		const node = new ActorBone();
 		node.copy(this, resetActor);
 		return node;	
 	}

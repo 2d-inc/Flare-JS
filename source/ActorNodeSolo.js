@@ -12,10 +12,10 @@ export default class ActorNodeSolo extends ActorNode
 	{
 		this._ActiveChildIndex = Math.min(this._Children.length, Math.max(0, idx));
 
-		for(var i = 0; i < this._Children.length; ++i)
+		for(let i = 0; i < this._Children.length; ++i)
 		{
-			var an = this._Children[i];
-			var cv = i !== (this._ActiveChildIndex - 1);
+			const an = this._Children[i];
+			const cv = i !== (this._ActiveChildIndex - 1);
 			an.setCollapsedVisibility(cv);
 		}
 	}

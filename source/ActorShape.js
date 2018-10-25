@@ -1,5 +1,6 @@
 import ActorNode from "./ActorNode.js";
 import ActorPath from "./ActorPath.js";
+import ActorProceduralPath from "./ActorProceduralPath.js";
 import {RadialGradientFill, GradientFill, ColorFill, ColorStroke, GradientStroke, RadialGradientStroke} from "./ColorComponent.js";
 
 import {vec2, mat2d} from "gl-matrix";
@@ -52,15 +53,15 @@ export default class ActorShape extends ActorNode
 	computeAABB()
 	{
 		let aabb = null;
-		for(let path of this._Children)
+		for(const path of this._Children)
 		{
-			if(path.constructor !== ActorPath)
+			if (path.constructor !== ActorPath && !(path instanceof ActorProceduralPath))
 			{
 				continue;
 			}
 
 			// This is the axis aligned bounding box in the space of the parent (this case our shape).
-			let pathAABB = path.getPathAABB();
+			const pathAABB = path.getPathAABB();
 
 			if(!aabb)
 			{
@@ -77,10 +78,10 @@ export default class ActorShape extends ActorNode
 			}
 		}
 
-		var min_x = Number.MAX_VALUE;
-		var min_y = Number.MAX_VALUE;
-		var max_x = -Number.MAX_VALUE;
-		var max_y = -Number.MAX_VALUE;
+		let min_x = Number.MAX_VALUE;
+		let min_y = Number.MAX_VALUE;
+		let max_x = -Number.MAX_VALUE;
+		let max_y = -Number.MAX_VALUE;
 
 		if(!aabb)
 		{
@@ -91,16 +92,16 @@ export default class ActorShape extends ActorNode
 		//vec2.transformMat2d(vec2.create(), [], world);
 
 
-		var points = [
+		const points = [
 			vec2.set(vec2.create(), aabb[0], aabb[1]),
 			vec2.set(vec2.create(), aabb[2], aabb[1]),
 			vec2.set(vec2.create(), aabb[2], aabb[3]),
 			vec2.set(vec2.create(), aabb[0], aabb[3])
 		];
-		for(var i = 0; i < points.length; i++)
+		for(let i = 0; i < points.length; i++)
 		{
-			var pt = points[i];
-			var wp = vec2.transformMat2d(pt, pt, world);
+			const pt = points[i];
+			const wp = vec2.transformMat2d(pt, pt, world);
 			if(wp[0] < min_x)
 			{
 				min_x = wp[0];
@@ -135,25 +136,25 @@ export default class ActorShape extends ActorNode
 			return;
 		}
 
-		let ctx = graphics.ctx;
+		const ctx = graphics.ctx;
 		ctx.save();
 		ctx.globalAlpha = this._RenderOpacity;
 		this.drawShape(ctx, true);
 
-		let {_Fills:fills, _Strokes:strokes} = this;
+		const {_Fills:fills, _Strokes:strokes} = this;
 		
-		let transform = this._WorldTransform;
+		const transform = this._WorldTransform;
 		ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
 		if(fills)
 		{
-			for(let fill of fills)
+			for(const fill of fills)
 			{
 				fill.fill(ctx);
 			}
 		}
 		if(strokes)
 		{
-			for(let stroke of strokes)
+			for(const stroke of strokes)
 			{
 				if(stroke._Width > 0)
 				{
@@ -201,7 +202,7 @@ export default class ActorShape extends ActorNode
 
 	drawShape(ctx, clip)
 	{
-		let shape = this.node;
+		const shape = this.node;
 
 		// Find clips.
 		if(clip)
@@ -220,22 +221,22 @@ export default class ActorShape extends ActorNode
 
 			if(clips)
 			{
-				for(let clip of clips)
+				for(const clip of clips)
 				{
-					let shapes = new Set();
+					const shapes = new Set();
 					clip.all(function(node)
 					{
-						if(node.constructor === ActorShape)
+						if(node.constructor === ActorShape && !(node instanceof ActorProceduralPath))
 						{
 							shapes.add(node);
 						}
 					});
-					for(let shape of shapes)
+					for(const shape of shapes)
 					{
 						ctx.beginPath();
-						for(let node of shape._Children)
+						for(const node of shape._Children)
 						{
-							if(node.constructor !== ActorPath)
+							if(node.constructor !== ActorPath && !(node instanceof ActorProceduralPath))
 							{
 								continue;
 							}
@@ -248,9 +249,9 @@ export default class ActorShape extends ActorNode
 		}
 
 		ctx.beginPath();
-		for(let path of this._Children)
+		for(const path of this._Children)
 		{
-			if(path.constructor !== ActorPath || path.isHidden)
+			if(path.constructor !== ActorPath && !(path instanceof ActorProceduralPath) || path.isHidden)
 			{
 				continue;
 			}
@@ -266,7 +267,7 @@ export default class ActorShape extends ActorNode
 
 	makeInstance(resetActor)
 	{
-		var node = new ActorShape();
+		const node = new ActorShape();
 		node._IsInstance = true;
 		ActorShape.prototype.copy.call(node, this, resetActor);
 		return node;	

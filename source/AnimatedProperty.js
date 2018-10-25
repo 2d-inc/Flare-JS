@@ -37,5 +37,9 @@ AnimatedProperty.Properties =
 	StrokeRadial:25,
 	StrokeWidth:26,
 	StrokeOpacity:27,
-	FillOpacity:28
+	FillOpacity:28,
+	ShapeWidth: 29,
+	ShapeHeight: 30,
+	CornerRadius: 31,
+	InnerRadius: 32
 };

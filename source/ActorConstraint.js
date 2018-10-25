@@ -12,7 +12,7 @@ export default class ActorConstraint extends ActorComponent
 
 	makeInstance(resetActor)
 	{
-		var node = new ActorConstraint();
+		const node = new ActorConstraint();
 		node.copy(this, resetActor);
 		return node;	
 	}

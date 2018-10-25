@@ -49,32 +49,32 @@ export default class Animation
 
 	triggerEvents(actorComponents, fromTime, toTime, triggered)
 	{
-		let keyedTriggerComponents = this._TriggerComponents;
+		const keyedTriggerComponents = this._TriggerComponents;
 		for(let i = 0; i < keyedTriggerComponents.length; i++)
 		{
-			let keyedComponent = keyedTriggerComponents[i];
-			let properties = keyedComponent._Properties;
+			const keyedComponent = keyedTriggerComponents[i];
+			const properties = keyedComponent._Properties;
 			for(let j = 0; j < properties.length; j++)
 			{
-				let property = properties[j];
+				const property = properties[j];
 				switch(property._Type)
 				{
 					case AnimatedProperty.Properties.Trigger:
 					{
-						let keyFrames = property._KeyFrames;
+						const keyFrames = property._KeyFrames;
 
-						let kfl = keyFrames.length;
+						const kfl = keyFrames.length;
 						if(kfl === 0)
 						{
 							continue;
 						}
 
-						let idx = keyFrameLocation(toTime, keyFrames, 0, keyFrames.length-1);
+						const idx = keyFrameLocation(toTime, keyFrames, 0, keyFrames.length-1);
 						if(idx === 0)
 						{
 							if(keyFrames.length > 0 && keyFrames[0]._Time === toTime)
 							{
-								let component = actorComponents[keyedComponent._ComponentIndex];
+								const component = actorComponents[keyedComponent._ComponentIndex];
 								triggered.push({
 									name:component._Name,
 									component:component,
@@ -88,10 +88,10 @@ export default class Animation
 						{
 							for(let k = idx-1; k >= 0; k--)
 							{
-								let frame = keyFrames[k];	
+								const frame = keyFrames[k];	
 								if(frame._Time > fromTime)
 								{
-									let component = actorComponents[keyedComponent._ComponentIndex];
+									const component = actorComponents[keyedComponent._ComponentIndex];
 									triggered.push({
 										name:component._Name,
 										component:component,
@@ -117,31 +117,31 @@ export default class Animation
 
 	apply(time, actor, mix)
 	{
-		let components = this._Components;
-		let imix = 1.0-mix;
-		let actorComponents = actor._Components;
+		const components = this._Components;
+		const imix = 1.0-mix;
+		const actorComponents = actor._Components;
 		for(let i = 0; i < components.length; i++)
 		{
-			let animatedComponent = components[i];
-			let component = actorComponents[animatedComponent._ComponentIndex];
+			const animatedComponent = components[i];
+			const component = actorComponents[animatedComponent._ComponentIndex];
 			if(!component)
 			{
 				continue;
 			}
 
-			let properties = animatedComponent._Properties;
+			const properties = animatedComponent._Properties;
 			for(let j = 0; j < properties.length; j++)
 			{
-				let property = properties[j];
-				let keyFrames = property._KeyFrames;
+				const property = properties[j];
+				const keyFrames = property._KeyFrames;
 
-				let kfl = keyFrames.length;
+				const kfl = keyFrames.length;
 				if(kfl === 0)
 				{
 					continue;
 				}
 
-				let idx = keyFrameLocation(time, keyFrames, 0, keyFrames.length-1);
+				const idx = keyFrameLocation(time, keyFrames, 0, keyFrames.length-1);
 				let value = 0.0;
 
 				if(idx === 0)
@@ -152,8 +152,8 @@ export default class Animation
 				{
 					if(idx < keyFrames.length)
 					{
-						let fromFrame = keyFrames[idx-1];
-						let toFrame = keyFrames[idx];
+						const fromFrame = keyFrames[idx-1];
+						const toFrame = keyFrames[idx];
 						if(time == toFrame._Time)
 						{
 							value = toFrame._Value;
@@ -161,7 +161,7 @@ export default class Animation
 						else
 						{
 							let mix = (time - fromFrame._Time)/(toFrame._Time-fromFrame._Time);
-							let interpolator = fromFrame._Interpolator;
+							const interpolator = fromFrame._Interpolator;
 							
 							if(interpolator)
 							{
@@ -172,7 +172,7 @@ export default class Animation
 					}
 					else
 					{
-						let kf = keyFrames[idx-1];
+						const kf = keyFrames[idx-1];
 						value = kf._Value;
 					}
 				}
@@ -263,7 +263,7 @@ export default class Animation
 							actor._LastSetDrawOrder = value;
 							for(let i = 0; i < value.length; i++)
 							{
-								let v = value[i];
+								const v = value[i];
 								actorComponents[v.componentIdx]._DrawOrder = v.value;
 							}
 							actor._IsImageSortDirty = true;
@@ -282,7 +282,7 @@ export default class Animation
 						
 						for(let l = 0; l < component._Children.length; l++)
 						{
-							let chd = component._Children[l];
+							const chd = component._Children[l];
 							if(chd.constructor === ActorBone)
 							{
 								chd._Translation[0] = component._Length;
@@ -293,8 +293,8 @@ export default class Animation
 					case AnimatedProperty.Properties.VertexDeform:
 					{
 						component._VerticesDirty = true;
-						let nv = component._NumVertices;
-						let to = component._AnimationDeformedVertices;
+						const nv = component._NumVertices;
+						const to = component._AnimationDeformedVertices;
 						let tidx = 0;
 						let fidx = 0;
 						if(mix === 1.0)
@@ -349,7 +349,7 @@ export default class Animation
 					case AnimatedProperty.Properties.Sequence:
 						if(component._SequenceFrames)
 						{
-							var frameIndex = Math.floor(value)%component._SequenceFrames.length;
+							let frameIndex = Math.floor(value)%component._SequenceFrames.length;
 							if(frameIndex < 0)
 							{
 								frameIndex += component._SequenceFrames.length;
@@ -368,7 +368,7 @@ export default class Animation
 						let readIdx = 0;
 						if(mix !== 1.0)
 						{
-							for(let point of component._Points)
+							for(const point of component._Points)
 							{
 								point._Translation[0] = point._Translation[0] * imix + value[readIdx++] * mix;
 								point._Translation[1] = point._Translation[1] * imix + value[readIdx++] * mix;
@@ -387,7 +387,7 @@ export default class Animation
 						}
 						else
 						{
-							for(let point of component._Points)
+							for(const point of component._Points)
 							{
 								point._Translation[0] = value[readIdx++];
 								point._Translation[1] = value[readIdx++];
@@ -406,6 +406,7 @@ export default class Animation
 						}
 						break;
 					}
+					case AnimatedProperty.Properties.ShapeWidth:
 					case AnimatedProperty.Properties.StrokeWidth:
 						if(mix === 1.0)
 						{
@@ -416,7 +417,7 @@ export default class Animation
 							component._Width = component._Width * imix + value * mix;
 						}
 						break;
-						case AnimatedProperty.Properties.FillOpacity:
+					case AnimatedProperty.Properties.FillOpacity:
 					case AnimatedProperty.Properties.StrokeOpacity:
 						if(mix === 1.0)
 						{
@@ -430,7 +431,7 @@ export default class Animation
 					case AnimatedProperty.Properties.FillColor:
 					case AnimatedProperty.Properties.StrokeColor:
 					{
-						let color = component._Color;
+						const color = component._Color;
 						if(mix === 1.0)
 						{
 							color[0] = value[0];
@@ -458,7 +459,7 @@ export default class Animation
 							component._End[0] = value[ridx++];
 							component._End[1] = value[ridx++];
 
-							let cs = component._ColorStops;
+							const cs = component._ColorStops;
 							let wi = 0;
 							while(ridx < value.length && wi < cs.length)
 							{
@@ -473,7 +474,7 @@ export default class Animation
 							component._End[0] = component._End[0] * imix + value[ridx++] * mix;
 							component._End[1] = component._End[1] * imix + value[ridx++] * mix;
 
-							let cs = component._ColorStops;
+							const cs = component._ColorStops;
 							let wi = 0;
 							while(ridx < value.length && wi < cs.length)
 							{
@@ -495,7 +496,7 @@ export default class Animation
 							component._End[0] = value[ridx++];
 							component._End[1] = value[ridx++];
 
-							let cs = component._ColorStops;
+							const cs = component._ColorStops;
 							let wi = 0;
 							while(ridx < value.length && wi < cs.length)
 							{
@@ -511,7 +512,7 @@ export default class Animation
 							component._End[0] = component._End[0] * imix + value[ridx++] * mix;
 							component._End[1] = component._End[1] * imix + value[ridx++] * mix;
 
-							let cs = component._ColorStops;
+							const cs = component._ColorStops;
 							let wi = 0;
 							while(ridx < value.length && wi < cs.length)
 							{
@@ -521,6 +522,37 @@ export default class Animation
 						}
 						break;
 					}
+					case AnimatedProperty.Properties.ShapeHeight:
+						if(mix === 1.0)
+						{
+							component._Height = value;	
+						}
+						else
+						{
+							component._Height = component._Height * imix + value * mix;
+						}
+						break;
+					case AnimatedProperty.Properties.CornerRadius:
+						if(mix === 1.0)
+						{
+							component._CornerRadius = value;
+						}
+						else
+						{
+							component._CornerRadius = component._CornerRadius * imix + value * mix;
+						}
+						break;
+					case AnimatedProperty.Properties.InnerRadius:
+						if(mix === 1.0)
+						{
+							component._InnerRadius = value;
+						}
+						else
+						{
+							component._InnerRadius = component._InnerRadius * imix + value * mix;
+						}
+						break;
+						
 				}
 
 				if(markDirty)
