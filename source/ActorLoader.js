@@ -537,27 +537,14 @@ function _ReadAnimationBlock(actor, reader)
 							keyFrame._Value = propertyReader.readFloat32("value");
 						}
 
-						switch(keyFrame._Type)
-						{
-							case KeyFrame.Type.Asymmetric:
-							case KeyFrame.Type.Mirrored:
-							case KeyFrame.Type.Disconnected:
-							case KeyFrame.Type.Hold:
-								break;
-
-							default:
-								keyFrame._InValue = keyFrame._Value;
-								keyFrame._OutValue = keyFrame._Value;
-								break;
-						}
 						if(propertyType === AnimatedProperty.Properties.DrawOrder)
 						{
 							// Always hold draw order.
-							keyFrame._Type = KeyFrame.Type.Hold;
+							keyFrame._Interpolator = Hold.instance;
 						}
 						else if(propertyType === AnimatedProperty.Properties.VertexDeform)
 						{
-							keyFrame._Type = KeyFrame.Type.Linear;
+							keyFrame._Interpolator = Linear.instance;
 						}
 
 						if(lastKeyFrame)
