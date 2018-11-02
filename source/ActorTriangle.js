@@ -60,8 +60,8 @@ export default class ActorTriangle extends ActorProceduralPath
         const transform = this._WorldTransform;
 		ctx.save();
 		ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
-		const radiusX = this._Width/2;
-		const radiusY = this._Height/2;
+		const radiusX = Math.max(0, this._Width/2);
+		const radiusY = Math.max(0, this._Height/2);
 
 		ctx.moveTo(0.0, -radiusY);
 		ctx.lineTo(radiusX, radiusY);

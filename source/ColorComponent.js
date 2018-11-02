@@ -14,14 +14,32 @@ export class FillRule
 	}
 }
 
+class ActorPaint extends ActorComponent
+{
+	constructor()
+	{
+		super();
+		this._Opacity = 1.0;
+	}
+	
+	copy(node, resetActor)
+	{
+		super.copy(node, resetActor);
+		this._Opacity = node._Opacity;	
+	}
 
-export class ActorColor extends ActorComponent
+	get opacity()
+	{
+		return this._Opacity;
+	}
+}
+
+export class ActorColor extends ActorPaint
 {
 	constructor()
 	{
 		super();
 		this._Color = new Float32Array(4);
-		this._Opacity = 1.0;
 	}
 
 	copy(node, resetActor)
@@ -29,7 +47,6 @@ export class ActorColor extends ActorComponent
 		super.copy(node, resetActor);
 
 		vec4.copy(this._Color, node._Color);
-		this._Opacity = node._Opacity;
 	}
 
 	get cssColor()
@@ -125,13 +142,12 @@ export class ColorStroke extends ActorColor
 	}
 }
 
-export class GradientColor extends ActorComponent
+export class GradientColor extends ActorPaint
 {
 	constructor()
 	{
 		super();
 		this._ColorStops = new Float32Array(10);
-		this._Opacity = 1.0;
 		this._Start = vec2.create();
 		this._End = vec2.create();
 	}
@@ -143,7 +159,6 @@ export class GradientColor extends ActorComponent
 		this._ColorStops = new Float32Array(node._ColorStops);
 		vec2.copy(this._Start, node._Start);
 		vec2.copy(this._End, node._End);
-		this._Opacity = node._Opacity;
 	}
 }
 

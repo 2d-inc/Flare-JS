@@ -32,8 +32,8 @@ export default class ActorRectangle extends ActorProceduralPath
         ctx.save();
         ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
 
-        const halfWidth = this._Width/2;
-        const halfHeight = this._Height/2;
+        const halfWidth = Math.max(0, this._Width/2);
+        const halfHeight = Math.max(0, this._Height/2);
         ctx.moveTo(-halfWidth, -halfHeight);
         let r = this._CornerRadius;
         if(r > 0)

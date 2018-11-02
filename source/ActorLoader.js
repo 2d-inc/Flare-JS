@@ -285,15 +285,15 @@ function _ReadAnimationBlock(actor, reader)
 	animation._Duration = reader.readFloat32("duration");
 	animation._Loop = reader.readBool("isLooping");
 
-	reader.openArray("KeyedNodes");
+	reader.openArray("keyed");
 	// Read the number of keyed nodes.
 	const numKeyedComponents = reader.readUint16Length();
 	if(numKeyedComponents > 0)
 	{	
 		for(let i = 0; i < numKeyedComponents; i++)
 		{
-			reader.openObject("Node");
-			const componentIndex = reader.readId("nodeIndex");
+			reader.openObject("component");
+			const componentIndex = reader.readId("component");
 			let component = actor._Components[componentIndex];
 			if(!component)
 			{
@@ -319,7 +319,6 @@ function _ReadAnimationBlock(actor, reader)
 					animation._Components.push(animatedComponent);
 				}
 				
-				reader.openArray("Properties");
 				const props = reader.readUint16Length();
 				for(let j = 0; j < props; j++)
 				{
@@ -386,14 +385,14 @@ function _ReadAnimationBlock(actor, reader)
 					const animatedProperty = new AnimatedProperty(propertyType);
 					animatedComponent._Properties.push(animatedProperty);
 
-					propertyReader.openArray("KeyFrames");
+					propertyReader.openArray("frames");
 					const keyFrameCount = propertyReader.readUint16Length();
 					let lastKeyFrame = null;
 					for(let k = 0; k < keyFrameCount; k++)
 					{
 						let keyFrame = new KeyFrame(animatedProperty);
 
-						propertyReader.openObject("KeyFrame");
+						propertyReader.openObject("frame");
 						
 						keyFrame._Time = propertyReader.readFloat64("time");
 
@@ -515,7 +514,7 @@ function _ReadAnimationBlock(actor, reader)
 							for(let l = 0; l < orderedImages; l++)
 							{
 								propertyReader.openObject("order");
-								const idx = propertyReader.readId("nodeIndex");
+								const idx = propertyReader.readId("component");
 								const order = propertyReader.readUint16("order");
 								propertyReader.closeObject();
 								orderValue.push({
@@ -560,7 +559,6 @@ function _ReadAnimationBlock(actor, reader)
 						lastKeyFrame.setNext(null);
 					}
 				}
-				reader.closeArray();
 			}
 			reader.closeObject();
 		}
@@ -864,7 +862,14 @@ function _ReadShot(loader, data, callback)
 function _ReadActorComponent(reader, component)
 {
 	component._Name = reader.readString("name");
-	component._ParentIdx = reader.readId("parentId");
+	component._ParentIdx = reader.readId("parent");
+	return component;
+}
+
+function _ReadActorPaint(reader, component)
+{
+	_ReadActorComponent(reader, component);
+	component._Opacity = reader.readFloat32("opacity");
 	return component;
 }
 
@@ -967,16 +972,16 @@ function _ReadActorNode(reader, component)
 	component._Rotation = reader.readFloat32("rotation");
 	reader.readFloat32Array(component._Scale, "scale");
 	component._Opacity = reader.readFloat32("opacity");
-	component._IsCollapsedVisibility = reader.readBool("isCollapsedVisibility");
+	component._IsCollapsedVisibility = reader.readBool("isCollapsed");
 
-	reader.openArray("Clips");
+	reader.openArray("clips");
 	const clipCount = reader.readUint8Length();
 	if(clipCount)
 	{
 		component._Clips = [];
 		for(let i = 0; i < clipCount; i++)
 		{
-			component._Clips.push(reader.readId("clipId"));
+			component._Clips.push(reader.readId("clip"));
 		}
 	}
 	reader.closeArray();
@@ -1067,7 +1072,7 @@ function _ReadActorIKConstraint(reader, component)
 
 	component._InvertDirection = reader.readBool("isInverted");
 
-	reader.openArray("InfluencedBones");
+	reader.openArray("bones");
 	const numInfluencedBones = reader.readUint8Length();
 	if(numInfluencedBones > 0)
 	{
@@ -1222,7 +1227,7 @@ function _ReadActorEllipse(reader, component)
 
 function _ReadColorFill(reader, component)
 {
-	_ReadActorComponent(reader, component);
+	_ReadActorPaint(reader, component);
 
 	reader.readFloat32Array(component._Color, "color");
 	component._FillRule = reader.readUint8("fillRule");
@@ -1232,7 +1237,7 @@ function _ReadColorFill(reader, component)
 
 function _ReadColorStroke(reader, component)
 {
-	_ReadActorComponent(reader, component);
+	_ReadActorPaint(reader, component);
 
 	reader.readFloat32Array(component._Color, "color");
 	component._Width = reader.readFloat32("width");
@@ -1263,7 +1268,7 @@ function _ReadRadialGradient(reader, component)
 
 function _ReadGradientFill(reader, component)
 {
-	_ReadActorComponent(reader, component);
+	_ReadActorPaint(reader, component);
 
 	_ReadGradient(reader, component);
 	component._FillRule = reader.readUint8("fillRule");
@@ -1273,7 +1278,7 @@ function _ReadGradientFill(reader, component)
 
 function _ReadGradientStroke(reader, component)
 {
-	_ReadActorComponent(reader, component);
+	_ReadActorPaint(reader, component);
 
 	_ReadGradient(reader, component);
 	component._Width = reader.readFloat32("width");
@@ -1283,7 +1288,7 @@ function _ReadGradientStroke(reader, component)
 
 function _ReadRadialGradientFill(reader, component)
 {
-	_ReadActorComponent(reader, component);
+	_ReadActorPaint(reader, component);
 
 	_ReadRadialGradient(reader, component);
 	component._FillRule = reader.readUint8("fillRule");
@@ -1293,7 +1298,7 @@ function _ReadRadialGradientFill(reader, component)
 
 function _ReadRadialGradientStroke(reader, component)
 {
-	_ReadActorComponent(reader, component);
+	_ReadActorPaint(reader, component);
 
 	_ReadRadialGradient(reader, component);
 	component._Width = reader.readFloat32("width");
@@ -1357,7 +1362,7 @@ function _ReadActorImage(reader, component)
 		component._DrawOrder = reader.readUint16("drawOrder");
 		component._AtlasIndex = reader.readUint8("atlas");
 
-		reader.openArray("ConnectedBones");
+		reader.openArray("bones");
 		const numConnectedBones = reader.readUint8Length();
 		if(numConnectedBones > 0)
 		{
@@ -1366,7 +1371,7 @@ function _ReadActorImage(reader, component)
 			{
 				reader.openObject("bone");
 				const bind = mat2d.create();
-				const componentIndex = reader.readId("id");
+				const componentIndex = reader.readId("component");
 				reader.readFloat32Array(bind, "bind");
 				reader.closeObject();
 
@@ -1413,10 +1418,10 @@ function _ReadActorImageSequence(reader, component)
 	// See if it was visible to begin with.
 	if(component._AtlasIndex != -1)
 	{
-		reader.openArray("FrameAssets");
-		const frameAssetCount = reader.readUint16Length();
+		reader.openArray("frames");
+		const frameCount = reader.readUint16Length();
 		component._SequenceFrames = [];
-		const uvs = new Float32Array(component._NumVertices*2*frameAssetCount);
+		const uvs = new Float32Array(component._NumVertices*2*frameCount);
 		const uvStride = component._NumVertices*2;
 		component._SequenceUVs = uvs;
 		const firstFrame = {
@@ -1436,16 +1441,16 @@ function _ReadActorImageSequence(reader, component)
 		}
 
 		let offset = uvStride;
-		for(let i = 1; i < frameAssetCount; i++)
+		for(let i = 1; i < frameCount; i++)
 		{
-			reader.openObject("frameAsset");
+			reader.openObject("frame");
 			let frame = {
-				atlas:reader.readUint8("atlasId"),
+				atlas:reader.readUint8("atlas"),
 				offset:offset*4
 			};
 
 			component._SequenceFrames.push(frame);
-			reader.readFloat32ArrayOffset(uvs, uvStride, offset, "frameUV");
+			reader.readFloat32ArrayOffset(uvs, uvStride, offset, "uv");
 			reader.closeObject();
 
 			offset += uvStride;
