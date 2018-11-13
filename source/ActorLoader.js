@@ -34,6 +34,7 @@ import ActorScaleConstraint from "./ActorScaleConstraint.js";
 import ActorRotationConstraint from "./ActorRotationConstraint.js";
 import ActorShape from "./ActorShape.js";
 import ActorPath from "./ActorPath.js";
+import ActorSkin from "./ActorSkin.js";
 import {ColorFill, ColorStroke, GradientFill, GradientStroke, RadialGradientFill, RadialGradientStroke} from "./ColorComponent.js";
 import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
 import {KeyFrame, PathsKeyFrame} from "./KeyFrame.js";
@@ -90,7 +91,8 @@ const _BlockTypes = {
 	ActorRectangle: 109,
 	ActorTriangle: 110,
 	ActorStar: 111,
-	ActorPolygon: 112
+	ActorPolygon: 112,
+	ActorSkin: 113
 };
 
 const _Readers = {
@@ -264,6 +266,9 @@ function _ReadComponentsBlock(actor, reader)
 				break;
 			case _BlockTypes.ActorPolygon:
 				component = _ReadActorPolygon(block.reader, new ActorPolygon());
+				break;
+			case _BlockTypes.ActorSkin:
+				component = _ReadActorComponent(block.reader, new ActorSkin());
 				break;
 		}
 		if(component)
@@ -1306,18 +1311,57 @@ function _ReadRadialGradientStroke(reader, component)
 	return component;
 }
 
-function _ReadActorPath(reader, component)
+function _ReadSkinnable(reader, component)
 {
 	_ReadActorNode(reader, component);
+
+	reader.openArray("bones");
+	const numConnectedBones = reader.readUint8Length();
+	if(numConnectedBones > 0)
+	{
+		component._ConnectedBones = [];
+		for(let i = 0; i < numConnectedBones; i++)
+		{
+			reader.openObject("bone");
+			const bind = mat2d.create();
+			const componentIndex = reader.readId("component");
+			reader.readFloat32Array(bind, "bind");
+			reader.closeObject();
+
+			component._ConnectedBones.push({
+				componentIndex:componentIndex,
+				bind:bind,
+				ibind:mat2d.invert(mat2d.create(), bind)
+			});
+		}
+		reader.closeArray();
+
+		// Read the final override parent world.
+		const overrideWorld = mat2d.create();
+		reader.readFloat32Array(overrideWorld, "worldTransform");
+		mat2d.copy(component._WorldTransform, overrideWorld);
+		component._OverrideWorldTransform = true;
+	}
+	else
+	{
+		// Close the previously opened JSON Array.
+		reader.closeArray();
+	}
+}
+
+function _ReadActorPath(reader, component)
+{
+	_ReadSkinnable(reader, component);
 	component._IsHidden = !reader.readBool("isVisible");
 	component._IsClosed = reader.readBool("isClosed");
 
-	reader.openArray("Points");
+	reader.openArray("points");
 	const pointCount = reader.readUint16Length();
 	const points = new Array(pointCount);
+	const isConnectedToBones = component._ConnectedBones && component._ConnectedBones.length > 0;
 	for(let i = 0; i < pointCount; i++)
 	{
-		reader.openObject("Point");
+		reader.openObject("point");
 		const type = reader.readUint8("pointType");
 		let point = null;
 		switch(type)
@@ -1327,16 +1371,28 @@ function _ReadActorPath(reader, component)
 				point = new StraightPathPoint();
 				reader.readFloat32Array(point._Translation, "translation");
 				point._Radius = reader.readFloat32("radius");
+				if(isConnectedToBones)
+				{
+					point._Weights = new Float32Array(8);
+				}
 				break;
 			}
 			default:
 			{
 				point = new CubicPathPoint();
 				reader.readFloat32Array(point._Translation, "translation");
-				reader.readFloat32Array(point._In, "rigIn");
-				reader.readFloat32Array(point._Out, "rigOut");
+				reader.readFloat32Array(point._In, "in");
+				reader.readFloat32Array(point._Out, "out");
+				if(isConnectedToBones)
+				{
+					point._Weights = new Float32Array(24);
+				}
 				break;
 			}
+		}
+		if(point._Weights)
+		{
+			reader.readFloat32Array(point._Weights, "weights");
 		}
 		reader.closeObject();
 		if(!point)

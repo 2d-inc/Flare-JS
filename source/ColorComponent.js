@@ -78,17 +78,17 @@ export class ColorFill extends ActorColor
 		this._FillRule = node._FillRule;
 	}
 
-	fill(ctx)
+	fill(ctx, path)
 	{
 		ctx.fillStyle = this.cssColor;
 		
 		switch(this._FillRule)
 		{
 			case FillRule.EvenOdd:
-				ctx.fill("evenodd");
+				ctx.fill(path, "evenodd");
 				break;
 			case FillRule.NonZero:
-				ctx.fill("nonzero");
+				ctx.fill(path, "nonzero");
 				break;
 		}
 	}
@@ -125,11 +125,11 @@ export class ColorStroke extends ActorColor
 		this._Width = node._Width;
 	}
 
-	stroke(ctx)
+	stroke(ctx, path)
 	{
 		ctx.strokeStyle = this.cssColor;
 		ctx.lineWidth = this._Width;
-		ctx.stroke();
+		ctx.stroke(path);
 	}
 
 	resolveComponentIndices(components)
@@ -184,7 +184,7 @@ export class GradientFill extends GradientColor
 		this._FillRule = node._FillRule;
 	}
 
-	fill(ctx)
+	fill(ctx, path)
 	{
 		const {_Start:start, _End:end, _ColorStops:stops} = this;
 		const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
@@ -203,10 +203,10 @@ export class GradientFill extends GradientColor
 		switch(this._FillRule)
 		{
 			case FillRule.EvenOdd:
-				ctx.fill("evenodd");
+				ctx.fill(path, "evenodd");
 				break;
 			case FillRule.NonZero:
-				ctx.fill("nonzero");
+				ctx.fill(path, "nonzero");
 				break;
 		}
 	}
@@ -243,7 +243,7 @@ export class GradientStroke extends GradientColor
 		this._Width = node._Width;
 	}
 
-	stroke(ctx)
+	stroke(ctx, path)
 	{
 		const {_Start:start, _End:end, _ColorStops:stops} = this;
 		const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
@@ -260,7 +260,7 @@ export class GradientStroke extends GradientColor
 		
 		ctx.lineWidth = this._Width;
 		ctx.strokeStyle = gradient;
-		ctx.stroke();
+		ctx.stroke(path);
 	}
 
 	resolveComponentIndices(components)
@@ -311,7 +311,7 @@ export class RadialGradientFill extends RadialGradientColor
 		this._FillRule = node._FillRule;
 	}
 
-	fill(ctx)
+	fill(ctx, path)
 	{
 		let {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
 		const gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
@@ -339,10 +339,10 @@ export class RadialGradientFill extends RadialGradientColor
 		switch(this._FillRule)
 		{
 			case FillRule.EvenOdd:
-				ctx.fill("evenodd");
+				ctx.fill(path, "evenodd");
 				break;
 			case FillRule.NonZero:
-				ctx.fill("nonzero");
+				ctx.fill(path, "nonzero");
 				break;
 		}
 		ctx.restore();
@@ -380,7 +380,7 @@ export class RadialGradientStroke extends RadialGradientColor
 		this._Width = node._Width;
 	}
 
-	stroke(ctx)
+	stroke(ctx, path)
 	{
 		
 		const {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
@@ -407,7 +407,7 @@ export class RadialGradientStroke extends RadialGradientColor
 		ctx.translate(start[0], start[1]);
 		ctx.rotate(angle);
 		ctx.scale(1.0, squash);
-		ctx.stroke();
+		ctx.stroke(path);
 		ctx.restore();
 	}
 

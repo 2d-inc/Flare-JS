@@ -2,8 +2,8 @@ import ActorComponent from "./ActorComponent.js";
 import {vec2, mat2d} from "gl-matrix";
 
 
-let TransformDirty = 1<<0;
-let WorldTransformDirty = 1<<1;
+const TransformDirty = 1<<0;
+const WorldTransformDirty = 1<<1;
 
 function _UpdateTransform(node)
 {

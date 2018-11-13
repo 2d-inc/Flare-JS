@@ -13,8 +13,14 @@ export default class ActorShape extends ActorNode
 		this._DrawOrder = 0;
 		this._IsHidden = false;
 
+		this._Paths = null;
 		this._Fills = null;
 		this._Strokes = null;
+	}
+
+	get paths()
+	{
+		return this._Paths;
 	}
 
 	addFill(fill)
@@ -60,6 +66,11 @@ export default class ActorShape extends ActorNode
 				continue;
 			}
 
+			if(path.numPoints < 2)
+			{
+				continue;
+			}
+
 			// This is the axis aligned bounding box in the space of the parent (this case our shape).
 			const pathAABB = path.getPathAABB();
 
@@ -85,8 +96,7 @@ export default class ActorShape extends ActorNode
 
 		if(!aabb)
 		{
-			console.log("WHAT?", this, this._Children);
-			return new Float32Array([min_x, min_y, max_x, max_y]);
+			return null;
 		}
 		let world = this._WorldTransform;
 		//vec2.transformMat2d(vec2.create(), [], world);
@@ -139,17 +149,16 @@ export default class ActorShape extends ActorNode
 		const ctx = graphics.ctx;
 		ctx.save();
 		ctx.globalAlpha = this._RenderOpacity;
-		this.drawShape(ctx, true);
+		this.clip(ctx);
+		const shapePath = this.getShapePath();
 
 		const {_Fills:fills, _Strokes:strokes} = this;
 		
-		const transform = this._WorldTransform;
-		ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
 		if(fills)
 		{
 			for(const fill of fills)
 			{
-				fill.fill(ctx);
+				fill.fill(ctx, shapePath);
 			}
 		}
 		if(strokes)
@@ -158,46 +167,80 @@ export default class ActorShape extends ActorNode
 			{
 				if(stroke._Width > 0)
 				{
-					stroke.stroke(ctx);
+					stroke.stroke(ctx, shapePath);
 				}
 			}
 		}
 
-		ctx.restore();
+		const aabb = this.computeAABB();
+		if(aabb)
+		{
+			ctx.fillStyle = "rgba(255,0,0,0.25)";
+			ctx.beginPath();
+			ctx.moveTo(aabb[0], aabb[1]);
+			ctx.lineTo(aabb[2], aabb[1]);
+			ctx.lineTo(aabb[2], aabb[3]);
+			ctx.lineTo(aabb[0], aabb[3]);
+			ctx.closePath();
+			ctx.fill();
+		}
+	}
 
-		// var t = this._WorldTransform;
-		// switch(this._BlendMode)
-		// {
-		// 	case ActorShape.BlendModes.Normal:
-		// 		graphics.enableBlending();
-		// 		break;
-		// 	case ActorShape.BlendModes.Multiply:
-		// 		graphics.enableMultiplyBlending();
-		// 		break;
-		// 	case ActorShape.BlendModes.Screen:
-		// 		graphics.enableScreenBlending();
-		// 		break;
-		// 	case ActorShape.BlendModes.Additive:
-		// 		graphics.enableAdditiveBlending();
-		// 		break;
+	getShapePath()
+	{
+		const paths = this._Paths;
+		const shapePath = new Path2D();
+		for(const path of paths)
+		{
+			if(path.isHidden)
+			{
+				continue;
+			}
+			shapePath.addPath(path.getPath(), path.getPathTransform());
+		}
 
-		// }
+		return shapePath;
+	}
 
-		// let uvBuffer =  this._SequenceUVBuffer || null;
-		// let uvOffset;
-		// if(this._SequenceUVBuffer)
-		// {
-		// 	let numFrames = this._SequenceFrames.length;
-		// 	let frame = this._SequenceFrame%numFrames;
-		// 	if(uvOffset < 0)
-		// 	{
-		// 		frame += numFrames;
-		// 	}
-		// 	uvOffset = this._SequenceFrames[frame].offset;
-		// }
+	clip(ctx)
+	{
+		// Find clips.
+		let clipSearch = this;
+		let clips = null;
+		while(clipSearch)
+		{
+			if(clipSearch.clips)
+			{
+				clips = clipSearch.clips;
+				break;
+			}
+			clipSearch = clipSearch.parent;
+		}
 
-		// graphics.prep(this._Texture, White, this._RenderOpacity, t, this._VertexBuffer, this._ConnectedBones ? this._BoneMatrices : null, this._DeformVertexBuffer, uvBuffer, uvOffset);
-		// graphics.draw(this._IndexBuffer);
+		if(clips)
+		{
+			const path = new Path2D();
+			for(let clip of clips)
+			{
+				let shapes = new Set();
+				clip.all(function(node)
+				{
+					if(node.constructor === ActorShape)
+					{
+						shapes.add(node);
+					}
+				});
+				for(let shape of shapes)
+				{
+					const paths = shape.paths;
+					for(const path of paths)
+					{
+						path.addPath(path.getPath(), path.getPathTransform());
+					}
+				}
+			}
+			ctx.clip(path);
+		}
 	}
 
 	drawShape(ctx, clip)
@@ -260,16 +303,17 @@ export default class ActorShape extends ActorNode
 		}
 	}
 
-	resolveComponentIndices(components)
+	completeResolve()
 	{
-		ActorNode.prototype.resolveComponentIndices.call(this, components);
-	}
+		super.completeResolve();
+		this._Paths = this._Children.filter(child => child.constructor === ActorPath || (child instanceof ActorProceduralPath));
+	}	
 
 	makeInstance(resetActor)
 	{
 		const node = new ActorShape();
 		node._IsInstance = true;
-		ActorShape.prototype.copy.call(node, this, resetActor);
+		node.copy(this, resetActor);
 		return node;	
 	}
 

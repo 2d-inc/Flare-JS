@@ -8,7 +8,6 @@ export default class ActorBoneBase extends ActorNode
 		super();
 
 		this._Length = 0;
-		this._IsConnectedToImage = false;
 	}
 
 	get tipWorldTranslation()
@@ -38,6 +37,5 @@ export default class ActorBoneBase extends ActorNode
 	{
 		super.copy(node, resetActor);
 		this._Length = node._Length;
-		this._IsConnectedToImage = node._IsConnectedToImage;
 	}
 }

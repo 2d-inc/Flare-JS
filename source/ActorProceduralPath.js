@@ -22,6 +22,16 @@ export default class ActorProceduralPath extends ActorNode
         return node;
     }
 
+    getPathTransform()
+	{
+		return new DOMMatrix(this._WorldTransform);
+    }
+    
+    getPathRenderTransform()
+	{
+		return this.worldTransform;
+	}
+
     getPathAABB()
     {
         let min_x = Number.MAX_VALUE;
