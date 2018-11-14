@@ -72,6 +72,13 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 			}
 			const bone = components[componentIndex];
 			bones[j] = bone;
+
+			// Mark peer constraints, N.B. that we're not adding it to the parent bone
+			// as we're constraining it anyway.
+			if(bone !== this.parent)
+			{
+				bone.addPeerConstraint(this);
+			}
 		}
 	}
 
@@ -142,6 +149,7 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 			{
 				continue;
 			}
+
 			actor.addDependency(this, bone);
 		}
 		if(this._Target)

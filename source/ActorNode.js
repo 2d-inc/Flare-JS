@@ -34,6 +34,7 @@ export default class ActorNode extends ActorComponent
 		this._WorldTransform = mat2d.create();
 		this._OverrideWorldTransform = false;
 		this._Constraints = null;
+		this._PeerConstraints = null;
 
 		this._Translation = vec2.create();
 		this._Rotation = 0;
@@ -86,6 +87,16 @@ export default class ActorNode extends ActorComponent
 		return true;
 	}
 
+	get constraints()
+	{
+		return this._Constraints;
+	}
+
+	get allConstraints()
+	{
+		return new Set((this._Constraints || []).concat(this._PeerConstraints || []));
+	}
+
 	addConstraint(constraint)
 	{
 		let constraints = this._Constraints;
@@ -101,6 +112,15 @@ export default class ActorNode extends ActorComponent
 		constraints.push(constraint);
 
 		return true;
+	}
+
+	addPeerConstraint(constraint)
+	{
+		if(!this._PeerConstraints)
+		{
+			this._PeerConstraints = [];
+		}
+		this._PeerConstraints.push(constraint);
 	}
 
 	markTransformDirty()

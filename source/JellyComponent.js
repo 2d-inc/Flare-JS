@@ -137,13 +137,61 @@ export default class JellyComponent extends ActorComponent
 		{
 			this._OutTarget = components[this._OutTargetIdx];
 		}
+
+		// Add dependencies.
+		const {_Actor:actor, _Parent:bone} = this;
+		let dependencyConstraints = [];
+		if(bone)
+		{
+			actor.addDependency(this, bone);
+			dependencyConstraints = dependencyConstraints.concat(Array.from(bone.allConstraints));
+			let firstBone = bone.firstBone;
+			if(firstBone)
+			{
+				actor.addDependency(this, firstBone);
+				dependencyConstraints = dependencyConstraints.concat(Array.from(firstBone.allConstraints));
+
+				// If we don't have an out target and the child jelly does have an in target
+				// we are dependent on that target's position.
+				if(!this.outTarget && firstBone.jelly && firstBone.jelly.inTarget)
+				{
+					actor.addDependency(this, firstBone.jelly.inTarget);
+					dependencyConstraints = dependencyConstraints.concat(Array.from(firstBone.jelly.inTarget.allConstraints));
+				}
+			}
+			let parentBone = bone.parent instanceof ActorBoneBase && bone.parent;
+			let parentBoneJelly = parentBone && parentBone.jelly;
+			if(parentBoneJelly && parentBoneJelly.outTarget)
+			{
+				actor.addDependency(this, parentBoneJelly.outTarget);
+				dependencyConstraints = dependencyConstraints.concat(Array.from(parentBoneJelly.outTarget.allConstraints));
+			}
+		}
+
+		if(this._InTarget)
+		{
+			actor.addDependency(this, this._InTarget);
+			dependencyConstraints = dependencyConstraints.concat(Array.from(this._InTarget.allConstraints));
+		}
+		if(this._OutTarget)
+		{
+			actor.addDependency(this, this._OutTarget);
+			dependencyConstraints = dependencyConstraints.concat(Array.from(this._OutTarget.allConstraints));
+		}
+
+		dependencyConstraints = new Set(dependencyConstraints);
+		
+		for(const constraint of dependencyConstraints)
+		{
+			actor.addDependency(this, constraint);
+		}
 	}
 
 	completeResolve()
 	{
 		super.completeResolve();
 		
-		const bone = this._Parent;
+		const {_Actor:actor, _Parent:bone} = this;
 		bone._Jelly = this;
 
 		// Get jellies.
@@ -157,6 +205,7 @@ export default class JellyComponent extends ActorComponent
 			if(child.constructor === ActorJellyBone)
 			{
 				this._Bones.push(child);
+				actor.addDependency(child, this);
 			}
 		}
 	}

@@ -38,4 +38,18 @@ export default class ActorBoneBase extends ActorNode
 		super.copy(node, resetActor);
 		this._Length = node._Length;
 	}
+
+	get firstBone()
+	{
+		let children = this._Children;
+		for(let child of children)
+		{
+			if(child instanceof ActorBoneBase)
+			{
+				return child;
+			}
+		}
+
+		return null;
+	}
 }

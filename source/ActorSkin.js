@@ -86,9 +86,18 @@ export default class ActorSkin extends ActorComponent
 			const connectedBones = path.connectedBones;
 			if(connectedBones && connectedBones.length)
 			{
-				for(const cb of connectedBones)
+				for(const {node} of connectedBones)
 				{
-					graph.addDependency(this, cb.node);
+					graph.addDependency(this, node);
+					const constraints = node.allConstraints;
+								
+					if(constraints)
+					{
+						for(const constraint of constraints)
+						{
+							graph.addDependency(this, constraint);
+						}
+					}
 				}
 			}
 		}

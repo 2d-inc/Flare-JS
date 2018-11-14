@@ -74,17 +74,19 @@ export default class ActorStar extends ActorProceduralPath
 		return [vec2.fromValues(min_x, min_y), vec2.fromValues(max_x, max_y)];
     }
     
-    draw(ctx)
+    getPath()
     {
-        const transform = this._WorldTransform;
+        //const transform = this._WorldTransform;
         const radius = this._InnerRadius;
+
+        const path = new Path2D();
         
-        ctx.save();
-		ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
+        //ctx.save();
+		//ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
 		const radiusX = this._Width/2;
 		const radiusY = this._Height/2;
 
-        ctx.moveTo(0.0, -radiusY);
+        path.moveTo(0.0, -radiusY);
         
         const inc = (Math.PI*2.0)/this.sides;
         const sx = [radiusX, radiusX*radius];
@@ -93,11 +95,12 @@ export default class ActorStar extends ActorProceduralPath
         let angle = -Math.PI/2.0;
         for(let i = 0; i < this.sides; i++)
         {
-            ctx.lineTo(Math.cos(angle)*sx[i%2], Math.sin(angle)*sy[i%2]);
+            path.lineTo(Math.cos(angle)*sx[i%2], Math.sin(angle)*sy[i%2]);
             angle += inc;
         }
-		ctx.closePath();
-		ctx.restore();
+		path.closePath();
+        //ctx.restore();
+        return path;
     }
 
     get sides()
