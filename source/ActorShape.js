@@ -58,7 +58,58 @@ export default class ActorShape extends ActorNode
 
 	computeAABB()
 	{
+		const clips = this.getClips();
+		if(clips)
+		{
+			let aabb = null;
+			for(const clip of clips)
+			{
+				clip.all(function(node)
+				{
+					if(node.constructor === ActorShape)
+					{
+						let bounds = node.computeAABB();
+						if(!aabb)
+						{
+							aabb = bounds;
+						}
+						else
+						{
+							if(bounds[0] < aabb[0])
+							{
+								aabb[0] = bounds[0];
+							}
+							if(bounds[1] < aabb[1])
+							{
+								aabb[1] = bounds[1];
+							}
+							if(bounds[2] > aabb[2])
+							{
+								aabb[2] = bounds[2];
+							}
+							if(bounds[3] > aabb[3])
+							{
+								aabb[3] = bounds[3];
+							}
+						}
+					}
+				});
+			}
+			return aabb;
+		}
+
 		let aabb = null;
+		let maxStroke = 0.0;
+		if(this._Strokes)
+		{
+			for(const stroke of this._Strokes)
+			{
+				if(stroke.width > maxStroke)
+				{
+					maxStroke = stroke.width;
+				}
+			}
+		}
 		for(const path of this._Children)
 		{
 			if (path.constructor !== ActorPath && !(path instanceof ActorProceduralPath))
@@ -89,6 +140,12 @@ export default class ActorShape extends ActorNode
 			}
 		}
 
+		const padStroke = maxStroke/2.0;
+		aabb[0] -= padStroke;
+		aabb[1] -= padStroke;
+		aabb[2] += padStroke;
+		aabb[3] += padStroke;
+
 		let min_x = Number.MAX_VALUE;
 		let min_y = Number.MAX_VALUE;
 		let max_x = -Number.MAX_VALUE;
@@ -99,7 +156,6 @@ export default class ActorShape extends ActorNode
 			return null;
 		}
 		let world = this._WorldTransform;
-		//vec2.transformMat2d(vec2.create(), [], world);
 
 
 		const points = [
@@ -172,18 +228,19 @@ export default class ActorShape extends ActorNode
 			}
 		}
 
-		const aabb = this.computeAABB();
-		if(aabb)
-		{
-			ctx.fillStyle = "rgba(255,0,0,0.25)";
-			ctx.beginPath();
-			ctx.moveTo(aabb[0], aabb[1]);
-			ctx.lineTo(aabb[2], aabb[1]);
-			ctx.lineTo(aabb[2], aabb[3]);
-			ctx.lineTo(aabb[0], aabb[3]);
-			ctx.closePath();
-			ctx.fill();
-		}
+		// const aabb = this.computeAABB();
+		// if(aabb)
+		// {
+		// 	ctx.fillStyle = "rgba(255,0,0,0.25)";
+		// 	ctx.beginPath();
+		// 	ctx.moveTo(aabb[0], aabb[1]);
+		// 	ctx.lineTo(aabb[2], aabb[1]);
+		// 	ctx.lineTo(aabb[2], aabb[3]);
+		// 	ctx.lineTo(aabb[0], aabb[3]);
+		// 	ctx.closePath();
+		// 	ctx.fill();
+		// }
+		ctx.restore();
 	}
 
 	getShapePath()
@@ -202,24 +259,32 @@ export default class ActorShape extends ActorNode
 		return shapePath;
 	}
 
-	clip(ctx)
+	getClips()
 	{
 		// Find clips.
 		let clipSearch = this;
 		let clips = null;
 		while(clipSearch)
 		{
-			if(clipSearch.clips)
+			if(clipSearch._Clips)
 			{
-				clips = clipSearch.clips;
+				clips = clipSearch._Clips;
 				break;
 			}
 			clipSearch = clipSearch.parent;
 		}
 
+		return clips;
+	}
+	
+	clip(ctx)
+	{
+		// Find clips.
+		const clips = this.getClips();
+
 		if(clips)
 		{
-			const path = new Path2D();
+			const clipPath = new Path2D();
 			for(let clip of clips)
 			{
 				let shapes = new Set();
@@ -235,71 +300,11 @@ export default class ActorShape extends ActorNode
 					const paths = shape.paths;
 					for(const path of paths)
 					{
-						path.addPath(path.getPath(), path.getPathTransform());
+						clipPath.addPath(path.getPath(), path.getPathTransform());
 					}
 				}
 			}
-			ctx.clip(path);
-		}
-	}
-
-	drawShape(ctx, clip)
-	{
-		const shape = this.node;
-
-		// Find clips.
-		if(clip)
-		{
-			let clipSearch = this;
-			let clips = null;
-			while(clipSearch)
-			{
-				if(clipSearch._Clips)
-				{
-					clips = clipSearch._Clips;
-					break;
-				}
-				clipSearch = clipSearch._Parent;
-			}
-
-			if(clips)
-			{
-				for(const clip of clips)
-				{
-					const shapes = new Set();
-					clip.all(function(node)
-					{
-						if(node.constructor === ActorShape && !(node instanceof ActorProceduralPath))
-						{
-							shapes.add(node);
-						}
-					});
-					for(const shape of shapes)
-					{
-						ctx.beginPath();
-						for(const node of shape._Children)
-						{
-							if(node.constructor !== ActorPath && !(node instanceof ActorProceduralPath))
-							{
-								continue;
-							}
-							node.draw(ctx);
-						}
-					}
-				}
-				ctx.clip();
-			}
-		}
-
-		ctx.beginPath();
-		for(const path of this._Children)
-		{
-			if(path.constructor !== ActorPath && !(path instanceof ActorProceduralPath) || path.isHidden)
-			{
-				continue;
-			}
-
-			path.draw(ctx);
+			ctx.clip(clipPath);
 		}
 	}
 

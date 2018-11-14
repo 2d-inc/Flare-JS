@@ -1,5 +1,6 @@
 import ActorNode from "./ActorNode.js";
 import {vec2} from "gl-matrix";
+import PathMatrix from "./PathMatrix.js";
 
 export default class ActorProceduralPath extends ActorNode
 {
@@ -10,6 +11,16 @@ export default class ActorProceduralPath extends ActorNode
         this._Height = 0;
     }
 
+    get width()
+    {
+        return this._Width;
+    }
+
+    get height()
+    {
+        return this._Height;
+    }
+    
     resolveComponentIndices(components)
 	{
         ActorNode.prototype.resolveComponentIndices.call(this, components);
@@ -24,7 +35,7 @@ export default class ActorProceduralPath extends ActorNode
 
     getPathTransform()
 	{
-		return new DOMMatrix(this._WorldTransform);
+        return PathMatrix(this._WorldTransform);
     }
     
     getPathRenderTransform()

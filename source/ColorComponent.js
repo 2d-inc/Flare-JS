@@ -111,6 +111,11 @@ export class ColorStroke extends ActorColor
 		this._Width = 0.0;
 	}
 
+	get width()
+	{
+		return this._Width;
+	}
+
 	makeInstance(resetActor)
 	{
 		const node = new ColorStroke();
@@ -150,6 +155,8 @@ export class GradientColor extends ActorPaint
 		this._ColorStops = new Float32Array(10);
 		this._Start = vec2.create();
 		this._End = vec2.create();
+		this._RenderStart = vec2.create();
+		this._RenderEnd = vec2.create();
 	}
 
 	copy(node, resetActor)
@@ -159,6 +166,24 @@ export class GradientColor extends ActorPaint
 		this._ColorStops = new Float32Array(node._ColorStops);
 		vec2.copy(this._Start, node._Start);
 		vec2.copy(this._End, node._End);
+		vec2.copy(this._RenderStart, node._RenderStart);
+		vec2.copy(this._RenderEnd, node._RenderEnd);
+	}
+
+	completeResolve()
+	{
+		super.completeResolve();
+		const graph = this._Actor;
+		const shape = this._Parent;
+		graph.addDependency(this, shape);
+	}
+
+	update(dirt)
+	{
+		const shape = this._Parent;
+		const world = shape.worldTransform;
+		vec2.transformMat2d(this._RenderStart, this._Start, world);
+		vec2.transformMat2d(this._RenderEnd, this._End, world);
 	}
 }
 
@@ -186,7 +211,7 @@ export class GradientFill extends GradientColor
 
 	fill(ctx, path)
 	{
-		const {_Start:start, _End:end, _ColorStops:stops} = this;
+		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops} = this;
 		const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
 
 		const opacity = this._Opacity;
@@ -229,6 +254,11 @@ export class GradientStroke extends GradientColor
 		this._Width = 0.0;
 	}
 
+	get width()
+	{
+		return this._Width;
+	}
+
 	makeInstance(resetActor)
 	{
 		const node = new GradientStroke();
@@ -245,7 +275,7 @@ export class GradientStroke extends GradientColor
 
 	stroke(ctx, path)
 	{
-		const {_Start:start, _End:end, _ColorStops:stops} = this;
+		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops} = this;
 		const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
 
 		const opacity = this._Opacity;
@@ -313,7 +343,7 @@ export class RadialGradientFill extends RadialGradientColor
 
 	fill(ctx, path)
 	{
-		let {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
+		let {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
 		const gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
 
 		const opacity = this._Opacity;
@@ -328,13 +358,13 @@ export class RadialGradientFill extends RadialGradientColor
 		
 		ctx.fillStyle = gradient;
 
-		const squash = Math.max(0.00001, secondaryRadiusScale);
-		const diff = vec2.subtract(vec2.create(), end, start);
-		const angle = Math.atan2(diff[1], diff[0]);
-		ctx.save();
-		ctx.translate(start[0], start[1]);
-		ctx.rotate(angle);
-		ctx.scale(1.0, squash);
+		// const squash = Math.max(0.00001, secondaryRadiusScale);
+		// const diff = vec2.subtract(vec2.create(), end, start);
+		// const angle = Math.atan2(diff[1], diff[0]);
+		// ctx.save();
+		// ctx.translate(start[0], start[1]);
+		// ctx.rotate(angle);
+		// ctx.scale(1.0, squash);
 
 		switch(this._FillRule)
 		{
@@ -345,7 +375,7 @@ export class RadialGradientFill extends RadialGradientColor
 				ctx.fill(path, "nonzero");
 				break;
 		}
-		ctx.restore();
+		//ctx.restore();
 	}
 
 	resolveComponentIndices(components)
@@ -366,6 +396,11 @@ export class RadialGradientStroke extends RadialGradientColor
 		this._Width = 0.0;
 	}
 
+	get width()
+	{
+		return this._Width;
+	}
+
 	makeInstance(resetActor)
 	{
 		const node = new RadialGradientStroke();
@@ -383,7 +418,7 @@ export class RadialGradientStroke extends RadialGradientColor
 	stroke(ctx, path)
 	{
 		
-		const {_Start:start, _End:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
+		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
 		const gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
 
 		const opacity = this._Opacity;
@@ -399,16 +434,16 @@ export class RadialGradientStroke extends RadialGradientColor
 		ctx.lineWidth = this._Width;
 		ctx.strokeStyle = gradient;
 
-		const squash = Math.max(0.00001, secondaryRadiusScale);
-		const angleVector = vec2.subtract(vec2.create(), end, start);
-		const angle = Math.atan2(angleVector[1], angleVector[0]);
+		// const squash = Math.max(0.00001, secondaryRadiusScale);
+		// const angleVector = vec2.subtract(vec2.create(), end, start);
+		// const angle = Math.atan2(angleVector[1], angleVector[0]);
 		
-		ctx.save();
-		ctx.translate(start[0], start[1]);
-		ctx.rotate(angle);
-		ctx.scale(1.0, squash);
+		// ctx.save();
+		// ctx.translate(start[0], start[1]);
+		// ctx.rotate(angle);
+		// ctx.scale(1.0, squash);
 		ctx.stroke(path);
-		ctx.restore();
+		// ctx.restore();
 	}
 
 	resolveComponentIndices(components)
