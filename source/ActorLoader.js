@@ -35,65 +35,15 @@ import ActorRotationConstraint from "./ActorRotationConstraint.js";
 import ActorShape from "./ActorShape.js";
 import ActorPath from "./ActorPath.js";
 import ActorSkin from "./ActorSkin.js";
+import ActorArtboard from "./ActorArtboard.js";
 import {ColorFill, ColorStroke, GradientFill, GradientStroke, RadialGradientFill, RadialGradientStroke} from "./ColorComponent.js";
 import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
 import {KeyFrame, PathsKeyFrame} from "./KeyFrame.js";
 import {mat2d, vec2} from "gl-matrix";
 import {Hold, Linear, Cubic} from "./Interpolation.js";
-
-
-const _BlockTypes = {
-	Nodes:1,
-	ActorNode:2,
-	ActorBone:3,
-	ActorRootBone:4,
-	ActorImage:5,
-	View:6,
-	Animation:7,
-	Animations:8,
-	Atlases:9,
-	Atlas:10,
-	ActorIKTarget:11,
-	ActorEvent:12,
-	CustomIntProperty:13,
-	CustomFloatProperty:14,
-	CustomStringProperty:15,
-	CustomBooleanProperty:16,
-	ColliderRectangle:17, 
-	ColliderTriangle:18, 
-	ColliderCircle:19, 
-	ColliderPolygon:20, 
-	ColliderLine:21, 
-	ActorImageSequence:22,
-	ActorNodeSolo:23,
-	NestedActorNode:24,
-	NestedActorAssets:25,
-	NestedActorAsset:26,
-	ActorStaticMesh:27,
-	JellyComponent: 28,
-	ActorJellyBone: 29,
-	ActorIKConstraint: 30,
-	ActorDistanceConstraint: 31,
-	ActorTranslationConstraint: 32,
-	ActorRotationConstraint: 33,
-	ActorScaleConstraint: 34,
-	ActorTransformConstraint: 35,
-
-	ActorShape:100,
-	ActorPath:101,
-	ColorFill:102,
-	ColorStroke:103,
-	GradientFill:104,
-	GradientStroke:105,
-	RadialGradientFill:106,
-	RadialGradientStroke:107,
-	ActorEllipse: 108,
-	ActorRectangle: 109,
-	ActorTriangle: 110,
-	ActorStar: 111,
-	ActorPolygon: 112,
-	ActorSkin: 113
-};
+import Block from "./Block.js";
+const _BlockTypes = Block.Types;
+const _AnimatedPropertyTypes = AnimatedProperty.Types;
 
 const _Readers = {
 	"bin": {
@@ -110,7 +60,7 @@ const _Readers = {
 
 let _ReadAtlasesBlock = null;
 
-function _ReadNextBlock(reader, error, typesList)
+function _ReadNextBlock(reader, error, block)
 {
 	if(reader.isEOF())
 	{
@@ -122,7 +72,7 @@ function _ReadNextBlock(reader, error, typesList)
 	try
 	{
 		// blockType = reader.readUint8();
-		blockType = reader.readBlockType(typesList);
+		blockType = reader.readBlockType(block);
 		if(blockType === undefined)
 		{
 			return null;
@@ -144,14 +94,14 @@ function _ReadNextBlock(reader, error, typesList)
 	return {type:blockType, reader: new streamReader.stream(container)};
 }
 
-function _ReadComponentsBlock(actor, reader)
+function _ReadComponentsBlock(artboard, reader)
 {
 	let componentCount = reader.readUint16Length();
-	let actorComponents = actor._Components;
+	let actorComponents = artboard._Components;
 
 	// Guaranteed from the exporter to be in index order.
 	let block = null;
-	while((block = _ReadNextBlock(reader, function(err) {actor.error = err;}, _BlockTypes)) !== null)
+	while((block = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;}, Block)) !== null)
 	{
 		let component = null;
 		switch(block.type)
@@ -202,10 +152,10 @@ function _ReadComponentsBlock(actor, reader)
 				component = _ReadActorImageSequence(block.reader, new ActorImage());
 				break;
 			case _BlockTypes.ActorIKTarget:
-				component = _ReadActorIKTarget(actor.dataVersion, block.reader, new ActorIKTarget());
+				component = _ReadActorIKTarget(artboard.actor.dataVersion, block.reader, new ActorIKTarget());
 				break;
 			case _BlockTypes.NestedActorNode:
-				component = _ReadNestedActor(block.reader, new NestedActorNode(), actor._NestedActorAssets);
+				component = _ReadNestedActor(block.reader, new NestedActorNode(), artboard._NestedActorAssets);
 				break;
 			case _BlockTypes.ActorNodeSolo:
 				component = _ReadActorNodeSolo(block.reader, new ActorNodeSolo());
@@ -277,13 +227,13 @@ function _ReadComponentsBlock(actor, reader)
 		}
 		actorComponents.push(component);
 	}
-	actor.resolveHierarchy();
+	artboard.resolveHierarchy();
 }
 
-function _ReadAnimationBlock(actor, reader)
+function _ReadAnimationBlock(artboard, reader)
 {
-	const animation = new Animation(actor);
-	actor._Animations.push(animation);
+	const animation = new Animation(artboard);
+	artboard._Animations.push(animation);
 
 	animation._Name = reader.readString("name");
 	animation._FPS = reader.readUint8("fps");
@@ -299,7 +249,7 @@ function _ReadAnimationBlock(actor, reader)
 		{
 			reader.openObject("component");
 			const componentIndex = reader.readId("component");
-			let component = actor._Components[componentIndex];
+			let component = artboard._Components[componentIndex];
 			if(!component)
 			{
 					// Bad component was loaded, read past the animation data.
@@ -308,7 +258,7 @@ function _ReadAnimationBlock(actor, reader)
 					const props = reader.readUint16();
 					for(let j = 0; j < props; j++)
 					{
-						let propertyBlock = _ReadNextBlock(reader, function(err) {actor.error = err;});
+						let propertyBlock = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;});
 					}
 			}
 			else
@@ -327,57 +277,45 @@ function _ReadAnimationBlock(actor, reader)
 				const props = reader.readUint16Length();
 				for(let j = 0; j < props; j++)
 				{
-					let propertyReader = null;
-					let propertyType;
-					
-					if(actor.dataVersion >= 12)
-					{
-						// Since version 12 we write properties as blocks in order to allow for reading past unknown animated properties
-						let propertyBlock = _ReadNextBlock(reader, function(err) {actor.error = err;}, AnimatedProperty.Properties);
-						propertyReader = propertyBlock.reader;
-						propertyType = propertyBlock.type;
-					}
-					else
-					{
-						propertyReader = reader;
-						propertyType = reader.readBlockType(AnimatedProperty.Properties);
-					}
+					let propertyBlock = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;}, AnimatedProperty);
+					const propertyReader = propertyBlock.reader;
+					const propertyType = propertyBlock.type;
 
 					let validProperty = false;
 					switch(propertyType)
 					{
-						case AnimatedProperty.Properties.PosX:
-						case AnimatedProperty.Properties.PosY:
-						case AnimatedProperty.Properties.ScaleX:
-						case AnimatedProperty.Properties.ScaleY:
-						case AnimatedProperty.Properties.Rotation:
-						case AnimatedProperty.Properties.Opacity:
-						case AnimatedProperty.Properties.DrawOrder:
-						case AnimatedProperty.Properties.Length:
-						case AnimatedProperty.Properties.VertexDeform:
-						case AnimatedProperty.Properties.ConstraintStrength:
-						case AnimatedProperty.Properties.Trigger:
-						case AnimatedProperty.Properties.IntProperty:
-						case AnimatedProperty.Properties.FloatProperty:
-						case AnimatedProperty.Properties.StringProperty:
-						case AnimatedProperty.Properties.BooleanProperty:
-						case AnimatedProperty.Properties.IsCollisionEnabled:
-						case AnimatedProperty.Properties.ActiveChildIndex:
-						case AnimatedProperty.Properties.Sequence:
-						case AnimatedProperty.Properties.PathVertices:
-						case AnimatedProperty.Properties.FillColor:
-						case AnimatedProperty.Properties.StrokeColor:
-						case AnimatedProperty.Properties.StrokeWidth:
-						case AnimatedProperty.Properties.FillGradient:
-						case AnimatedProperty.Properties.StrokeGradient:
-						case AnimatedProperty.Properties.FillRadial:
-						case AnimatedProperty.Properties.StrokeRadial:
-						case AnimatedProperty.Properties.StrokeOpacity:
-						case AnimatedProperty.Properties.FillOpacity:
-						case AnimatedProperty.Properties.ShapeWidth:
-						case AnimatedProperty.Properties.ShapeHeight:
-						case AnimatedProperty.Properties.CornerRadius:
-						case AnimatedProperty.Properties.InnerRadius:
+						case _AnimatedPropertyTypes.PosX:
+						case _AnimatedPropertyTypes.PosY:
+						case _AnimatedPropertyTypes.ScaleX:
+						case _AnimatedPropertyTypes.ScaleY:
+						case _AnimatedPropertyTypes.Rotation:
+						case _AnimatedPropertyTypes.Opacity:
+						case _AnimatedPropertyTypes.DrawOrder:
+						case _AnimatedPropertyTypes.Length:
+						case _AnimatedPropertyTypes.VertexDeform:
+						case _AnimatedPropertyTypes.ConstraintStrength:
+						case _AnimatedPropertyTypes.Trigger:
+						case _AnimatedPropertyTypes.IntProperty:
+						case _AnimatedPropertyTypes.FloatProperty:
+						case _AnimatedPropertyTypes.StringProperty:
+						case _AnimatedPropertyTypes.BooleanProperty:
+						case _AnimatedPropertyTypes.IsCollisionEnabled:
+						case _AnimatedPropertyTypes.ActiveChildIndex:
+						case _AnimatedPropertyTypes.Sequence:
+						case _AnimatedPropertyTypes.PathVertices:
+						case _AnimatedPropertyTypes.FillColor:
+						case _AnimatedPropertyTypes.StrokeColor:
+						case _AnimatedPropertyTypes.StrokeWidth:
+						case _AnimatedPropertyTypes.FillGradient:
+						case _AnimatedPropertyTypes.StrokeGradient:
+						case _AnimatedPropertyTypes.FillRadial:
+						case _AnimatedPropertyTypes.StrokeRadial:
+						case _AnimatedPropertyTypes.StrokeOpacity:
+						case _AnimatedPropertyTypes.FillOpacity:
+						case _AnimatedPropertyTypes.ShapeWidth:
+						case _AnimatedPropertyTypes.ShapeHeight:
+						case _AnimatedPropertyTypes.CornerRadius:
+						case _AnimatedPropertyTypes.InnerRadius:
 							validProperty = true;
 							break;
 						default:
@@ -403,12 +341,12 @@ function _ReadAnimationBlock(actor, reader)
 
 						switch(propertyType)
 						{
-							case AnimatedProperty.Properties.IsCollisionEnabled:
-							case AnimatedProperty.Properties.BooleanProperty:
-							case AnimatedProperty.Properties.StringProperty:
-							case AnimatedProperty.Properties.Trigger:
-							case AnimatedProperty.Properties.DrawOrder:
-							case AnimatedProperty.Properties.ActiveChildIndex:
+							case _AnimatedPropertyTypes.IsCollisionEnabled:
+							case _AnimatedPropertyTypes.BooleanProperty:
+							case _AnimatedPropertyTypes.StringProperty:
+							case _AnimatedPropertyTypes.Trigger:
+							case _AnimatedPropertyTypes.DrawOrder:
+							case _AnimatedPropertyTypes.ActiveChildIndex:
 								// These do not interpolate.
 								keyFrame._Interpolator = Hold.instance;
 								break;
@@ -431,34 +369,13 @@ function _ReadAnimationBlock(actor, reader)
 											propertyReader.readFloat32("cubicY2")
 										);
 										break;
-									// Hold: 0
-									// Linear: 1
-									// Cubic: 2
-									// case KeyFrame.Type.Asymmetric:
-									// case KeyFrame.Type.Mirrored:
-									// case KeyFrame.Type.Disconnected:
-									// 	keyFrame._InFactor = propertyReader.readFloat64();
-									// 	keyFrame._InValue = propertyReader.readFloat32();
-									// 	keyFrame._OutFactor = propertyReader.readFloat64();
-									// 	keyFrame._OutValue = propertyReader.readFloat32();
-									// 	break;
-
-									// case KeyFrame.Type.Hold:
-									// 	keyFrame._InFactor = propertyReader.readFloat64();
-									// 	keyFrame._InValue = propertyReader.readFloat32();
-									// 	break;
-
-									// default:
-									// 	keyFrame._InValue = keyFrame._Value;
-									// 	keyFrame._OutValue = keyFrame._Value;
-									// 	break;
 								}
 								break;
 							}
 						}
-						if(propertyType === AnimatedProperty.Properties.PathVertices)
+						if(propertyType === _AnimatedPropertyTypes.PathVertices)
 						{
-							const path = actor._Components[animatedComponent._ComponentIndex];
+							const path = artboard._Components[animatedComponent._ComponentIndex];
 							const pointCount = path._Points.length;
 							const points = [];
 							
@@ -485,33 +402,33 @@ function _ReadAnimationBlock(actor, reader)
 
 							keyFrame._Value = new Float32Array(points);
 						}
-						else if(propertyType === AnimatedProperty.Properties.FillColor || propertyType === AnimatedProperty.Properties.StrokeColor)
+						else if(propertyType === _AnimatedPropertyTypes.FillColor || propertyType === _AnimatedPropertyTypes.StrokeColor)
 						{
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4), "value");
 						}
 
-						else if(propertyType === AnimatedProperty.Properties.FillGradient || propertyType === AnimatedProperty.Properties.StrokeGradient || propertyType === AnimatedProperty.Properties.StrokeRadial || propertyType === AnimatedProperty.Properties.FillRadial)
+						else if(propertyType === _AnimatedPropertyTypes.FillGradient || propertyType === _AnimatedPropertyTypes.StrokeGradient || propertyType === _AnimatedPropertyTypes.StrokeRadial || propertyType === _AnimatedPropertyTypes.FillRadial)
 						{
 							const fillLength = propertyReader.readUint16("length");
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(fillLength), "value");
 						}
-						else if(propertyType === AnimatedProperty.Properties.Trigger)
+						else if(propertyType === _AnimatedPropertyTypes.Trigger)
 						{
 							// No value on keyframe.
 						}
-						else if(propertyType === AnimatedProperty.Properties.IntProperty)
+						else if(propertyType === _AnimatedPropertyTypes.IntProperty)
 						{
 							keyFrame._Value = propertyReader.readInt32("value");
 						}
-						else if(propertyType === AnimatedProperty.Properties.StringProperty)
+						else if(propertyType === _AnimatedPropertyTypes.StringProperty)
 						{
 							keyFrame._Value = propertyReader.readString("value");
 						}
-						else if(propertyType === AnimatedProperty.Properties.BooleanProperty || propertyType === AnimatedProperty.Properties.IsCollisionEnabled)
+						else if(propertyType === _AnimatedPropertyTypes.BooleanProperty || propertyType === _AnimatedPropertyTypes.IsCollisionEnabled)
 						{
 							keyFrame._Value = propertyReader.readBool("value");
 						}
-						else if(propertyType === AnimatedProperty.Properties.DrawOrder)
+						else if(propertyType === _AnimatedPropertyTypes.DrawOrder)
 						{
 							propertyReader.openArray("drawOrder");
 							const orderedImages = propertyReader.readUint16Length();
@@ -530,7 +447,7 @@ function _ReadAnimationBlock(actor, reader)
 							propertyReader.closeArray();
 							keyFrame._Value = orderValue;
 						}
-						else if(propertyType === AnimatedProperty.Properties.VertexDeform)
+						else if(propertyType === _AnimatedPropertyTypes.VertexDeform)
 						{
 							keyFrame._Value = new Float32Array(component._NumVertices * 2);
 							component.hasVertexDeformAnimation = true;
@@ -541,12 +458,12 @@ function _ReadAnimationBlock(actor, reader)
 							keyFrame._Value = propertyReader.readFloat32("value");
 						}
 
-						if(propertyType === AnimatedProperty.Properties.DrawOrder)
+						if(propertyType === _AnimatedPropertyTypes.DrawOrder)
 						{
 							// Always hold draw order.
 							keyFrame._Interpolator = Hold.instance;
 						}
-						else if(propertyType === AnimatedProperty.Properties.VertexDeform)
+						else if(propertyType === _AnimatedPropertyTypes.VertexDeform)
 						{
 							keyFrame._Interpolator = Linear.instance;
 						}
@@ -580,17 +497,17 @@ function _ReadAnimationBlock(actor, reader)
 	}
 }
 
-function _ReadAnimationsBlock(actor, reader)
+function _ReadAnimationsBlock(artboard, reader)
 {
 	const animationsCount = reader.readUint16Length(); // Keep the reader aligned when using BinaryReader.
 	let block = null;
 	// The animations block only contains a list of animations, so we don't need to track how many we've read in.
-	while((block = _ReadNextBlock(reader, function(err) {actor.error = err;}, _BlockTypes)) !== null)
+	while((block = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;}, Block)) !== null)
 	{
 		switch(block.type)
 		{
 			case _BlockTypes.Animation:
-				_ReadAnimationBlock(actor, block.reader);
+				_ReadAnimationBlock(artboard, block.reader);
 				break;
 		}
 	}
@@ -810,7 +727,31 @@ function _LoadNestedAssets(loader, actor, callback)
 	}
 }
 
-function _ReadShot(loader, data, callback)
+function _ReadArtboardsBlock(actor, reader)
+{
+	const artboardCount = reader.readUint16Length();
+	const actorArtboards = actor._Artboards;
+
+	// Guaranteed from the exporter to be in index order.
+	let block = null;
+	while((block = _ReadNextBlock(reader, function(err) {actor.error = err;}, Block)) !== null)
+	{
+		switch(block.type)
+		{
+			case _BlockTypes.ActorArtboard:
+			{
+				const artboard = _ReadActorArtboard(block.reader, new ActorArtboard(actor), block.type);
+				if(artboard)
+				{
+					actorArtboards.push(artboard);
+				}
+				break;
+			}
+		}
+	}
+}
+
+function _ReadActor(loader, data, callback)
 {
 	let reader = new BinaryReader(new Uint8Array(data));
 	// Check signature
@@ -826,22 +767,12 @@ function _ReadShot(loader, data, callback)
 	actor.dataVersion = version;
 	let block = null;
 	let waitForAtlas = false;
-	while((block = _ReadNextBlock(reader, function(err) {actor.error = err;}, _BlockTypes)) !== null)
+	while((block = _ReadNextBlock(reader, function(err) {actor.error = err;}, Block)) !== null)
 	{
 		switch(block.type)
 		{
-			case _BlockTypes.Nodes:
-				_ReadComponentsBlock(actor, block.reader);
-				break;
-			case _BlockTypes.View:
-				actor._ViewCenter = vec2.create();
-				actor._ViewCenter[0] = block.reader.readFloat32("x");
-				actor._ViewCenter[1] = block.reader.readFloat32("y");
-				actor._ViewWidth = block.reader.readFloat32("width");
-				actor._ViewHeight = block.reader.readFloat32("height");
-				break;
-			case _BlockTypes.Animations:
-				_ReadAnimationsBlock(actor, block.reader);
+			case _BlockTypes.Artboards:
+				_ReadArtboardsBlock(actor, block.reader);
 				break;
 			case _BlockTypes.Atlases:
 
@@ -862,6 +793,33 @@ function _ReadShot(loader, data, callback)
 	{
 		_LoadNestedAssets(loader, actor, callback);
 	}
+}
+
+function _ReadActorArtboard(reader, artboard)
+{
+	artboard._Name = reader.readString("name");
+	reader.readFloat32Array(artboard._Translation, "translation");
+	artboard._Width = reader.readFloat32("width");
+	artboard._Height = reader.readFloat32("height");
+	reader.readFloat32Array(artboard._Origin, "origin");
+	artboard._ClipContents = reader.readBool("clipContents");
+	reader.readFloat32Array(artboard._Color, "color");
+
+	let block = null;
+	while((block = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;}, Block)) !== null)
+	{
+		switch(block.type)
+		{
+			case _BlockTypes.Nodes:
+				_ReadComponentsBlock(artboard, block.reader);
+				break;
+			case _BlockTypes.Animations:
+				_ReadAnimationsBlock(artboard, block.reader);
+				break;
+		}
+	}
+
+	return artboard;
 }
 
 function _ReadActorComponent(reader, component)
@@ -1023,8 +981,8 @@ function _ReadJellyComponent(reader, component)
 	component._EaseOut = reader.readFloat32("easeOut");
 	component._ScaleIn = reader.readFloat32("scaleIn");
 	component._ScaleOut = reader.readFloat32("scaleOut");
-	component._InTargetIdx = reader.readId("inTargetId");
-	component._OutTargetIdx = reader.readId("outTargetId");
+	component._InTargetIdx = reader.readId("inTarget");
+	component._OutTargetIdx = reader.readId("outTarget");
 
 	return component;
 }
@@ -1068,7 +1026,7 @@ function _ReadActorTargetedConstraint(reader, component)
 {
 	_ReadActorConstraint(reader, component);
 
-	component._TargetIdx = reader.readId("targetId");
+	component._TargetIdx = reader.readId("target");
 }
 
 function _ReadActorIKConstraint(reader, component)
@@ -1145,9 +1103,9 @@ function _ReadAxisConstraint(reader, component)
 	{
 		component._ScaleX = reader.readFloat32("scaleX");
 	}
-	if((component._EnableMinX = reader.readBool("copyY")))
+	if((component._EnableMinX = reader.readBool("enableMinX")))
 	{
-		component._MinX = reader.readFloat32("scaleY");
+		component._MinX = reader.readFloat32("minX");
 	}
 	if((component._EnableMaxX = reader.readBool("enableMaxX")))
 	{
@@ -1549,7 +1507,7 @@ export default class ActorLoader
 				let fileReader = new FileReader();
 				fileReader.onload = function() 
 				{
-					_ReadShot(loader, this.result, callback);
+					_ReadActor(loader, this.result, callback);
 				};
 				fileReader.readAsArrayBuffer(this.response);
 			};
@@ -1560,7 +1518,7 @@ export default class ActorLoader
 			let fileReader = new FileReader();
 			fileReader.onload = function() 
 			{
-				_ReadShot(loader, this.result, callback);
+				_ReadActor(loader, this.result, callback);
 			};
 			fileReader.readAsArrayBuffer(url);
 		}

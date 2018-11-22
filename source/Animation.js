@@ -1,6 +1,7 @@
 import AnimatedProperty from "./AnimatedProperty.js";
 import ActorBone from "./ActorBone.js";
-import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
+import {StraightPathPoint} from "./PathPoint.js";
+const AnimatedPropertyTypes = AnimatedProperty.Types;
 
 function keyFrameLocation(seconds, list, start, end)
 {
@@ -28,9 +29,9 @@ function keyFrameLocation(seconds, list, start, end)
 
 export default class Animation
 {
-	constructor(actor)
+	constructor(artboard)
 	{
-		this._Actor = actor;
+		this._Artboard = artboard;
 		this._Components = [];
 		this._TriggerComponents = [];
 		this._DisplayStart = 0;
@@ -47,7 +48,7 @@ export default class Animation
 		return this._Duration;
 	}
 
-	triggerEvents(actorComponents, fromTime, toTime, triggered)
+	triggerEvents(artboardComponents, fromTime, toTime, triggered)
 	{
 		const keyedTriggerComponents = this._TriggerComponents;
 		for(let i = 0; i < keyedTriggerComponents.length; i++)
@@ -59,7 +60,7 @@ export default class Animation
 				const property = properties[j];
 				switch(property._Type)
 				{
-					case AnimatedProperty.Properties.Trigger:
+					case AnimatedPropertyTypes.Trigger:
 					{
 						const keyFrames = property._KeyFrames;
 
@@ -74,7 +75,7 @@ export default class Animation
 						{
 							if(keyFrames.length > 0 && keyFrames[0]._Time === toTime)
 							{
-								const component = actorComponents[keyedComponent._ComponentIndex];
+								const component = artboardComponents[keyedComponent._ComponentIndex];
 								triggered.push({
 									name:component._Name,
 									component:component,
@@ -91,7 +92,7 @@ export default class Animation
 								const frame = keyFrames[k];	
 								if(frame._Time > fromTime)
 								{
-									const component = actorComponents[keyedComponent._ComponentIndex];
+									const component = artboardComponents[keyedComponent._ComponentIndex];
 									triggered.push({
 										name:component._Name,
 										component:component,
@@ -115,15 +116,15 @@ export default class Animation
 		}
 	}
 
-	apply(time, actor, mix)
+	apply(time, artboard, mix)
 	{
 		const components = this._Components;
 		const imix = 1.0-mix;
-		const actorComponents = actor._Components;
+		const artboardComponents = artboard._Components;
 		for(let i = 0; i < components.length; i++)
 		{
 			const animatedComponent = components[i];
-			const component = actorComponents[animatedComponent._ComponentIndex];
+			const component = artboardComponents[animatedComponent._ComponentIndex];
 			if(!component)
 			{
 				continue;
@@ -180,7 +181,7 @@ export default class Animation
 				let markDirty = false;
 				switch(property._Type)
 				{
-					case AnimatedProperty.Properties.PosX:
+					case AnimatedPropertyTypes.PosX:
 						if(mix === 1.0)
 						{
 							component._Translation[0] = value;	
@@ -192,7 +193,7 @@ export default class Animation
 						
 						markDirty = true;
 						break;
-					case AnimatedProperty.Properties.PosY:
+					case AnimatedPropertyTypes.PosY:
 						if(mix === 1.0)
 						{
 							component._Translation[1] = value;
@@ -203,7 +204,7 @@ export default class Animation
 						}
 						markDirty = true;
 						break;
-					case AnimatedProperty.Properties.ScaleX:
+					case AnimatedPropertyTypes.ScaleX:
 						if(mix === 1.0)
 						{
 							component._Scale[0] = value;
@@ -214,7 +215,7 @@ export default class Animation
 						}
 						markDirty = true;
 						break;
-					case AnimatedProperty.Properties.ScaleY:
+					case AnimatedPropertyTypes.ScaleY:
 						if(mix === 1.0)
 						{
 							component._Scale[1] = value;
@@ -225,7 +226,7 @@ export default class Animation
 						}
 						markDirty = true;
 						break;
-					case AnimatedProperty.Properties.Rotation:
+					case AnimatedPropertyTypes.Rotation:
 						if(mix === 1.0)
 						{
 							component._Rotation = value;
@@ -236,7 +237,7 @@ export default class Animation
 						}
 						markDirty = true;
 						break;
-					case AnimatedProperty.Properties.Opacity:
+					case AnimatedPropertyTypes.Opacity:
 						if(mix === 1.0)
 						{
 							component._Opacity = value;
@@ -247,7 +248,7 @@ export default class Animation
 						}
 						markDirty = true;
 						break;
-					case AnimatedProperty.Properties.ConstraintStrength:
+					case AnimatedPropertyTypes.ConstraintStrength:
 						if(mix === 1.0)
 						{
 							component.strength = value;
@@ -257,19 +258,19 @@ export default class Animation
 							component.strength = component._Strength * imix + value * mix;	
 						}
 						break;
-					case AnimatedProperty.Properties.DrawOrder:
-						if(actor._LastSetDrawOrder != value)
+					case AnimatedPropertyTypes.DrawOrder:
+						if(artboard._LastSetDrawOrder != value)
 						{
-							actor._LastSetDrawOrder = value;
+							artboard._LastSetDrawOrder = value;
 							for(let i = 0; i < value.length; i++)
 							{
 								const v = value[i];
-								actorComponents[v.componentIdx]._DrawOrder = v.value;
+								artboardComponents[v.componentIdx]._DrawOrder = v.value;
 							}
-							actor._IsImageSortDirty = true;
+							artboard._IsImageSortDirty = true;
 						}
 						break;
-					case AnimatedProperty.Properties.Length:
+					case AnimatedPropertyTypes.Length:
 						markDirty = true;
 						if(mix === 1.0)
 						{
@@ -290,7 +291,7 @@ export default class Animation
 							}
 						}
 						break;
-					case AnimatedProperty.Properties.VertexDeform:
+					case AnimatedPropertyTypes.VertexDeform:
 					{
 						component._VerticesDirty = true;
 						const nv = component._NumVertices;
@@ -317,10 +318,10 @@ export default class Animation
 						}
 						break;
 					}
-					case AnimatedProperty.Properties.StringProperty:
+					case AnimatedPropertyTypes.StringProperty:
 						component._Value = value;
 						break;
-					case AnimatedProperty.Properties.IntProperty:
+					case AnimatedPropertyTypes.IntProperty:
 						if(mix === 1.0)
 						{
 							component._Value = value;	
@@ -330,7 +331,7 @@ export default class Animation
 							component._Value = Math.round(component._Value * imix + value * mix);
 						}
 						break;
-					case AnimatedProperty.Properties.FloatProperty:
+					case AnimatedPropertyTypes.FloatProperty:
 						if(mix === 1.0)
 						{
 							component._Value = value;	
@@ -340,13 +341,13 @@ export default class Animation
 							component._Value = component._Value * imix + value * mix;
 						}
 						break;
-					case AnimatedProperty.Properties.BooleanProperty:
+					case AnimatedPropertyTypes.BooleanProperty:
 						component._Value = value;
 						break;
-					case AnimatedProperty.Properties.IsCollisionEnabled:
+					case AnimatedPropertyTypes.IsCollisionEnabled:
 						component._IsCollisionEnabled = value;
 						break;
-					case AnimatedProperty.Properties.Sequence:
+					case AnimatedPropertyTypes.Sequence:
 						if(component._SequenceFrames)
 						{
 							let frameIndex = Math.floor(value)%component._SequenceFrames.length;
@@ -358,12 +359,12 @@ export default class Animation
 						}
 						break;
 
-					case AnimatedProperty.Properties.ActiveChildIndex:
+					case AnimatedPropertyTypes.ActiveChildIndex:
 						component.activeChildIndex = value;
 						markDirty = true;
 						break;
 
-					case AnimatedProperty.Properties.PathVertices:
+					case AnimatedPropertyTypes.PathVertices:
 					{
 						let readIdx = 0;
 						if(mix !== 1.0)
@@ -406,8 +407,8 @@ export default class Animation
 						}
 						break;
 					}
-					case AnimatedProperty.Properties.ShapeWidth:
-					case AnimatedProperty.Properties.StrokeWidth:
+					case AnimatedPropertyTypes.ShapeWidth:
+					case AnimatedPropertyTypes.StrokeWidth:
 						if(mix === 1.0)
 						{
 							component._Width = value;	
@@ -417,8 +418,8 @@ export default class Animation
 							component._Width = component._Width * imix + value * mix;
 						}
 						break;
-					case AnimatedProperty.Properties.FillOpacity:
-					case AnimatedProperty.Properties.StrokeOpacity:
+					case AnimatedPropertyTypes.FillOpacity:
+					case AnimatedPropertyTypes.StrokeOpacity:
 						if(mix === 1.0)
 						{
 							component._Opacity = value;	
@@ -428,8 +429,8 @@ export default class Animation
 							component._Opacity = component._Opacity * imix + value * mix;
 						}
 						break;
-					case AnimatedProperty.Properties.FillColor:
-					case AnimatedProperty.Properties.StrokeColor:
+					case AnimatedPropertyTypes.FillColor:
+					case AnimatedPropertyTypes.StrokeColor:
 					{
 						const color = component._Color;
 						if(mix === 1.0)
@@ -448,8 +449,8 @@ export default class Animation
 						}
 						break;
 					}
-					case AnimatedProperty.Properties.FillGradient:
-					case AnimatedProperty.Properties.StrokeGradient:
+					case AnimatedPropertyTypes.FillGradient:
+					case AnimatedPropertyTypes.StrokeGradient:
 					{
 						if(mix === 1.0)
 						{
@@ -484,8 +485,8 @@ export default class Animation
 						}
 						break;
 					}
-					case AnimatedProperty.Properties.FillRadial:
-					case AnimatedProperty.Properties.StrokeRadial:
+					case AnimatedPropertyTypes.FillRadial:
+					case AnimatedPropertyTypes.StrokeRadial:
 					{
 						if(mix === 1.0)
 						{
@@ -522,7 +523,7 @@ export default class Animation
 						}
 						break;
 					}
-					case AnimatedProperty.Properties.ShapeHeight:
+					case AnimatedPropertyTypes.ShapeHeight:
 						if(mix === 1.0)
 						{
 							component._Height = value;	
@@ -532,7 +533,7 @@ export default class Animation
 							component._Height = component._Height * imix + value * mix;
 						}
 						break;
-					case AnimatedProperty.Properties.CornerRadius:
+					case AnimatedPropertyTypes.CornerRadius:
 						if(mix === 1.0)
 						{
 							component._CornerRadius = value;
@@ -542,7 +543,7 @@ export default class Animation
 							component._CornerRadius = component._CornerRadius * imix + value * mix;
 						}
 						break;
-					case AnimatedProperty.Properties.InnerRadius:
+					case AnimatedPropertyTypes.InnerRadius:
 						if(mix === 1.0)
 						{
 							component._InnerRadius = value;
