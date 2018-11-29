@@ -306,6 +306,12 @@ export class GradientStroke extends GradientColor
 		return this._Width;
 	}
 
+	initialize(actor, graphics)
+	{
+		super.initialize(actor, graphics);
+		graphics.setPaintStroke(this._Paint);
+	}
+
 	makeInstance(resetActor)
 	{
 		const node = new GradientStroke();
@@ -322,22 +328,32 @@ export class GradientStroke extends GradientColor
 
 	stroke(ctx, path)
 	{
-		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops} = this;
-		const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
+		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _Paint:paint} = this;
 
-		const opacity = this._Opacity;
-		const numStops = stops.length/5;
-		let idx = 0;
-		for(let i = 0; i < numStops; i++)
+		if(this._GradientDirty)
 		{
-			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
-			const value = stops[idx++];
-			gradient.addColorStop(value, style);
+			if(this._Gradient)
+			{
+				graphics.destroyLinearGradient(this._Gradient);
+			}
+			this._GradientDirty = false;
+
+			const opacity = this._RenderOpacity;
+			const numStops = stops.length/5;
+			let idx = 0;
+			const colors = [];
+			const offsets = [];
+			for(let i = 0; i < numStops; i++)
+			{
+				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++]*opacity]);
+				offsets.push(stops[idx++]);
+			}
+			const gradient = graphics.makeLinearGradient(start, end, colors, offsets);
+			paint.setShader(gradient);
+			this._Gradient = gradient;
 		}
-		
-		ctx.lineWidth = this._Width;
-		ctx.strokeStyle = gradient;
-		ctx.stroke(path);
+		paint.setStrokeWidth(this._Width);
+		graphics.drawPath(path, paint);
 	}
 
 	resolveComponentIndices(components)
@@ -449,6 +465,12 @@ export class RadialGradientStroke extends RadialGradientColor
 		return node;	
 	}
 
+	initialize(actor, graphics)
+	{
+		super.initialize(actor, graphics);
+		graphics.setPaintStroke(this._Paint);
+	}
+
 	copy(node, resetActor)
 	{
 		super.copy(node, resetActor);
@@ -458,33 +480,32 @@ export class RadialGradientStroke extends RadialGradientColor
 
 	stroke(ctx, path)
 	{
+		const {_Paint:paint, _RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
 		
-		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
-		const gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
-
-		const opacity = this._Opacity;
-		const numStops = stops.length/5;
-		let idx = 0;
-		for(let i = 0; i < numStops; i++)
+		if(this._GradientDirty)
 		{
-			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
-			const value = stops[idx++];
-			gradient.addColorStop(value, style);
-		}
-		
-		ctx.lineWidth = this._Width;
-		ctx.strokeStyle = gradient;
+			if(this._Gradient)
+			{
+				graphics.destroyRadialGradient(this._Gradient);
+			}
+			this._GradientDirty = false;
 
-		// const squash = Math.max(0.00001, secondaryRadiusScale);
-		// const angleVector = vec2.subtract(vec2.create(), end, start);
-		// const angle = Math.atan2(angleVector[1], angleVector[0]);
-		
-		// ctx.save();
-		// ctx.translate(start[0], start[1]);
-		// ctx.rotate(angle);
-		// ctx.scale(1.0, squash);
-		ctx.stroke(path);
-		// ctx.restore();
+			const opacity = this._RenderOpacity;
+			const numStops = stops.length/5;
+			let idx = 0;
+			const colors = [];
+			const offsets = [];
+			for(let i = 0; i < numStops; i++)
+			{
+				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++]*opacity]);
+				offsets.push(stops[idx++]);
+			}
+			const gradient = graphics.makeRadialGradient(start, vec2.distance(start, end), colors, offsets);
+			paint.setShader(gradient);
+			this._Gradient = gradient;
+		}
+		paint.setStrokeWidth(this._Width);
+		graphics.drawPath(path, paint);
 	}
 
 	resolveComponentIndices(components)
