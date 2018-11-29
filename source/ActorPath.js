@@ -1,10 +1,10 @@
 import ActorSkinnableNode from "./ActorSkinnableNode.js";
 import {vec2, mat2d} from "gl-matrix";
 import {PathPoint, PointType} from "./PathPoint.js";
-import PathMatrix from "./PathMatrix.js";
 
 const CircleConstant = 0.552284749831;
 const InverseCircleConstant = 1.0-CircleConstant;
+const Identity = mat2d.create();
 
 export default class ActorPath extends ActorSkinnableNode
 {
@@ -319,7 +319,7 @@ export default class ActorPath extends ActorSkinnableNode
 		}
 		else
 		{
-			return undefined;
+			return Identity;
 		}
 	}
 
@@ -327,20 +327,24 @@ export default class ActorPath extends ActorSkinnableNode
 	{
 		if(!this.isConnectedToBones)
 		{
-			return PathMatrix(this.worldTransform);
+			return this.worldTransform;
 		}
 		else
 		{
-			return undefined;
+			return Identity;
 		}
 	}
 
 	invalidatePath()
 	{
+		if(this._RenderPath)
+		{
+			this._RenderPath.delete();
+		}
 		this._RenderPath = null;
 	}
 
-	getPath()
+	getPath(graphics)
 	{
 		const renderPath = this._RenderPath;
 		if(renderPath)
@@ -348,8 +352,7 @@ export default class ActorPath extends ActorSkinnableNode
 			return renderPath;
 		}
 
-		const path = new Path2D();
-		
+		const path = graphics.makePath();
 		const renderPoints = this.makeRenderPoints();
 		const isClosed = this.isClosed;
 
@@ -376,7 +379,7 @@ export default class ActorPath extends ActorSkinnableNode
 					{
 						cin = nextPoint.translation;
 					}
-					path.bezierCurveTo(
+					path.cubicTo(
 						cout[0], cout[1],
 
 						cin[0], cin[1],
@@ -386,7 +389,7 @@ export default class ActorPath extends ActorSkinnableNode
 			}
 			if(isClosed)
 			{
-				path.closePath();
+				path.close();
 			}
 		}
 

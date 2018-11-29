@@ -202,11 +202,11 @@ export default class ActorShape extends ActorNode
 			return;
 		}
 
-		const ctx = graphics.ctx;
-		ctx.save();
-		ctx.globalAlpha = this._RenderOpacity;
-		this.clip(ctx);
-		const shapePath = this.getShapePath();
+		//const ctx = graphics.ctx;
+		graphics.save();
+		// - ctx.globalAlpha = this._RenderOpacity;
+		this.clip(graphics);
+		const shapePath = this.getShapePath(graphics);
 
 		const {_Fills:fills, _Strokes:strokes} = this;
 		
@@ -214,7 +214,7 @@ export default class ActorShape extends ActorNode
 		{
 			for(const fill of fills)
 			{
-				fill.fill(ctx, shapePath);
+				fill.fill(graphics, shapePath);
 			}
 		}
 		if(strokes)
@@ -223,7 +223,7 @@ export default class ActorShape extends ActorNode
 			{
 				if(stroke._Width > 0)
 				{
-					stroke.stroke(ctx, shapePath);
+					stroke.stroke(graphics, shapePath);
 				}
 			}
 		}
@@ -231,29 +231,26 @@ export default class ActorShape extends ActorNode
 		// const aabb = this.computeAABB();
 		// if(aabb)
 		// {
-		// 	ctx.fillStyle = "rgba(255,0,0,0.25)";
-		// 	ctx.beginPath();
-		// 	ctx.moveTo(aabb[0], aabb[1]);
-		// 	ctx.lineTo(aabb[2], aabb[1]);
-		// 	ctx.lineTo(aabb[2], aabb[3]);
-		// 	ctx.lineTo(aabb[0], aabb[3]);
-		// 	ctx.closePath();
-		// 	ctx.fill();
+		// 	const paint = graphics.makePaint(true);
+		// 	graphics.setPaintFill(paint);
+		// 	graphics.setPaintColor(paint, [1.0, 0.0, 0.0, 0.3]);
+		// 	graphics.drawRect(aabb[0], aabb[1], aabb[2]-aabb[0], aabb[3]-aabb[1], paint);
 		// }
-		ctx.restore();
+		
+		graphics.restore();
 	}
 
-	getShapePath()
+	getShapePath(graphics)
 	{
 		const paths = this._Paths;
-		const shapePath = new Path2D();
+		const shapePath = graphics.makePath(true);
 		for(const path of paths)
 		{
 			if(path.isHidden)
 			{
 				continue;
 			}
-			shapePath.addPath(path.getPath(), path.getPathTransform());
+			graphics.addPath(shapePath, path.getPath(graphics), path.getPathTransform());
 		}
 
 		return shapePath;
@@ -277,14 +274,14 @@ export default class ActorShape extends ActorNode
 		return clips;
 	}
 	
-	clip(ctx)
+	clip(graphics)
 	{
 		// Find clips.
 		const clips = this.getClips();
 
 		if(clips)
 		{
-			const clipPath = new Path2D();
+			const clipPath = graphics.makePath(true);
 			for(let clip of clips)
 			{
 				let shapes = new Set();
@@ -300,11 +297,13 @@ export default class ActorShape extends ActorNode
 					const paths = shape.paths;
 					for(const path of paths)
 					{
-						clipPath.addPath(path.getPath(), path.getPathTransform());
+						graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
+						//clipPath.addPath(path.getPath(), path.getPathTransform());
 					}
 				}
 			}
-			ctx.clip(clipPath);
+			graphics.clipPath(clipPath);
+			//ctx.clip(clipPath);
 		}
 	}
 

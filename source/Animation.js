@@ -452,6 +452,7 @@ export default class Animation
 					case AnimatedPropertyTypes.FillGradient:
 					case AnimatedPropertyTypes.StrokeGradient:
 					{
+						markDirty = true;
 						if(mix === 1.0)
 						{
 							let ridx = 0;
@@ -488,6 +489,7 @@ export default class Animation
 					case AnimatedPropertyTypes.FillRadial:
 					case AnimatedPropertyTypes.StrokeRadial:
 					{
+						markDirty = true;
 						if(mix === 1.0)
 						{
 							let ridx = 0;

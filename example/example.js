@@ -1,51 +1,55 @@
 const FlareExample = (function ()
 {
-	const _ViewCenter = [500.0, 500.0];
-	const _Scale = 0.5;
+	const _ViewCenter = [600.0, 600.0];
+	const _Scale = 0.25;
 	const _ScreenScale = 1.0;
 
 	const _ScreenMouse = vec2.create();
 	const _WorldMouse = vec2.create();
 
-	function FlareExample(canvas)
+	function FlareExample(canvas, ready)
 	{
 		this._Graphics = new Flare.Graphics(canvas);
-		this._LastAdvanceTime = Date.now();
-		this._ViewTransform = mat2d.create();
-		this._AnimationInstance = null;
-		this._Animation = null;
-		this._SoloSkaterAnimation = null;
-
-		const _This = this;
-
-		_ScheduleAdvance(_This);
-		_Advance(_This);
-
-		document.addEventListener("keydown", function(ev)
+		this._Graphics.initialize("../build/", () =>
 		{
-			// 68 D
-			// 65 A
-			// 39 right
-			// 37 left
-			switch(ev.keyCode)
+			this._LastAdvanceTime = Date.now();
+			this._ViewTransform = mat2d.create();
+			this._AnimationInstance = null;
+			this._Animation = null;
+			this._SoloSkaterAnimation = null;
+
+			const _This = this;
+
+			_ScheduleAdvance(_This);
+			_Advance(_This);
+
+			document.addEventListener("keydown", function(ev)
 			{
-				case 32: // Enter
-					break;
-				case 16: // Shift
-					break;
-				case 68: // 'D'
-				case 39: // right
-					break;	
-				case 65: // 'A'
-				case 37: // left
-					break;	
-				case 87: 
-				case 38:
-					break;
+				// 68 D
+				// 65 A
+				// 39 right
+				// 37 left
+				switch(ev.keyCode)
+				{
+					case 32: // Enter
+						break;
+					case 16: // Shift
+						break;
+					case 68: // 'D'
+					case 39: // right
+						break;	
+					case 65: // 'A'
+					case 37: // left
+						break;	
+					case 87: 
+					case 38:
+						break;
 
-			}
+				}
+			});
+
+			ready();
 		});
-
 	}
 
 	function _Advance(_This)
@@ -77,7 +81,6 @@ const FlareExample = (function ()
 			vt[3] = _Scale;
 			vt[4] = (-_ViewCenter[0] * _Scale + w/2);
 			vt[5] = (-_ViewCenter[1] * _Scale + h/2);
-
 			actor.advance(elapsed);
 		}
 
@@ -95,6 +98,7 @@ const FlareExample = (function ()
         graphics.clear([0.3628, 0.3628, 0.3628, 1.0]);
 		graphics.setView(viewer._ViewTransform);
 		viewer._ActorInstance.draw(graphics);
+		graphics.flush();
 	}
 
 	function _ScheduleAdvance(viewer)

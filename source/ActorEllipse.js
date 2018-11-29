@@ -19,13 +19,15 @@ export default class ActorEllipse extends ActorProceduralPath
 		return node;
     }
     
-    getPath()
+    getPath(graphics)
 	{
-        const path = new Path2D();
+        const path = graphics.makePath(true);
         const radiusX = this._Width/2;
         const radiusY = this._Height/2;
         path.moveTo(radiusX, 0.0);
-        path.ellipse(0.0, 0.0, radiusX, radiusY, 0.0, 0, Math.PI*2.0, false);
+        graphics.pathEllipse(path, 0.0, 0.0, radiusX, radiusY, 0, Math.PI*2.0, false);
+        //path.ellipse(0.0, 0.0, radiusX, radiusY, 0.0, 0, Math.PI*2.0, false);
+        
 		return path;
 	}
 }

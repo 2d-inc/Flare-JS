@@ -264,10 +264,10 @@ export default class ActorArtboard
 
 	dispose(graphics)
 	{
-		let drawables = this._Drawables;
-		for(let drawable of drawables)
+		const components = this._Components;
+		for(const component of components)
 		{
-			drawable.dispose(this, graphics);
+			component.dispose(this, graphics);
 		}
     }
     
@@ -483,10 +483,10 @@ export default class ActorArtboard
 
 	initialize(graphics)
 	{
-		let drawables = this._Drawables;
-		for(let drawable of drawables)
+		const components = this._Components;
+		for(const component of components)
 		{
-			drawable.initialize(this, graphics);
+			component.initialize(this, graphics);
 		}
 	}
 }

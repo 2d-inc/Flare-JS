@@ -1,18 +1,6 @@
 import ActorComponent from "./ActorComponent.js";
 import {vec2, vec4, mat2d} from "gl-matrix";
-
-export class FillRule
-{
-	static get EvenOdd()
-	{
-		return 0;
-	}
-
-	static get NonZero()
-	{
-		return 1;
-	}
-}
+import FillRule from "./FillRule.js";
 
 class ActorPaint extends ActorComponent
 {
@@ -31,6 +19,16 @@ class ActorPaint extends ActorComponent
 	get opacity()
 	{
 		return this._Opacity;
+	}
+
+	initialize(actor, graphics)
+	{
+		this._Paint = graphics.makePaint();
+	}
+
+	dispose(actor, graphics)
+	{
+		graphics.destroyPaint(this._Paint);
 	}
 }
 
@@ -78,19 +76,29 @@ export class ColorFill extends ActorColor
 		this._FillRule = node._FillRule;
 	}
 
-	fill(ctx, path)
+	initialize(actor, graphics)
 	{
-		ctx.fillStyle = this.cssColor;
+		super.initialize(actor, graphics);
+		graphics.setPaintFill(this._Paint);
+	}
+
+	fill(graphics, path)
+	{
+		const {_Paint:paint, _Color:color} = this;
+		graphics.setPaintColor(paint, color);
+		// ctx.fillStyle = this.cssColor;
 		
-		switch(this._FillRule)
-		{
-			case FillRule.EvenOdd:
-				ctx.fill(path, "evenodd");
-				break;
-			case FillRule.NonZero:
-				ctx.fill(path, "nonzero");
-				break;
-		}
+		// switch(this._FillRule)
+		// {
+		// 	case FillRule.EvenOdd:
+		// 		ctx.fill(path, "evenodd");
+		// 		break;
+		// 	case FillRule.NonZero:
+		// 		ctx.fill(path, "nonzero");
+		// 		break;
+		// }
+		graphics.setPathFillType(path, this._FillRule);
+		graphics.drawPath(path, paint);
 	}
 
 	resolveComponentIndices(components)
@@ -123,6 +131,12 @@ export class ColorStroke extends ActorColor
 		return node;	
 	}
 
+	initialize(actor, graphics)
+	{
+		super.initialize(actor, graphics);
+		graphics.setPaintStroke(this._Paint);
+	}
+
 	copy(node, resetActor)
 	{
 		super.copy(node, resetActor);
@@ -130,11 +144,15 @@ export class ColorStroke extends ActorColor
 		this._Width = node._Width;
 	}
 
-	stroke(ctx, path)
+	stroke(graphics, path)
 	{
-		ctx.strokeStyle = this.cssColor;
-		ctx.lineWidth = this._Width;
-		ctx.stroke(path);
+		// ctx.strokeStyle = this.cssColor;
+		// ctx.lineWidth = this._Width;
+		// ctx.stroke(path);
+		const {_Paint:paint, _Color:color} = this;
+		graphics.setPaintColor(paint, color);
+		paint.setStrokeWidth(this._Width);
+		graphics.drawPath(path, paint);
 	}
 
 	resolveComponentIndices(components)
@@ -157,6 +175,7 @@ export class GradientColor extends ActorPaint
 		this._End = vec2.create();
 		this._RenderStart = vec2.create();
 		this._RenderEnd = vec2.create();
+		this._GradientDirty = true;
 	}
 
 	copy(node, resetActor)
@@ -184,6 +203,7 @@ export class GradientColor extends ActorPaint
 		const world = shape.worldTransform;
 		vec2.transformMat2d(this._RenderStart, this._Start, world);
 		vec2.transformMat2d(this._RenderEnd, this._End, world);
+		this._GradientDirty = true;
 	}
 }
 
@@ -209,31 +229,66 @@ export class GradientFill extends GradientColor
 		this._FillRule = node._FillRule;
 	}
 
-	fill(ctx, path)
+	dispose(actor, graphics)
 	{
-		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops} = this;
-		const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
+		super.dispose(actor, graphics);
+		if(this._Gradient)
+		{
+			graphics.destroyLinearGradient(this._Gradient);
+		}
+	}
 
-		const opacity = this._Opacity;
-		const numStops = stops.length/5;
-		let idx = 0;
-		for(let i = 0; i < numStops; i++)
+	fill(graphics, path)
+	{
+		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _Paint:paint} = this;
+
+		if(this._GradientDirty)
 		{
-			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
-			const value = stops[idx++];
-			gradient.addColorStop(value, style);
+			if(this._Gradient)
+			{
+				graphics.destroyLinearGradient(this._Gradient);
+			}
+			this._GradientDirty = false;
+
+			const opacity = this._Opacity;
+			const numStops = stops.length/5;
+			let idx = 0;
+			const colors = [];
+			const offsets = [];
+			for(let i = 0; i < numStops; i++)
+			{
+				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++]*opacity]);
+				offsets.push(stops[idx++]);
+			}
+			const gradient = graphics.makeLinearGradient(start, end, colors, offsets);
+			//graphics.setPaintColor(paint, [1, 1, 1, 1]);
+			paint.setShader(gradient);
+			this._Gradient = gradient;
 		}
+		graphics.setPathFillType(path, this._FillRule);
+		graphics.drawPath(path, paint);
+		// const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
+
+		// const opacity = this._Opacity;
+		// const numStops = stops.length/5;
+		// let idx = 0;
+		// for(let i = 0; i < numStops; i++)
+		// {
+		// 	const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
+		// 	const value = stops[idx++];
+		// 	gradient.addColorStop(value, style);
+		// }
 		
-		ctx.fillStyle = gradient;
-		switch(this._FillRule)
-		{
-			case FillRule.EvenOdd:
-				ctx.fill(path, "evenodd");
-				break;
-			case FillRule.NonZero:
-				ctx.fill(path, "nonzero");
-				break;
-		}
+		// ctx.fillStyle = gradient;
+		// switch(this._FillRule)
+		// {
+		// 	case FillRule.EvenOdd:
+		// 		ctx.fill(path, "evenodd");
+		// 		break;
+		// 	case FillRule.NonZero:
+		// 		ctx.fill(path, "nonzero");
+		// 		break;
+		// }
 	}
 
 	resolveComponentIndices(components)

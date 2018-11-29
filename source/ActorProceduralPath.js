@@ -1,6 +1,5 @@
 import ActorNode from "./ActorNode.js";
 import {vec2} from "gl-matrix";
-import PathMatrix from "./PathMatrix.js";
 
 export default class ActorProceduralPath extends ActorNode
 {
@@ -35,7 +34,7 @@ export default class ActorProceduralPath extends ActorNode
 
     getPathTransform()
 	{
-        return PathMatrix(this._WorldTransform);
+        return this._WorldTransform;
     }
     
     getPathRenderTransform()
