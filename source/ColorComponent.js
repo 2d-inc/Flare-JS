@@ -7,6 +7,7 @@ class ActorPaint extends ActorComponent
 	constructor()
 	{
 		super();
+		this._RenderOpacity = 1.0;
 		this._Opacity = 1.0;
 	}
 	
@@ -19,6 +20,12 @@ class ActorPaint extends ActorComponent
 	get opacity()
 	{
 		return this._Opacity;
+	}
+
+	update(dirt)
+	{
+		super.update(dirt);
+		this._RenderOpacity = this._Opacity * this._Parent._RenderOpacity;
 	}
 
 	initialize(actor, graphics)
@@ -45,6 +52,12 @@ export class ActorColor extends ActorPaint
 		super.copy(node, resetActor);
 
 		vec4.copy(this._Color, node._Color);
+	}
+
+	get runtimeColor()
+	{
+		const {_Color:color} = this;
+		return [color[0], color[1], color[2], color[3]*this._RenderOpacity];
 	}
 
 	get cssColor()
@@ -84,8 +97,8 @@ export class ColorFill extends ActorColor
 
 	fill(graphics, path)
 	{
-		const {_Paint:paint, _Color:color} = this;
-		graphics.setPaintColor(paint, color);
+		const {_Paint:paint, runtimeColor} = this;
+		graphics.setPaintColor(paint, runtimeColor);
 		// ctx.fillStyle = this.cssColor;
 		
 		// switch(this._FillRule)
@@ -149,8 +162,8 @@ export class ColorStroke extends ActorColor
 		// ctx.strokeStyle = this.cssColor;
 		// ctx.lineWidth = this._Width;
 		// ctx.stroke(path);
-		const {_Paint:paint, _Color:color} = this;
-		graphics.setPaintColor(paint, color);
+		const {_Paint:paint, runtimeColor} = this;
+		graphics.setPaintColor(paint, runtimeColor);
 		paint.setStrokeWidth(this._Width);
 		graphics.drawPath(path, paint);
 	}
@@ -199,6 +212,7 @@ export class GradientColor extends ActorPaint
 
 	update(dirt)
 	{
+		super.update(dirt);
 		const shape = this._Parent;
 		const world = shape.worldTransform;
 		vec2.transformMat2d(this._RenderStart, this._Start, world);
@@ -250,7 +264,7 @@ export class GradientFill extends GradientColor
 			}
 			this._GradientDirty = false;
 
-			const opacity = this._Opacity;
+			const opacity = this._RenderOpacity;
 			const numStops = stops.length/5;
 			let idx = 0;
 			const colors = [];
@@ -267,28 +281,6 @@ export class GradientFill extends GradientColor
 		}
 		graphics.setPathFillType(path, this._FillRule);
 		graphics.drawPath(path, paint);
-		// const gradient = ctx.createLinearGradient(start[0], start[1], end[0], end[1]);
-
-		// const opacity = this._Opacity;
-		// const numStops = stops.length/5;
-		// let idx = 0;
-		// for(let i = 0; i < numStops; i++)
-		// {
-		// 	const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
-		// 	const value = stops[idx++];
-		// 	gradient.addColorStop(value, style);
-		// }
-		
-		// ctx.fillStyle = gradient;
-		// switch(this._FillRule)
-		// {
-		// 	case FillRule.EvenOdd:
-		// 		ctx.fill(path, "evenodd");
-		// 		break;
-		// 	case FillRule.NonZero:
-		// 		ctx.fill(path, "nonzero");
-		// 		break;
-		// }
 	}
 
 	resolveComponentIndices(components)
@@ -396,41 +388,35 @@ export class RadialGradientFill extends RadialGradientColor
 		this._FillRule = node._FillRule;
 	}
 
-	fill(ctx, path)
+	fill(graphics, path)
 	{
-		let {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
-		const gradient = ctx.createRadialGradient(0.0, 0.0, 0.0, 0.0, 0.0, vec2.distance(start, end));
-
-		const opacity = this._Opacity;
-		const numStops = stops.length/5;
-		let idx = 0;
-		for(let i = 0; i < numStops; i++)
-		{
-			const style = "rgba(" + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + Math.round(stops[idx++]*255) + ", " + (stops[idx++]*opacity) + ")";
-			const value = stops[idx++];
-			gradient.addColorStop(value, style);
-		}
+		const {_Paint:paint, _RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
 		
-		ctx.fillStyle = gradient;
-
-		// const squash = Math.max(0.00001, secondaryRadiusScale);
-		// const diff = vec2.subtract(vec2.create(), end, start);
-		// const angle = Math.atan2(diff[1], diff[0]);
-		// ctx.save();
-		// ctx.translate(start[0], start[1]);
-		// ctx.rotate(angle);
-		// ctx.scale(1.0, squash);
-
-		switch(this._FillRule)
+		if(this._GradientDirty)
 		{
-			case FillRule.EvenOdd:
-				ctx.fill(path, "evenodd");
-				break;
-			case FillRule.NonZero:
-				ctx.fill(path, "nonzero");
-				break;
+			if(this._Gradient)
+			{
+				graphics.destroyRadialGradient(this._Gradient);
+			}
+			this._GradientDirty = false;
+
+			const opacity = this._RenderOpacity;
+			const numStops = stops.length/5;
+			let idx = 0;
+			const colors = [];
+			const offsets = [];
+			for(let i = 0; i < numStops; i++)
+			{
+				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++]*opacity]);
+				offsets.push(stops[idx++]);
+			}
+			const gradient = graphics.makeRadialGradient(start, vec2.distance(start, end), colors, offsets);
+			//graphics.setPaintColor(paint, [1, 1, 1, 1]);
+			paint.setShader(gradient);
+			this._Gradient = gradient;
 		}
-		//ctx.restore();
+		graphics.setPathFillType(path, this._FillRule);
+		graphics.drawPath(path, paint);
 	}
 
 	resolveComponentIndices(components)

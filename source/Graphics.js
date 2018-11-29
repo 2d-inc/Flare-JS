@@ -158,46 +158,10 @@ export default class Graphics
 
 	setView(matrix)
 	{
-		matrix = [1.215000033378601, 0, 0, 1.215000033378601, 531.712890625, 894.1634521484375];
-		// (9) [1, 0, 0, 
-		// 	 0, 1, 0, 
-		// 	 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-
-// Graphics.js:148 (9) [1, 0, 12, 
-// 					 0, 1, 13, 
-// 					 0, 0, 1] (9) [1, 0, 0, 0, 1, 0, 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-// Graphics.js:148 (9) [1, 0, 12, 0, 1, 13, 0, 0, 1] (9) [1, 0, 0, 0, 1, 0, 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-// Graphics.js:148 (9) [1, 0, 12, 0, 1, 13, 0, 0, 1] (9) [1, 0, 0, 0, 1, 0, 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-// Graphics.js:148 (9) [1, 0, 12, 0, 1, 13, 0, 0, 1] (9) [1, 0, 0, 0, 1, 0, 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-// Graphics.js:148 (9) [1, 0, 12, 0, 1, 13, 0, 0, 1] (9) [1, 0, 0, 0, 1, 0, 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-// Graphics.js:148 (9) [1, 0, 12, 0, 1, 13, 0, 0, 1] (9) [1, 0, 0, 0, 1, 0, 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-// Graphics.js:148 (9) [1, 0, 12, 0, 1, 13, 0, 0, 1] (9) [1, 0, 0, 0, 1, 0, 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-// Graphics.js:148 (9) [1, 0, 12, 0, 1, 13, 0, 0, 1] (9) [1, 0, 0, 0, 1, 0, 0, 0, 1] (9) [0.25, 0, 912.5, 0, 0.25, 850, 0, 0, 1]
-// Graphics.js:148 
-
-		// console.log(CanvasKit.SkMatrix.translated(12, 13), CanvasKit.SkMatrix.identity(), [matrix[0], matrix[2], matrix[4],
-		//  matrix[1], matrix[3], matrix[5],
-		//  0, 0,  1]);
-		//this._SkCanvas.setMatrix(CanvasKit.SkMatrix.identity())//Array.from(matrix).concat([0,0,1]));
-		// this._SkCanvas.setMatrix(
-		// 	[matrix[0], matrix[1], 0,
-		// 	matrix[2], matrix[3], 0,
-		// 	matrix[4], matrix[5],  1]);
 		this._SkCanvas.setMatrix(
 			[matrix[0], matrix[2], matrix[4],
 			matrix[1], matrix[3], matrix[5],
 			0, 0,  1]);
-			
-			// console.log([matrix[0], matrix[2], matrix[4],
-			// 	matrix[1], matrix[3], matrix[5],
-			// 	0, 0,  1]);
-		//mat2d.copy(this._ViewTransform, transform);
-		//this.ctx.setTransform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
-
-		// this._SkCanvas.setMatrix(
-		// 	[0.25, 0, 100,
-		// 	0, 0.25, 0,
-		// 	0, 0,  1]);
 	}
 
 	addPath(path, addition, matrix)
@@ -213,6 +177,7 @@ export default class Graphics
 	makePath(ephemeral)
 	{
 		const path = new CanvasKit.SkPath();
+		
 		if(ephemeral)
 		{
 			this._Cleanup.push(path);
@@ -238,6 +203,18 @@ export default class Graphics
 		colors = colors.map(color => CanvasKit.Color(Math.round(color[0]*255), Math.round(color[1]*255), Math.round(color[2]*255), color[3]));
 		//start, end, colors, pos, mode, localMatrix, flags
 		return CanvasKit.MakeLinearGradientShader(start, end, colors, stops, CanvasKit.TileMode.Clamp, null, 0);
+	}
+
+	makeRadialGradient(center, radius, colors, stops)
+	{
+		colors = colors.map(color => CanvasKit.Color(Math.round(color[0]*255), Math.round(color[1]*255), Math.round(color[2]*255), color[3]));
+		// center, radius, colors, pos, mode, localMatrix, flags
+		return CanvasKit.MakeRadialGradientShader(center, radius, colors, stops, CanvasKit.TileMode.Clamp, null, 0);
+	}
+
+	destroyRadialGradient(gradient)
+	{
+		gradient.delete();
 	}
 
 	destroyLinearGradient(gradient)

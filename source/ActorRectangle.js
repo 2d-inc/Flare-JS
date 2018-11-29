@@ -60,14 +60,14 @@ export default class ActorRectangle extends ActorProceduralPath
         ctx.closePath();
     }
 
-    getPath()
+    getPath(graphics)
     {
         let {width, height, _CornerRadius:radius} = this;
         const halfWidth = width/2;
         const halfHeight = height/2;
         const x = -halfWidth;
         const y = -halfHeight;
-        const path = new Path2D();
+        const path = graphics.makePath(true);
         if(radius > 0.0)
         {
             if (width < 2 * radius) radius = width / 2;
@@ -77,11 +77,11 @@ export default class ActorRectangle extends ActorProceduralPath
             path.arcTo(x + width, y + height, x, y + height, radius);
             path.arcTo(x, y + height, x, y, radius);
             path.arcTo(x, y, x + width, y, radius);
-            path.closePath();
+            path.close();
         }
         else
         {
-            path.rect(-halfWidth, -halfHeight, width, height);
+            path.addRect(-halfWidth, -halfHeight, halfWidth, halfHeight);
         }
         return path;
     }
