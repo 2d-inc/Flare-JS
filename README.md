@@ -6,7 +6,7 @@ Use NPM to get the dependencies and then build with webpack:
 
 ```
 npm install
-webpack --watch
+npm start -- --watch
 ```
 
 ## Usage
