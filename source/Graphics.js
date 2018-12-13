@@ -158,7 +158,7 @@ export default class Graphics
 
 	setView(matrix)
 	{
-		this._SkCanvas.setMatrix(
+		this._SkCanvas.concat(
 			[matrix[0], matrix[2], matrix[4],
 			matrix[1], matrix[3], matrix[5],
 			0, 0,  1]);
