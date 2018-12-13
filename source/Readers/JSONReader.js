@@ -28,7 +28,7 @@ export default class JSONReader extends StreamReader
 	{
         return this.readProp(label);
 	}
-	
+
 	// Reads the array into ar
 	readFloat32Array(ar, label)
 	{
@@ -43,10 +43,14 @@ export default class JSONReader extends StreamReader
 	readArray(ar, label)
 	{
 		const array = this.readProp(label);
-		for (let i = 0; i < ar.length; i++)
+		if (array) // I think there's a bug here.
 		{
-			ar[i] = array[i];
+			for (let i = 0; i < ar.length; i++)
+			{
+				ar[i] = array[i];
+			}
 		}
+
 		return ar;
 	}
 
@@ -149,7 +153,7 @@ export default class JSONReader extends StreamReader
 	{
         return this.readProp(label);
 	}
-	
+
 	readBool(label)
 	{
 		return this.readProp(label);

@@ -30,6 +30,7 @@
 		"webpack-cli": "^3.1.0"
 	},
 	"dependencies": {
+		"@svgdotjs/svg.js": "^3.0.5",
 		"npm": "^5.10.0"
 	}
 }

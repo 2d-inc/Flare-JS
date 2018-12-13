@@ -1,8 +1,8 @@
-const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+import * as SVG from '@svgdotjs/svg.js/dist/svg.node.js'
 
 export default function make(transform)
 {
-    const matrix = svg.createSVGMatrix();
+    const matrix = new SVG.Matrix();
     matrix.a = transform[0];
     matrix.b = transform[1];
     matrix.c = transform[2];

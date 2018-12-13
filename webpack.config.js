@@ -2,22 +2,21 @@ const path = require("path");
 
 const BUILD_DIR = path.resolve(__dirname, "build/");
 const APP_DIR = path.resolve(__dirname, "source/");
+const EXAMPLE_DIR = path.resolve(__dirname, "example/");
 
 const config =
 {
 	mode: "development",
 	target: "web",
 	devtool: "source-map",
-	entry: 
+	entry:
 	{
-		Flare: APP_DIR + "/Flare.js"
+		Flare: EXAMPLE_DIR + "/example.js"
 	},
 	output:
 	{
-		path: BUILD_DIR,
-		filename: "Flare.min.js",
-		library: "Flare",
-		libraryTarget: "umd"
+		path: EXAMPLE_DIR,
+		filename: "example.build.js",
 	},
 	module:
 	{
