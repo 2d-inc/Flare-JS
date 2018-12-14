@@ -4,7 +4,8 @@
 	"description": "",
 	"main": "source/Flare.js",
 	"scripts": {
-		"dev": "npx webpack --w"
+		"dev": "npx webpack --w",
+		"start": "webpack"
 	},
 	"repository": {
 		"type": "git",
