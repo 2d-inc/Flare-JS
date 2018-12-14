@@ -54,7 +54,19 @@ export default class ActorTriangle extends ActorProceduralPath
 
 		return [vec2.fromValues(min_x, min_y), vec2.fromValues(max_x, max_y)];
     }
-    
+	
+	getPath(graphics)
+	{
+		const path = graphics.makePath(true);
+		const radiusX = Math.max(0, this._Width/2);
+		const radiusY = Math.max(0, this._Height/2);
+		path.moveTo(0.0, -radiusY);
+		path.lineTo(radiusX, radiusY);
+		path.lineTo(-radiusX, radiusY);
+		path.close();
+		return path;
+	}
+
     draw(ctx)
     {
         const transform = this._WorldTransform;
