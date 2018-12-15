@@ -34,8 +34,6 @@ export default class Animation
 		this._Artboard = artboard;
 		this._Components = [];
 		this._TriggerComponents = [];
-		this._DisplayStart = 0;
-		this._DisplayEnd = 0;
 
 		this._Name = null;
 		this._FPS = 60;
