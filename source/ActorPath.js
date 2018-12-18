@@ -16,6 +16,7 @@ export default class ActorPath extends ActorSkinnableNode
 		this._Points = [];
 		this._RenderPath = null;
 		this._Skin = null;
+		this._IsVolatile = false;
 	}
 	
 	setSkin(skin)
@@ -342,6 +343,7 @@ export default class ActorPath extends ActorSkinnableNode
 			this._RenderPath.delete();
 		}
 		this._RenderPath = null;
+		this._IsVolatile = true;
 	}
 
 	getPath(graphics)
@@ -353,6 +355,10 @@ export default class ActorPath extends ActorSkinnableNode
 		}
 
 		const path = graphics.makePath();
+		if(this._IsVolatile)
+		{
+			path.setIsVolatile(true);
+		}
 		const renderPoints = this.makeRenderPoints();
 		const isClosed = this.isClosed;
 
