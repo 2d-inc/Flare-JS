@@ -379,12 +379,14 @@ function _ReadAnimationBlock(artboard, reader)
 							const pointCount = path._Points.length;
 							const points = [];
 							
+							propertyReader.openArray("value");
 							for(let j = 0; j < pointCount; j++)
 							{
 								const point = path._Points[j];
 
-								const pos = propertyReader.readFloat32Array(new Float32Array(2), "translation");
-								points.push(pos[0], pos[1]);
+								const posX = propertyReader.readFloat32("translationX");
+								const posY = propertyReader.readFloat32("translationX");
+								points.push(posX, posY);
 
 								if(point.constructor === StraightPathPoint)
 								{
@@ -392,14 +394,16 @@ function _ReadAnimationBlock(artboard, reader)
 								}
 								else
 								{
-									let p = propertyReader.readFloat32Array(new Float32Array(2), "inValue");
-									points.push(p[0], p[1]);
-
-									p = propertyReader.readFloat32Array(new Float32Array(2), "outValue");
-									points.push(p[0], p[1]);
+									const inX = propertyReader.readFloat32("inValueX");
+									const inY = propertyReader.readFloat32("inValueY");
+									points.push(inX, inY);
+									
+									const outX = propertyReader.readFloat32("outValueX");
+									const outY = propertyReader.readFloat32("outValueY");
+									points.push(outX, outY);
 								}
 							}
-
+							propertyReader.closeArray();
 							keyFrame._Value = new Float32Array(points);
 						}
 						else if(propertyType === _AnimatedPropertyTypes.FillColor || propertyType === _AnimatedPropertyTypes.StrokeColor)
