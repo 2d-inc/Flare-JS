@@ -132,18 +132,6 @@ export default class Graphics
 		}
 		skCanvas.drawRect(CanvasKit.LTRBRect(0, 0, width, height), clearPaint);
 		skCanvas.save();
-		return;
-		// let ctx = this._Context;
-		// let cvs = this._Canvas;
-		
-		// ctx.clearRect(0, 0, cvs.width, cvs.height);
-		// ctx.save();
-		// if(color && color[3])
-		// {
-		// 	ctx.fillStyle = "rgba(" + Math.round(color[0]*255) + "," + Math.round(color[1]*255) + "," + Math.round(color[2]*255) + "," + color[3] + ")";
-		// 	ctx.rect(0, 0, cvs.width, cvs.height);
-		// 	ctx.fill();
-		// }
 	}
 
 	drawPath(path, paint)
@@ -271,7 +259,7 @@ export default class Graphics
 
 	clipPath(path)
 	{
-		this._SkCanvas.clipPath(path, CanvasKit.ClipOp.Intersect, true)
+		this._SkCanvas.clipPath(path, CanvasKit.ClipOp.Intersect, true);
 	}
 
 	flush()
@@ -284,9 +272,6 @@ export default class Graphics
 			obj.delete();
 		}
 		this._Cleanup.length = 0;
-		return;
-		let ctx = this._Context;
-		ctx.restore();
 	}
 
 	get viewportWidth()
