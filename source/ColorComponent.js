@@ -99,17 +99,6 @@ export class ColorFill extends ActorColor
 	{
 		const {_Paint:paint, runtimeColor} = this;
 		graphics.setPaintColor(paint, runtimeColor);
-		// ctx.fillStyle = this.cssColor;
-		
-		// switch(this._FillRule)
-		// {
-		// 	case FillRule.EvenOdd:
-		// 		ctx.fill(path, "evenodd");
-		// 		break;
-		// 	case FillRule.NonZero:
-		// 		ctx.fill(path, "nonzero");
-		// 		break;
-		// }
 		graphics.setPathFillType(path, this._FillRule);
 		graphics.drawPath(path, paint);
 	}
