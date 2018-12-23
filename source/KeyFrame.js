@@ -39,6 +39,11 @@ export class KeyFrame
 		{
 			this.interpolate = KeyFrame.prototype.interpolateVertexBuffer;
 		}
+		else if(this._Value.constructor === Array && this._Value[0].constructor === Object)
+		{
+			// DrawOrder keyframes contain Arrays of Objects.
+			this.interpolate = () => this._Value;
+		}
 		else
 		{
 			this.interpolate = KeyFrame.prototype.interpolateFloat;
