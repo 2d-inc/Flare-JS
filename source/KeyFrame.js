@@ -39,10 +39,19 @@ export class KeyFrame
 		{
 			this.interpolate = KeyFrame.prototype.interpolateVertexBuffer;
 		}
+		else if(this._Value.constructor === Array && this._Value[0].constructor === Object)
+ 		{
+			 this.interpolate = KeyFrame.prototype.interpolateDrawOrder;
+		 }
 		else
 		{
 			this.interpolate = KeyFrame.prototype.interpolateFloat;
 		}
+	}
+
+	interpolateDrawOrder(mix, nxt)
+	{
+		return this._Value;
 	}
 
 	interpolateVertexBuffer(mix, nxt)
