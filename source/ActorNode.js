@@ -319,7 +319,7 @@ export default class ActorNode extends ActorComponent
 		}
 		for(let item of chain)
 		{
-			if(item instanceof ActorNode)
+			if(item.hasWorldTransform)
 			{
 				if((this._DirtMask & TransformDirty) !== TransformDirty)
 				{
