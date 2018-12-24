@@ -47,6 +47,11 @@ export default class ActorNode extends ActorComponent
 		this._Clips = null;
 	}
 
+	get hasWorldTransform()
+	{
+		return true;
+	}
+
 	eachChildRecursive(cb)
 	{
 		const children = this._Children;
