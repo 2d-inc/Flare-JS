@@ -2,7 +2,7 @@
 Javascript ES6 runtime with Canvas rendering.
 
 ### CanvasKit vs Canvas
-There are currently two branches: master with Canvas 2d context as the renderer and CanvasKit with SKIA via WebAssembly. Going forward the CanvasKit branch will become the active one as it supports more advanced rendering operations which Flare will soon require.
+There are currently two branches: master with CanvasKit rendering (Skia via WebAssembly) and context2d with the standard CanvasRenderingContext2D. The context2d branch is deprecated.
 
 ## Building
 Use NPM to get the dependencies and then build with webpack:
