@@ -57,13 +57,13 @@ export default class ActorTriangle extends ActorProceduralPath
 	
 	getPath(graphics)
 	{
-		const path = new Path2D();
+		const path = graphics.makePath(true);
 		const radiusX = Math.max(0, this._Width/2);
 		const radiusY = Math.max(0, this._Height/2);
 		path.moveTo(0.0, -radiusY);
 		path.lineTo(radiusX, radiusY);
 		path.lineTo(-radiusX, radiusY);
-		path.closePath();
+		path.close();
 		return path;
 	}
 

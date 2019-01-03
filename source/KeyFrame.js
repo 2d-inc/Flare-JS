@@ -35,14 +35,24 @@ export class KeyFrame
 
 	setNext(nxt)
 	{
-		if(this._Value.constructor === Float32Array)
+		const {_Value:value} = this;
+		if(value.constructor === Float32Array)
 		{
 			this.interpolate = KeyFrame.prototype.interpolateVertexBuffer;
 		}
+		else if(value.constructor === Array && value.length > 0 && value[0].constructor === Object)
+ 		{
+			 this.interpolate = KeyFrame.prototype.interpolateDrawOrder;
+		 }
 		else
 		{
 			this.interpolate = KeyFrame.prototype.interpolateFloat;
 		}
+	}
+
+	interpolateDrawOrder(mix, nxt)
+	{
+		return this._Value;
 	}
 
 	interpolateVertexBuffer(mix, nxt)

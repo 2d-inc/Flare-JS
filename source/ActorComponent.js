@@ -27,6 +27,11 @@ export default class ActorComponent
 
 	}
 
+	dispose(actor, graphics)
+	{
+
+	}
+
 	update(dirt)
 	{
 		

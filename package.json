@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "source/Flare.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "npx webpack --w",
 		"start": "webpack"
 	},
 	"repository": {

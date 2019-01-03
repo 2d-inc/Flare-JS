@@ -47,6 +47,11 @@ export default class ActorNode extends ActorComponent
 		this._Clips = null;
 	}
 
+	get hasWorldTransform()
+	{
+		return true;
+	}
+
 	eachChildRecursive(cb)
 	{
 		const children = this._Children;
@@ -319,7 +324,7 @@ export default class ActorNode extends ActorComponent
 		}
 		for(let item of chain)
 		{
-			if(item instanceof ActorNode)
+			if(item.hasWorldTransform)
 			{
 				if((this._DirtMask & TransformDirty) !== TransformDirty)
 				{

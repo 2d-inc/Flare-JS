@@ -41,6 +41,11 @@ export default class Animation
 		this._Loop = false;
 	}
 
+	get loop()
+	{
+		return this._Loop;
+	}
+
 	get duration()
 	{
 		return this._Duration;

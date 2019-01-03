@@ -7,6 +7,7 @@
 
     <script src="../build/Flare.min.js"></script>
     <script src="../build/gl-matrix.js"></script>
+    <script src="../build/canvaskit.js"></script>
 
     <!-- example implementation is in here -->
     <script src="./example.js" compile></script>
@@ -21,38 +22,39 @@
     <script>
         let flareExample;
         function onLoad() {
-            flareExample = new FlareExample(document.getElementById("canvas"));
-            flareExample.load("./ball.flj", function (error) {
-                if (error) {
-                    console.log("failed to load actor file...", error);
-                }
-            });
-
-            flareExample.setSize(684, 387);
-            document.body.addEventListener('dragover', function (evt) {
-                evt.stopPropagation();
-                evt.preventDefault();
-                evt.dataTransfer.dropEffect = "copy";
-            }, true);
-
-            document.body.addEventListener('dragleave', function (evt) {
-                evt.stopPropagation();
-                evt.preventDefault();
-            });
-
-            document.body.addEventListener("drop", function (evt) {
-                // Reload another actor by dragging and dropping the file in.
-                evt.stopPropagation();
-                evt.preventDefault();
-
-                const files = evt.dataTransfer.files;
-
-                flareExample.load(files[0], function (error) {
+            flareExample = new FlareExample(document.getElementById("canvas"), function () {
+                flareExample.load("./spaceman.flr", function (error) {
                     if (error) {
-                        console.log("oh no", error);
+                        console.log("failed to load actor file...", error);
                     }
                 });
-            }, true);
+
+                flareExample.setSize(684, 387);
+                document.body.addEventListener('dragover', function (evt) {
+                    evt.stopPropagation();
+                    evt.preventDefault();
+                    evt.dataTransfer.dropEffect = "copy";
+                }, true);
+
+                document.body.addEventListener('dragleave', function (evt) {
+                    evt.stopPropagation();
+                    evt.preventDefault();
+                });
+
+                document.body.addEventListener("drop", function (evt) {
+                    // Reload another actor by dragging and dropping the file in.
+                    evt.stopPropagation();
+                    evt.preventDefault();
+
+                    const files = evt.dataTransfer.files;
+
+                    flareExample.load(files[0], function (error) {
+                        if (error) {
+                            console.log("oh no", error);
+                        }
+                    });
+                }, true);
+            });
         }
     </script>
 </head>

@@ -29,7 +29,7 @@ export default class ActorArtboard
         this._ClipsContents = true;
 		this._Width = 0;
 		this._Height = 0;
-    }
+	}
 
     get name()
     {
@@ -59,7 +59,12 @@ export default class ActorArtboard
     get color()
     {
         return this._Color;
-    }
+	}
+	
+	get color8()
+	{
+		return this._Color.map(c => Math.round(c*255));
+	}
 
     get clipsContents()
     {
@@ -221,7 +226,7 @@ export default class ActorArtboard
 		}
 
 		return true;
-    }
+	}
     
     resolveHierarchy()
 	{
@@ -240,6 +245,7 @@ export default class ActorArtboard
 				{
 					case NestedActorNode:
 					case ActorImage:
+					case ActorShape:
 						this._Drawables.push(component);
 						break;
 				}
@@ -264,10 +270,15 @@ export default class ActorArtboard
 
 	dispose(graphics)
 	{
-		let drawables = this._Drawables;
-		for(let drawable of drawables)
+		const components = this._Components;
+		for(const component of components)
 		{
-			drawable.dispose(this, graphics);
+			component.dispose(this, graphics);
+		}
+		if(this._ClippingPath)
+		{
+			graphics.destroyPath(this._ClippingPath);
+			this._ClippingPath = null;
 		}
     }
     
@@ -298,24 +309,17 @@ export default class ActorArtboard
 
 	draw(graphics)
 	{
+		graphics.save();
+		if(this._ClippingPath)
+		{
+			graphics.clipPath(this._ClippingPath);
+		}
 		let drawables = this._Drawables;
 		for(let drawable of drawables)
 		{
 			drawable.draw(graphics);
 		}
-		// let nodes = this._Nodes;
-		// for(let node of nodes)
-		// {
-		// 	if(node._Name === "ctrl_look")
-		// 	{
-		// 		const ctx = graphics.ctx;
-		// 		ctx.save();
-		// 		ctx.beginPath();
-		// 		ctx.arc(node.worldTransform[4], node.worldTransform[5], 20.0, 0, 2*Math.PI);
-		// 		ctx.stroke();
-		// 		ctx.restore();
-		// 	}
-		// }
+		graphics.restore();
 	}
 
 	getNode(name)
@@ -436,57 +440,27 @@ export default class ActorArtboard
 				this._Components.push(null);
 				continue;
 			}
-			let instanceNode = component.makeInstance(this);
-			switch(instanceNode.constructor)
-			{
-				case ActorShape:
-				case NestedActorNode:
-				case ActorImage:
-					this._Drawables.push(instanceNode);
-					break;
-			}
-			if(instanceNode.isNode)
-			{
-				this._Nodes.push(instanceNode);
-			}
-			this._Components.push(instanceNode);
+			this._Components.push(component.makeInstance(this));
 		}
 		this._RootNode = this._Components[0];
 
-		for(let i = 1; i < this._Components.length; i++)
-		{
-			let component = this._Components[i];
-			if(component == null)
-			{
-				continue;
-			}
-			component.resolveComponentIndices(this._Components);
-		}
-
-		for(let i = 1; i < this._Components.length; i++)
-		{
-			let component = this._Components[i];
-			if(component == null)
-			{
-				continue;
-			}
-			component.completeResolve();
-		}
-
-		this.sortDependencies();
-
-		this._Drawables.sort(function(a,b)
-		{
-			return a._DrawOrder - b._DrawOrder;
-		});
+		this.resolveHierarchy();
 	}
 
 	initialize(graphics)
 	{
-		let drawables = this._Drawables;
-		for(let drawable of drawables)
+		const components = this._Components;
+		for(const component of components)
 		{
-			drawable.initialize(this, graphics);
+			component.initialize(this, graphics);
+		}
+
+		if(this._ClipsContents)
+		{
+			this._ClippingPath = graphics.makePath();
+			const x = -this._Origin[0] * this._Width;
+			const y = -this._Origin[1] * this._Height;
+			this._ClippingPath.addRect(x, y, x+this._Width, y+this._Height);
 		}
 	}
 }
