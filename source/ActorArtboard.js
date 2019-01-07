@@ -26,7 +26,7 @@ export default class ActorArtboard
         this._Origin = vec2.create();
         this._Translation = vec2.create();
         this._Color = vec4.create();
-        this._ClipsContents = true;
+        this._ClipContents = true;
 		this._Width = 0;
 		this._Height = 0;
 	}
@@ -66,9 +66,9 @@ export default class ActorArtboard
 		return this._Color.map(c => Math.round(c*255));
 	}
 
-    get clipsContents()
+    get clipContents()
     {
-        return this._ClipsContents;
+        return this._ClipContents;
     }
 
     get root()
@@ -423,7 +423,7 @@ export default class ActorArtboard
         this._Origin = vec2.clone(artboard._Origin);
         this._Translation = vec2.clone(artboard._Translation);
         this._Color = vec4.clone(artboard._Color);
-        this._ClipsContents = artboard._ClipContents;
+        this._ClipContents = artboard._ClipContents;
 		this._Width = artboard._Width;
 		this._Height = artboard._Height;
 
@@ -455,7 +455,7 @@ export default class ActorArtboard
 			component.initialize(this, graphics);
 		}
 
-		if(this._ClipsContents)
+		if(this._ClipContents)
 		{
 			this._ClippingPath = graphics.makePath();
 			const x = -this._Origin[0] * this._Width;
