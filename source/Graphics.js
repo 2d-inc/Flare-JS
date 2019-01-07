@@ -1,6 +1,8 @@
 let CanvasKit = null;
 import { mat2d, vec2 } from "gl-matrix";
 import FillRule from "./FillRule.js";
+import StrokeCap from "./StrokeCap.js";
+import StrokeJoin from "./StrokeJoin.js";
 
 export default class Graphics
 {
@@ -9,7 +11,6 @@ export default class Graphics
 		this._Canvas = canvas;
 		this._ViewTransform = mat2d.create();
 		this._Cleanup = [];
-		//this._Context = canvas.getContext("2d");	
 	}
 
 	initialize(staticPath, cb)
@@ -28,31 +29,7 @@ export default class Graphics
 			setTimeout(() => 
 			{
 				CanvasKit = CK;
-				// CK.initFonts();
-				// CanvasKit = CK;
-				// DrawingExample(CanvasKit);
-				// PathExample(CanvasKit);
-				// InkExample(CanvasKit);
-				// // Set bounds to fix the 4:3 resolution of the legos
-				// addScreenshotListener(SkottieExample(CanvasKit, 'sk_legos', legoJSON,
-				// 						{fLeft: -50, fTop: 0, fRight: 350, fBottom: 300}));
-				// // Re-size to fit
-				// SkottieExample(CanvasKit, 'sk_drinks', drinksJSON, fullBounds);
-				// SkottieExample(CanvasKit, 'sk_party', confettiJSON, fullBounds);
-				// SkottieExample(CanvasKit, 'sk_onboarding', onboardingJSON, fullBounds);
-		
-				// NimaExample(CanvasKit, nimaFile, nimaTexture);
-		
-				// CanvasAPI1(CanvasKit);
-				// CanvasAPI2(CanvasKit);
-				// CanvasAPI3(CanvasKit);
-				// CanvasAPI4(CanvasKit);
-				// CanvasAPI5(CanvasKit);
-		
-				// VertexAPI1(CanvasKit);
-				// VertexAPI2(CanvasKit, bonesImage);
-		
-				// GradiantAPI1(CanvasKit);
+
 				this.updateSurface();
 				const clearPaint = new CanvasKit.SkPaint();
 				clearPaint.setStyle(CanvasKit.PaintStyle.Fill);
@@ -247,7 +224,49 @@ export default class Graphics
 		path.setFillType(fillType);
 	}
 
-	setPaintStroke(paint)
+	static setPaintStrokeCap(paint, cap)
+	{
+		let strokeCap;
+		switch(cap)
+		{
+			case StrokeCap.Butt:
+				strokeCap = CanvasKit.StrokeCap.Butt;
+				break;
+			case StrokeCap.Round:
+				strokeCap = CanvasKit.StrokeCap.Round;
+				break;
+			case StrokeCap.Square:
+				strokeCap = CanvasKit.StrokeCap.Square;
+				break;
+			default:
+				strokeCap = CanvasKit.StrokeCap.Butt;
+				break;
+		}
+		paint.setStrokeCap(strokeCap);
+	}
+
+	static setPaintStrokeJoin(paint, join)
+	{
+		let strokeJoin;
+		switch(join)
+		{
+			case StrokeJoin.Miter:
+				strokeJoin = CanvasKit.StrokeJoin.Miter;
+				break;
+			case StrokeJoin.Round:
+				strokeJoin = CanvasKit.StrokeJoin.Round;
+				break;
+			case StrokeJoin.Bevel:
+				strokeJoin = CanvasKit.StrokeJoin.Bevel;
+				break;
+			default:
+				strokeJoin = CanvasKit.StrokeJoin.Miter;
+				break;
+		}
+		paint.setStrokeJoin(strokeJoin);
+	}
+
+	static setPaintStroke(paint)
 	{
 		paint.setStyle(CanvasKit.PaintStyle.Stroke);
 	}

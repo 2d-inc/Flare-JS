@@ -1,6 +1,9 @@
 import ActorComponent from "./ActorComponent.js";
 import {vec2, vec4, mat2d} from "gl-matrix";
 import FillRule from "./FillRule.js";
+import StrokeCap from "./StrokeCap.js";
+import StrokeJoin from "./StrokeJoin.js";
+import Graphics from "./Graphics.js";
 
 class ActorPaint extends ActorComponent
 {
@@ -113,12 +116,23 @@ export class ColorFill extends ActorColor
 	}
 }
 
-export class ColorStroke extends ActorColor
+const ActorStroke = (ActorStroke) => class extends ActorStroke
 {
-	constructor()
+	constructor(actor)
 	{
-		super();
+		super(actor);
 		this._Width = 0.0;
+		this._Cap = StrokeCap.Butt;
+		this._Join = StrokeJoin.Miter;
+	}
+
+	initialize(actor, graphics)
+	{
+		super.initialize(actor, graphics);
+		const {_Paint, _Cap, _Join} = this;
+		Graphics.setPaintStroke(_Paint);
+		Graphics.setPaintStrokeCap(_Paint, _Cap);
+		Graphics.setPaintStrokeJoin(_Paint, _Join);
 	}
 
 	get width()
@@ -126,17 +140,14 @@ export class ColorStroke extends ActorColor
 		return this._Width;
 	}
 
-	makeInstance(resetActor)
+	get cap()
 	{
-		const node = new ColorStroke();
-		ColorStroke.prototype.copy.call(node, this, resetActor);
-		return node;	
+		return this._Cap;
 	}
 
-	initialize(actor, graphics)
+	get join()
 	{
-		super.initialize(actor, graphics);
-		graphics.setPaintStroke(this._Paint);
+		return this._Join;
 	}
 
 	copy(node, resetActor)
@@ -144,17 +155,8 @@ export class ColorStroke extends ActorColor
 		super.copy(node, resetActor);
 
 		this._Width = node._Width;
-	}
-
-	stroke(graphics, path)
-	{
-		// ctx.strokeStyle = this.cssColor;
-		// ctx.lineWidth = this._Width;
-		// ctx.stroke(path);
-		const {_Paint:paint, runtimeColor} = this;
-		graphics.setPaintColor(paint, runtimeColor);
-		paint.setStrokeWidth(this._Width);
-		graphics.drawPath(path, paint);
+		this._Join = node._Join;
+		this._Cap = node._Cap;
 	}
 
 	resolveComponentIndices(components)
@@ -164,6 +166,29 @@ export class ColorStroke extends ActorColor
 		{
 			this._Parent.addStroke(this);
 		}
+	}
+};
+
+export class ColorStroke extends ActorStroke(ActorColor)
+{
+	constructor()
+	{
+		super();
+	}
+
+	makeInstance(resetActor)
+	{
+		const node = new ColorStroke();
+		node.copy(this, resetActor);
+		return node;	
+	}
+
+	stroke(graphics, path)
+	{
+		const {_Paint:paint, runtimeColor} = this;
+		graphics.setPaintColor(paint, runtimeColor);
+		paint.setStrokeWidth(this._Width);
+		graphics.drawPath(path, paint);
 	}
 }
 
@@ -264,7 +289,6 @@ export class GradientFill extends GradientColor
 				offsets.push(stops[idx++]);
 			}
 			const gradient = graphics.makeLinearGradient(start, end, colors, offsets);
-			//graphics.setPaintColor(paint, [1, 1, 1, 1]);
 			paint.setShader(gradient);
 			this._Gradient = gradient;
 		}
@@ -282,37 +306,18 @@ export class GradientFill extends GradientColor
 	}
 }
 
-export class GradientStroke extends GradientColor
+export class GradientStroke extends ActorStroke(GradientColor)
 {
 	constructor()
 	{
 		super();
-		this._Width = 0.0;
-	}
-
-	get width()
-	{
-		return this._Width;
-	}
-
-	initialize(actor, graphics)
-	{
-		super.initialize(actor, graphics);
-		graphics.setPaintStroke(this._Paint);
 	}
 
 	makeInstance(resetActor)
 	{
 		const node = new GradientStroke();
-		GradientStroke.prototype.copy.call(node, this, resetActor);
+		node.copy(this, resetActor);
 		return node;	
-	}
-
-	copy(node, resetActor)
-	{
-		super.copy(node, resetActor);
-
-		this._Width = node._Width;
 	}
 
 	stroke(ctx, path)
@@ -343,15 +348,6 @@ export class GradientStroke extends GradientColor
 		}
 		paint.setStrokeWidth(this._Width);
 		graphics.drawPath(path, paint);
-	}
-
-	resolveComponentIndices(components)
-	{
-		super.resolveComponentIndices(components);
-		if(this._Parent)
-		{
-			this._Parent.addStroke(this);
-		}
 	}
 }
 
@@ -416,7 +412,6 @@ export class RadialGradientFill extends RadialGradientColor
 				offsets.push(stops[idx++]);
 			}
 			const gradient = graphics.makeRadialGradient(start, vec2.distance(start, end), colors, offsets);
-			//graphics.setPaintColor(paint, [1, 1, 1, 1]);
 			paint.setShader(gradient);
 			this._Gradient = gradient;
 		}
@@ -434,37 +429,18 @@ export class RadialGradientFill extends RadialGradientColor
 	}
 }
 
-export class RadialGradientStroke extends RadialGradientColor
+export class RadialGradientStroke extends ActorStroke(RadialGradientColor)
 {
 	constructor()
 	{
 		super();
-		this._Width = 0.0;
-	}
-
-	get width()
-	{
-		return this._Width;
 	}
 
 	makeInstance(resetActor)
 	{
 		const node = new RadialGradientStroke();
-		RadialGradientStroke.prototype.copy.call(node, this, resetActor);
+		node.copy( this, resetActor);
 		return node;	
-	}
-
-	initialize(actor, graphics)
-	{
-		super.initialize(actor, graphics);
-		graphics.setPaintStroke(this._Paint);
-	}
-
-	copy(node, resetActor)
-	{
-		super.copy(node, resetActor);
-
-		this._Width = node._Width;
 	}
 
 	stroke(ctx, path)
@@ -495,14 +471,5 @@ export class RadialGradientStroke extends RadialGradientColor
 		}
 		paint.setStrokeWidth(this._Width);
 		graphics.drawPath(path, paint);
-	}
-
-	resolveComponentIndices(components)
-	{
-		super.resolveComponentIndices(components);
-		if(this._Parent)
-		{
-			this._Parent.addStroke(this);
-		}
 	}
 }

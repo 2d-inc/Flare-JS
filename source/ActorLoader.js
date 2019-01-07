@@ -1197,13 +1197,19 @@ function _ReadColorFill(reader, component)
 	return component;
 }
 
+function _ReadStroke(reader, component)
+{
+	component._Width = reader.readFloat32("width");
+	component._Cap = reader.readUint8("cap");
+	component._Join = reader.readUint8("join");
+}
+
 function _ReadColorStroke(reader, component)
 {
 	_ReadActorPaint(reader, component);
-
 	reader.readFloat32Array(component._Color, "color");
-	component._Width = reader.readFloat32("width");
-
+	_ReadStroke(reader, component);
+	
 	return component;
 }
 
@@ -1243,7 +1249,7 @@ function _ReadGradientStroke(reader, component)
 	_ReadActorPaint(reader, component);
 
 	_ReadGradient(reader, component);
-	component._Width = reader.readFloat32("width");
+	_ReadStroke(reader, component);
 
 	return component;
 }
@@ -1263,7 +1269,7 @@ function _ReadRadialGradientStroke(reader, component)
 	_ReadActorPaint(reader, component);
 
 	_ReadRadialGradient(reader, component);
-	component._Width = reader.readFloat32("width");
+	_ReadStroke(reader, component);
 
 	return component;
 }
