@@ -59,41 +59,44 @@ export default class ActorShape extends ActorNode
 	computeAABB()
 	{
 		const clips = this.getClips();
-		if(clips)
+		if(clips.length)
 		{
 			let aabb = null;
-			for(const clip of clips)
+			for(const clipList of clips)
 			{
-				clip.all(function(node)
+				for(const clip of clipList)
 				{
-					if(node.constructor === ActorShape)
+					clip.all(function(node)
 					{
-						let bounds = node.computeAABB();
-						if(!aabb)
+						if(node.constructor === ActorShape)
 						{
-							aabb = bounds;
+							let bounds = node.computeAABB();
+							if(!aabb)
+							{
+								aabb = bounds;
+							}
+							else
+							{
+								if(bounds[0] < aabb[0])
+								{
+									aabb[0] = bounds[0];
+								}
+								if(bounds[1] < aabb[1])
+								{
+									aabb[1] = bounds[1];
+								}
+								if(bounds[2] > aabb[2])
+								{
+									aabb[2] = bounds[2];
+								}
+								if(bounds[3] > aabb[3])
+								{
+									aabb[3] = bounds[3];
+								}
+							}
 						}
-						else
-						{
-							if(bounds[0] < aabb[0])
-							{
-								aabb[0] = bounds[0];
-							}
-							if(bounds[1] < aabb[1])
-							{
-								aabb[1] = bounds[1];
-							}
-							if(bounds[2] > aabb[2])
-							{
-								aabb[2] = bounds[2];
-							}
-							if(bounds[3] > aabb[3])
-							{
-								aabb[3] = bounds[3];
-							}
-						}
-					}
-				});
+					});
+				}
 			}
 			return aabb;
 		}
@@ -260,13 +263,12 @@ export default class ActorShape extends ActorNode
 	{
 		// Find clips.
 		let clipSearch = this;
-		let clips = null;
+		let clips = [];
 		while(clipSearch)
 		{
 			if(clipSearch._Clips)
 			{
-				clips = clipSearch._Clips;
-				break;
+				clips.push(clipSearch._Clips);
 			}
 			clipSearch = clipSearch.parent;
 		}
@@ -279,31 +281,32 @@ export default class ActorShape extends ActorNode
 		// Find clips.
 		const clips = this.getClips();
 
-		if(clips)
+		if(clips.length)
 		{
-			const clipPath = graphics.makePath(true);
-			for(let clip of clips)
+			for(const clipList of clips)
 			{
-				let shapes = new Set();
-				clip.all(function(node)
+				const clipPath = graphics.makePath(true);
+				for(let clip of clipList)
 				{
-					if(node.constructor === ActorShape)
+					let shapes = new Set();
+					clip.all(function(node)
 					{
-						shapes.add(node);
-					}
-				});
-				for(let shape of shapes)
-				{
-					const paths = shape.paths;
-					for(const path of paths)
+						if(node.constructor === ActorShape)
+						{
+							shapes.add(node);
+						}
+					});
+					for(let shape of shapes)
 					{
-						graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
-						//clipPath.addPath(path.getPath(), path.getPathTransform());
+						const paths = shape.paths;
+						for(const path of paths)
+						{
+							graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
+						}
 					}
 				}
+				graphics.clipPath(clipPath);
 			}
-			graphics.clipPath(clipPath);
-			//ctx.clip(clipPath);
 		}
 	}
 
