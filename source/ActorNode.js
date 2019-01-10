@@ -1,9 +1,6 @@
 import ActorComponent from "./ActorComponent.js";
 import {vec2, mat2d} from "gl-matrix";
-
-
-const TransformDirty = 1<<0;
-const WorldTransformDirty = 1<<1;
+import {DirtyFlags} from "./DirtyFlags.js";
 
 function _UpdateTransform(node)
 {
@@ -136,11 +133,11 @@ export default class ActorNode extends ActorComponent
 			// Still loading?
 			return;
 		}
-		if(!actor.addDirt(this, TransformDirty))
+		if(!actor.addDirt(this, DirtyFlags.TransformDirty))
 		{
 			return;
 		}
-		actor.addDirt(this, WorldTransformDirty, true);
+		actor.addDirt(this, DirtyFlags.WorldTransformDirty, true);
 	}
 
 	updateWorldTransform()
@@ -287,11 +284,11 @@ export default class ActorNode extends ActorComponent
 
 	update(dirt)
 	{
-		if((dirt & TransformDirty) === TransformDirty)
+		if((dirt & DirtyFlags.TransformDirty) === DirtyFlags.TransformDirty)
 		{
 			_UpdateTransform(this);
 		}
-		if((dirt & WorldTransformDirty) === WorldTransformDirty)
+		if((dirt & DirtyFlags.WorldTransformDirty) === DirtyFlags.WorldTransformDirty)
 		{
 			this.updateWorldTransform();
 			let constraints = this._Constraints;
@@ -310,7 +307,7 @@ export default class ActorNode extends ActorComponent
 
 	getWorldTransform()
 	{
-		if((this._DirtMask & WorldTransformDirty) !== WorldTransformDirty)
+		if((this._DirtMask & DirtyFlags.WorldTransformDirty) !== DirtyFlags.WorldTransformDirty)
 		{
 			return this._WorldTransform;
 		}
@@ -326,11 +323,11 @@ export default class ActorNode extends ActorComponent
 		{
 			if(item.hasWorldTransform)
 			{
-				if((this._DirtMask & TransformDirty) !== TransformDirty)
+				if((this._DirtMask & DirtyFlags.TransformDirty) !== DirtyFlags.TransformDirty)
 				{
 					_UpdateTransform(this);
 				}
-				if((this._DirtMask & WorldTransformDirty) !== WorldTransformDirty)
+				if((this._DirtMask & DirtyFlags.WorldTransformDirty) !== DirtyFlags.WorldTransformDirty)
 				{
 					item.updateWorldTransform();
 				}
