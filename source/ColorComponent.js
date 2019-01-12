@@ -4,7 +4,9 @@ import FillRule from "./FillRule.js";
 import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
 import Graphics from "./Graphics.js";
-import {DirtyFlags} from "./DirtyFlags.js";
+import DirtyFlags from "./DirtyFlags.js";
+
+const {PaintDirty} = DirtyFlags;
 
 class ActorPaint extends ActorComponent
 {
@@ -17,7 +19,7 @@ class ActorPaint extends ActorComponent
 	
 	markDirty()
 	{
-		this._Actor.addDirt(this, DirtyFlags.ColorDirty, true);
+		this._Actor.addDirt(this, PaintDirty, true);
 	}
 
 	copy(node, resetActor)
