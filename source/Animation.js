@@ -413,14 +413,16 @@ export default class Animation
 					}
 					case AnimatedPropertyTypes.ShapeWidth:
 					case AnimatedPropertyTypes.StrokeWidth:
-						if(mix === 1.0)
-						{
-							component._Width = value;	
-						}
-						else
-						{
-							component._Width = component._Width * imix + value * mix;
-						}
+						component.width = mix === 1.0 ? value : component._Width * imix + value * mix;
+						break;
+					case AnimatedPropertyTypes.StrokeStart:
+						component.trimStart = mix === 1.0 ? value : component.trimStart * imix + value * mix;	
+						break;
+					case AnimatedPropertyTypes.StrokeEnd:
+						component.trimEnd = mix === 1.0 ? value : component.trimEnd * imix + value * mix;	
+						break;
+					case AnimatedPropertyTypes.StrokeOffset:
+						component.trimOffset = mix === 1.0 ? value : component.trimOffset * imix + value * mix;	
 						break;
 					case AnimatedPropertyTypes.FillOpacity:
 					case AnimatedPropertyTypes.StrokeOpacity:
@@ -528,34 +530,13 @@ export default class Animation
 						break;
 					}
 					case AnimatedPropertyTypes.ShapeHeight:
-						if(mix === 1.0)
-						{
-							component._Height = value;	
-						}
-						else
-						{
-							component._Height = component._Height * imix + value * mix;
-						}
+						component.height = mix === 1.0 ? value : component._Height * imix + value * mix;
 						break;
 					case AnimatedPropertyTypes.CornerRadius:
-						if(mix === 1.0)
-						{
-							component._CornerRadius = value;
-						}
-						else
-						{
-							component._CornerRadius = component._CornerRadius * imix + value * mix;
-						}
+						component.cornerRadius = mix === 1.0 ? value : component._CornerRadius * imix + value * mix;
 						break;
 					case AnimatedPropertyTypes.InnerRadius:
-						if(mix === 1.0)
-						{
-							component._InnerRadius = value;
-						}
-						else
-						{
-							component._InnerRadius = component._InnerRadius * imix + value * mix;
-						}
+						component.innerRadius = mix === 1.0 ? value : component._InnerRadius * imix + value * mix;
 						break;
 						
 				}

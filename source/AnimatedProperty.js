@@ -34,7 +34,10 @@ const Blocks =
 	ShapeWidth: block(29, "width"),
 	ShapeHeight: block(30, "height"),
 	CornerRadius: block(31, "cornerRadius"),
-	InnerRadius: block(32, "innerRadius")
+	InnerRadius: block(32, "innerRadius"),
+	StrokeStart: block(33, "strokeStart"),
+	StrokeEnd: block(34, "strokeEnd"),
+	StrokeOffset: block(35, "strokeOffset")
 };
 
 const _Types = {};

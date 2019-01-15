@@ -124,6 +124,11 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 		this._Width = 0.0;
 		this._Cap = StrokeCap.Butt;
 		this._Join = StrokeJoin.Miter;
+		this._IsTrimmed = false;
+		this._TrimStart = 0.0;
+		this._TrimEnd = 1.0;
+		this._TrimOffset = 0.0;
+		this._EffectPath = null;
 	}
 
 	initialize(actor, graphics)
@@ -135,9 +140,86 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 		Graphics.setPaintStrokeJoin(_Paint, _Join);
 	}
 
+	prepStroke(graphics, path)
+	{
+		const { _Paint, _IsTrimmed, width } = this;
+		_Paint.setStrokeWidth(width);
+
+		if(_IsTrimmed)
+		{
+			const {trimStart, trimEnd, trimOffset, _EffectPath} = this;
+			if(_EffectPath)
+			{
+				return _EffectPath;
+			}
+			const effectPath = graphics.copyPath(path);
+			this._EffectPath = effectPath;
+			effectPath.trim(Math.min(1.0, Math.max(0.0, trimStart+trimOffset)), Math.min(1.0, Math.max(0.0, trimEnd+trimOffset)), false);
+			
+			return effectPath;
+		}
+		return path;
+	}
+
+	markPathEffectsDirty()
+	{
+		const {_EffectPath} = this;
+		if(!_EffectPath)
+		{
+			return;
+		}
+		Graphics.destroyPath(_EffectPath);
+		this._EffectPath = null;
+	}
+
 	get width()
 	{
 		return this._Width;
+	}
+
+	get trimStart()
+	{
+		return this._TrimStart;
+	}
+
+	set trimStart(value)
+	{
+		if(this._TrimStart === value)
+		{
+			return;
+		}
+		this._TrimStart = value;
+		this.markPathEffectsDirty();
+	}
+
+	get trimEnd()
+	{
+		return this._TrimEnd;
+	}
+
+	set trimEnd(value)
+	{
+		if(this._TrimEnd === value)
+		{
+			return;
+		}
+		this._TrimEnd = value;
+		this.markPathEffectsDirty();
+	}
+
+	get trimOffset()
+	{
+		return this._TrimOffset;
+	}
+
+	set trimOffset(value)
+	{
+		if(this._TrimOffset === value)
+		{
+			return;
+		}
+		this._TrimOffset = value;
+		this.markPathEffectsDirty();
 	}
 
 	get cap()
@@ -157,6 +239,10 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 		this._Width = node._Width;
 		this._Join = node._Join;
 		this._Cap = node._Cap;
+		this._IsTrimmed = node._IsTrimmed;
+		this._TrimStart = node._TrimStart;
+		this._TrimEnd = node._TrimEnd;
+		this._TrimOffset = node._TrimOffset;
 	}
 
 	resolveComponentIndices(components)
@@ -186,8 +272,9 @@ export class ColorStroke extends ActorStroke(ActorColor)
 	stroke(graphics, path)
 	{
 		const {_Paint:paint, runtimeColor} = this;
+
+		path = this.prepStroke(graphics, path);
 		graphics.setPaintColor(paint, runtimeColor);
-		paint.setStrokeWidth(this._Width);
 		graphics.drawPath(path, paint);
 	}
 }
@@ -320,10 +407,11 @@ export class GradientStroke extends ActorStroke(GradientColor)
 		return node;	
 	}
 
-	stroke(ctx, path)
+	stroke(graphics, path)
 	{
 		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _Paint:paint} = this;
 
+		path = this.prepStroke(graphics, path);
 		if(this._GradientDirty)
 		{
 			if(this._Gradient)
@@ -346,7 +434,6 @@ export class GradientStroke extends ActorStroke(GradientColor)
 			paint.setShader(gradient);
 			this._Gradient = gradient;
 		}
-		paint.setStrokeWidth(this._Width);
 		graphics.drawPath(path, paint);
 	}
 }
@@ -443,9 +530,11 @@ export class RadialGradientStroke extends ActorStroke(RadialGradientColor)
 		return node;	
 	}
 
-	stroke(ctx, path)
+	stroke(graphics, path)
 	{
 		const {_Paint:paint, _RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
+		
+		path = this.prepStroke(graphics, path);
 		
 		if(this._GradientDirty)
 		{
@@ -469,7 +558,6 @@ export class RadialGradientStroke extends ActorStroke(RadialGradientColor)
 			paint.setShader(gradient);
 			this._Gradient = gradient;
 		}
-		paint.setStrokeWidth(this._Width);
 		graphics.drawPath(path, paint);
 	}
 }

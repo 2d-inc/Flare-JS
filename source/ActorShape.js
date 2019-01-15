@@ -41,6 +41,11 @@ export default class ActorShape extends ActorNode
 		this._Strokes.push(stroke);
 	}
 
+	get stroke()
+	{
+		return this._Strokes && this._Strokes.length && this._Stroke[0];
+	}
+
 	get isHidden()
 	{
 		return this._IsHidden;
@@ -205,9 +210,7 @@ export default class ActorShape extends ActorNode
 			return;
 		}
 
-		//const ctx = graphics.ctx;
 		graphics.save();
-		// - ctx.globalAlpha = this._RenderOpacity;
 		this.clip(graphics);
 		const shapePath = this.getShapePath(graphics);
 
@@ -230,17 +233,17 @@ export default class ActorShape extends ActorNode
 				}
 			}
 		}
-
-		// const aabb = this.computeAABB();
-		// if(aabb)
-		// {
-		// 	const paint = graphics.makePaint(true);
-		// 	graphics.setPaintFill(paint);
-		// 	graphics.setPaintColor(paint, [1.0, 0.0, 0.0, 0.3]);
-		// 	graphics.drawRect(aabb[0], aabb[1], aabb[2]-aabb[0], aabb[3]-aabb[1], paint);
-		// }
 		
 		graphics.restore();
+	}
+
+	invalidatePath()
+	{
+		const {stroke} = this;
+		if(stroke)
+		{
+			stroke.markPathEffectsDirty();
+		}
 	}
 
 	getShapePath(graphics)

@@ -1,5 +1,7 @@
 import ActorNode from "./ActorNode.js";
 import {vec2} from "gl-matrix";
+import Graphics from "./Graphics.js";
+import ActorPath from "./ActorPath.js";
 
 export default class ActorProceduralPath extends ActorNode
 {
@@ -8,16 +10,50 @@ export default class ActorProceduralPath extends ActorNode
         super(actor);
         this._Width = 0;
         this._Height = 0;
+        this._RenderPath = null;
+        this._RenderPathDirty = true;
     }
 
+    initialize(actor, graphics)
+	{
+		this._RenderPath = graphics.makePath();
+    }
+    
+	invalidatePath()
+	{
+		this._IsRenderPathDirty = true;
+		this._RenderPath.setIsVolatile(true);
+		this.parent.invalidatePath();
+	}
+    
     get width()
     {
         return this._Width;
     }
 
+    set width(value)
+    {
+        if(this._Width === value)
+        {
+            return;
+        }
+        this._Width = value;
+        this.invalidatePath();
+    }
+
     get height()
     {
         return this._Height;
+    }
+
+    set height(value)
+    {
+        if(this._Height === value)
+        {
+            return;
+        }
+        this._Height = value;
+        this.invalidatePath();
     }
     
     resolveComponentIndices(components)
@@ -40,6 +76,26 @@ export default class ActorProceduralPath extends ActorNode
     getPathRenderTransform()
 	{
 		return this.worldTransform;
+    }
+    
+    getPath(graphics)
+	{
+		let {_RenderPathDirty, _RenderPath} = this;
+		if(!_RenderPathDirty)
+		{
+			return _RenderPath;
+		}
+		if(!_RenderPath)
+		{
+			this._RenderPath = _RenderPath = graphics.makePath();
+		}
+		else
+		{
+			_RenderPath.rewind();
+		}
+		this._RenderPathDirty = false;
+
+		return Graphics.pointPath(_RenderPath, ActorPath.makeRenderPoints(this.getPathPoints(), true), true);
 	}
 
     getPathAABB()

@@ -3,6 +3,7 @@ import { mat2d, vec2 } from "gl-matrix";
 import FillRule from "./FillRule.js";
 import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
+import {PointType} from "./PathPoint.js";
 
 export default class Graphics
 {
@@ -150,6 +151,16 @@ export default class Graphics
 		return path;
 	}
 
+	copyPath(path, ephemeral)
+	{
+		const copy = path.copy();
+		if(ephemeral)
+		{
+			this._Cleanup.push(copy);
+		}
+		return copy;
+	}
+
 	pathEllipse(path, x, y, radiusX, radiusY, startAngle, endAngle, ccw)
 	{
 		var bounds = CanvasKit.LTRBRect(x-radiusX, y-radiusY, x+radiusX, y+radiusY);
@@ -158,7 +169,7 @@ export default class Graphics
 		path.addArc(bounds, radiansToDegrees(startAngle), sweep);
 	}
 
-	destroyPath(path)
+	static destroyPath(path)
 	{
 		path.delete();
 	}
@@ -313,6 +324,48 @@ export default class Graphics
 			return true;
 		}
 		return false;
+	}
+
+	static pointPath(path, points, isClosed)
+	{
+		if(points.length)
+		{
+			let firstPoint = points[0];
+			path.moveTo(firstPoint.translation[0], firstPoint.translation[1]);
+			for(let i = 0, l = isClosed ? points.length : points.length-1, pl = points.length; i < l; i++)
+			{
+				let point = points[i];
+				let nextPoint = points[(i+1)%pl];
+				let cin = nextPoint.pointType === PointType.Straight ? null : nextPoint.in, cout = point.pointType === PointType.Straight ? null : point.out;
+				if(cin === null && cout === null)
+				{
+					path.lineTo(nextPoint.translation[0], nextPoint.translation[1]);	
+				}
+				else
+				{
+					if(cout === null)
+					{
+						cout = point.translation;
+					}
+					if(cin === null)
+					{
+						cin = nextPoint.translation;
+					}
+					path.cubicTo(
+						cout[0], cout[1],
+
+						cin[0], cin[1],
+
+						nextPoint.translation[0], nextPoint.translation[1]);
+				}
+			}
+			if(isClosed)
+			{
+				path.close();
+			}
+		}
+
+		return path;
 	}
 }
 

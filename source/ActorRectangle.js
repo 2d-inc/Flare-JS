@@ -1,4 +1,5 @@
 import ActorProceduralPath from "./ActorProceduralPath.js";
+import {PointType} from "./PathPoint.js";
 
 export default class ActorRectangle extends ActorProceduralPath
 {
@@ -6,6 +7,21 @@ export default class ActorRectangle extends ActorProceduralPath
     {
         super(actor);
         this._CornerRadius = 0.0;
+    }
+    
+    get cornerRadius()
+    {
+        return this._CornerRadius;
+    }
+
+    set cornerRadius(value)
+    {
+        if(this._CornerRadius === value)
+        {
+            return;
+        }
+        this._CornerRadius = value;
+        this.invalidatePath();
     }
 
     resolveComponentIndices(components)
@@ -26,63 +42,35 @@ export default class ActorRectangle extends ActorProceduralPath
         this._CornerRadius = node._CornerRadius;
     }
 
-    draw(ctx)
-    {
-        const transform = this._WorldTransform;
-        ctx.save();
-        ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
-
-        const halfWidth = Math.max(0, this._Width/2);
-        const halfHeight = Math.max(0, this._Height/2);
-        ctx.moveTo(-halfWidth, -halfHeight);
-        let r = this._CornerRadius;
-        if(r > 0)
-        {
-            this._DrawRoundedRect(ctx, -halfWidth, -halfHeight, this._Width, this._Height, r);
-        }
-        else
-        {
-            ctx.rect(-halfWidth, -halfHeight, this._Width, this._Height);
-        }
-        ctx.restore();
-    }
-
-    _DrawRoundedRect(ctx, x, y, width, height, radius) 
-    {
-        if (width < 2 * radius) radius = width / 2;
-        if (height < 2 * radius) radius = height / 2;
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.arcTo(x + width, y, x + width, y + height, radius);
-        ctx.arcTo(x + width, y + height, x, y + height, radius);
-        ctx.arcTo(x, y + height, x, y, radius);
-        ctx.arcTo(x, y, x + width, y, radius);
-        ctx.closePath();
-    }
-
-    getPath(graphics)
-    {
-        let {width, height, _CornerRadius:radius} = this;
-        const halfWidth = width/2;
-        const halfHeight = height/2;
-        const x = -halfWidth;
-        const y = -halfHeight;
-        const path = graphics.makePath(true);
-        if(radius > 0.0)
-        {
-            if (width < 2 * radius) radius = width / 2;
-            if (height < 2 * radius) radius = height / 2;
-            path.moveTo(x + radius, y);
-            path.arcTo(x + width, y, x + width, y + height, radius);
-            path.arcTo(x + width, y + height, x, y + height, radius);
-            path.arcTo(x, y + height, x, y, radius);
-            path.arcTo(x, y, x + width, y, radius);
-            path.close();
-        }
-        else
-        {
-            path.addRect(-halfWidth, -halfHeight, halfWidth, halfHeight);
-        }
-        return path;
-    }
+	getPathPoints()
+	{
+		const {width, height, cornerRadius} = this;
+		const halfWidth = width/2;
+		const halfHeight = height/2;
+		let radius = cornerRadius || 0;
+		if (width < 2 * radius) radius = width / 2;
+		if (height < 2 * radius) radius = height / 2;
+		return [
+			{
+				pointType: PointType.Straight, 
+				translation: [-halfWidth, -halfHeight],
+				radius: radius
+			},
+			{
+				pointType: PointType.Straight, 
+				translation: [halfWidth, -halfHeight],
+				radius: radius
+			},
+			{
+				pointType: PointType.Straight, 
+				translation: [halfWidth, halfHeight],
+				radius: radius
+			},
+			{
+				pointType: PointType.Straight, 
+				translation: [-halfWidth, halfHeight],
+				radius: radius
+			}
+		];
+	}
 }

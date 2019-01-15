@@ -1,5 +1,6 @@
 import ActorProceduralPath from "./ActorProceduralPath.js";
 import {vec2} from "gl-matrix";
+import {PointType} from "./PathPoint.js";
 
 export default class ActorStar extends ActorProceduralPath
 {
@@ -8,6 +9,21 @@ export default class ActorStar extends ActorProceduralPath
         super(actor);
         this._Points = 5;
         this._InnerRadius = 0.0;
+    }
+
+    get innerRadius()
+    {
+        return this._InnerRadius;
+    }
+
+    set innerRadius(radius)
+    {
+        if(this._InnerRadius === radius)
+        {
+            return;
+        }
+        this._InnerRadius = radius;
+        this.invalidatePath();
     }
 
 	makeInstance(resetActor)
@@ -73,31 +89,31 @@ export default class ActorStar extends ActorProceduralPath
 
 		return [vec2.fromValues(min_x, min_y), vec2.fromValues(max_x, max_y)];
     }
-    
-    getPath(graphics)
-    {
-        const radius = this._InnerRadius;
 
-        const path = graphics.makePath(true);
-        
-		const radiusX = this._Width/2;
-		const radiusY = this._Height/2;
+	getPathPoints()
+	{
+        const {_Points, _InnerRadius} = this;
+		const sides = _Points * 2;
 
-        path.moveTo(0.0, -radiusY);
-        
-        const inc = (Math.PI*2.0)/this.sides;
-        const sx = [radiusX, radiusX*radius];
-        const sy = [radiusY, radiusY*radius];
+		let pathPoints = [];
+		const radiusX = Math.max(0, this.width/2);
+		const radiusY = Math.max(0, this.height/2);
 
-        let angle = -Math.PI/2.0;
-        for(let i = 0; i < this.sides; i++)
-        {
-            path.lineTo(Math.cos(angle)*sx[i%2], Math.sin(angle)*sy[i%2]);
-            angle += inc;
-        }
-		path.close();
-        return path;
-    }
+		let angle = -Math.PI/2.0;
+		let inc = (Math.PI*2.0)/sides;
+		let sx = [radiusX, radiusX*_InnerRadius];
+		let sy = [radiusY, radiusY*_InnerRadius];
+		for(let i = 0; i < sides; i++)
+		{
+			pathPoints.push({
+				pointType: PointType.Straight, 
+				translation: [Math.cos(angle)*sx[i%2], Math.sin(angle)*sy[i%2]]
+			});
+			angle += inc;
+		}
+
+		return pathPoints;
+	}
 
     get sides()
     {

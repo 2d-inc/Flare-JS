@@ -1,6 +1,7 @@
 import ActorSkinnableNode from "./ActorSkinnableNode.js";
 import {vec2, mat2d} from "gl-matrix";
 import {PathPoint, PointType} from "./PathPoint.js";
+import Graphics from "./Graphics.js";
 
 const CircleConstant = 0.552284749831;
 const InverseCircleConstant = 1.0-CircleConstant;
@@ -15,8 +16,8 @@ export default class ActorPath extends ActorSkinnableNode
 		this._IsHidden = false;
 		this._Points = [];
 		this._RenderPath = null;
+		this._IsRenderPathDirty = true;
 		this._Skin = null;
-		this._IsVolatile = false;
 	}
 	
 	setSkin(skin)
@@ -46,7 +47,7 @@ export default class ActorPath extends ActorSkinnableNode
 
 	initialize(actor, graphics)
 	{
-		
+		this._RenderPath = graphics.makePath();
 	}
 
 	get numPoints()
@@ -61,7 +62,8 @@ export default class ActorPath extends ActorSkinnableNode
 		let max_x = -Number.MAX_VALUE;
 		let max_y = -Number.MAX_VALUE;
 
-		const renderPoints = this.makeRenderPoints();
+		const {deformedPoints, isClosed} = this;
+		const renderPoints = ActorPath.makeRenderPoints(deformedPoints, isClosed);
 		for(let point of renderPoints)
 		{
 			let t = point.translation;
@@ -226,16 +228,13 @@ export default class ActorPath extends ActorSkinnableNode
 		return deformedPoints;
 	}
 
-	makeRenderPoints()
+	static makeRenderPoints(points, isClosed)
 	{
-		let points = this.deformedPoints;
-
-		let renderPoints = [];
+		const renderPoints = [];
 		
 		if(points.length)
 		{
 			let pl = points.length;
-			const isClosed = this.isClosed;
 			let previous = isClosed ? points[points.length-1] : null;
 			for(let i = 0; i < points.length; i++)
 			{
@@ -338,69 +337,23 @@ export default class ActorPath extends ActorSkinnableNode
 
 	invalidatePath()
 	{
-		if(this._RenderPath)
-		{
-			this._RenderPath.delete();
-		}
-		this._RenderPath = null;
-		this._IsVolatile = true;
+		this._IsRenderPathDirty = true;
+		this._RenderPath.setIsVolatile(true);
+		this.parent.invalidatePath();
 	}
 
 	getPath(graphics)
 	{
-		const renderPath = this._RenderPath;
-		if(renderPath)
+		const {_RenderPath, _IsRenderPathDirty} = this;
+		if(!_IsRenderPathDirty)
 		{
-			return renderPath;
+			return _RenderPath;
 		}
 
-		const path = graphics.makePath();
-		if(this._IsVolatile)
-		{
-			path.setIsVolatile(true);
-		}
-		const renderPoints = this.makeRenderPoints();
-		const isClosed = this.isClosed;
-
-		if(renderPoints.length)
-		{
-			let firstPoint = renderPoints[0];
-			path.moveTo(firstPoint.translation[0], firstPoint.translation[1]);
-			for(let i = 0, l = isClosed ? renderPoints.length : renderPoints.length-1, pl = renderPoints.length; i < l; i++)
-			{
-				let point = renderPoints[i];
-				let nextPoint = renderPoints[(i+1)%pl];
-				let cin = nextPoint.pointType === PointType.Straight ? null : nextPoint.in, cout = point.pointType === PointType.Straight ? null : point.out;
-				if(cin === null && cout === null)
-				{
-					path.lineTo(nextPoint.translation[0], nextPoint.translation[1]);	
-				}
-				else
-				{
-					if(cout === null)
-					{
-						cout = point.translation;
-					}
-					if(cin === null)
-					{
-						cin = nextPoint.translation;
-					}
-					path.cubicTo(
-						cout[0], cout[1],
-
-						cin[0], cin[1],
-
-						nextPoint.translation[0], nextPoint.translation[1]);
-				}
-			}
-			if(isClosed)
-			{
-				path.close();
-			}
-		}
-
-
-		this._RenderPath = path;
-		return path;
+		_RenderPath.rewind();
+		
+		const {deformedPoints, isClosed} = this;
+		const renderPoints = ActorPath.makeRenderPoints(deformedPoints, isClosed);
+		return Graphics.pointPath(_RenderPath, renderPoints, isClosed);
 	}
 }

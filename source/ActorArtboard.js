@@ -4,6 +4,7 @@ import ActorImage from "./ActorImage.js";
 import NestedActorNode from "./NestedActorNode.js";
 import AnimationInstance from "./AnimationInstance.js";
 import {mat2d, vec2, vec4} from "gl-matrix";
+import Graphics from "./Graphics.js";
 
 export default class ActorArtboard
 {
@@ -277,7 +278,7 @@ export default class ActorArtboard
 		}
 		if(this._ClippingPath)
 		{
-			graphics.destroyPath(this._ClippingPath);
+			Graphics.destroyPath(this._ClippingPath);
 			this._ClippingPath = null;
 		}
     }

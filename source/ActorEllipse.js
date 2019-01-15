@@ -1,4 +1,6 @@
 import ActorProceduralPath from "./ActorProceduralPath.js";
+import {PathPoint, PointType} from "./PathPoint.js";
+const CircleConstant = 0.552284749831;
 
 export default class ActorEllipse extends ActorProceduralPath
 {
@@ -19,15 +21,36 @@ export default class ActorEllipse extends ActorProceduralPath
 		return node;
     }
     
-    getPath(graphics)
+    getPathPoints()
 	{
-        const path = graphics.makePath(true);
-        const radiusX = this._Width/2;
-        const radiusY = this._Height/2;
-        path.moveTo(radiusX, 0.0);
-        graphics.pathEllipse(path, 0.0, 0.0, radiusX, radiusY, 0, Math.PI*2.0, false);
-        //path.ellipse(0.0, 0.0, radiusX, radiusY, 0.0, 0, Math.PI*2.0, false);
-        
-		return path;
+		let pathPoints = [];
+		const radiusX = Math.max(0, this.width/2);
+		const radiusY = Math.max(0, this.height/2);
+
+		pathPoints.push({
+			pointType: PointType.Disconnected,
+			in: [-radiusX * CircleConstant, -radiusY],
+			translation: [0.0, -radiusY],
+			out: [radiusX * CircleConstant, -radiusY]
+		});
+		pathPoints.push({
+			pointType: PointType.Disconnected,
+			in: [radiusX, -radiusY * CircleConstant],
+			translation: [radiusX, 0.0],
+			out: [radiusX, radiusY * CircleConstant]
+		});
+		pathPoints.push({
+			pointType: PointType.Disconnected,
+			in: [radiusX * CircleConstant, radiusY],
+			translation: [0.0, radiusY],
+			out: [-radiusX * CircleConstant, radiusY]
+		});
+		pathPoints.push({
+			pointType: PointType.Disconnected,
+			in: [-radiusX, radiusY * CircleConstant],
+			translation: [-radiusX, 0.0],
+			out: [-radiusX, -radiusY * CircleConstant]
+		});
+		return pathPoints;
 	}
 }

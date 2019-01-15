@@ -306,6 +306,9 @@ function _ReadAnimationBlock(artboard, reader)
 						case _AnimatedPropertyTypes.FillColor:
 						case _AnimatedPropertyTypes.StrokeColor:
 						case _AnimatedPropertyTypes.StrokeWidth:
+						case _AnimatedPropertyTypes.StrokeStart:
+						case _AnimatedPropertyTypes.StrokeEnd:
+						case _AnimatedPropertyTypes.StrokeOffset:
 						case _AnimatedPropertyTypes.FillGradient:
 						case _AnimatedPropertyTypes.StrokeGradient:
 						case _AnimatedPropertyTypes.FillRadial:
@@ -1202,6 +1205,13 @@ function _ReadStroke(reader, component)
 	component._Width = reader.readFloat32("width");
 	component._Cap = reader.readUint8("cap");
 	component._Join = reader.readUint8("join");
+	component._IsTrimmed = reader.readBool("isTrimmed");
+	if(component._IsTrimmed)
+	{
+		component._TrimStart = reader.readFloat32("start");
+		component._TrimEnd = reader.readFloat32("end");
+		component._TrimOffset = reader.readFloat32("offset");
+	}
 }
 
 function _ReadColorStroke(reader, component)
