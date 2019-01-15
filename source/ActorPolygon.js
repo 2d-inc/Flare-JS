@@ -1,5 +1,6 @@
 import ActorProceduralPath from "./ActorProceduralPath.js";
 import {vec2} from "gl-matrix";
+import {PointType} from "./PathPoint.js";
 
 export default class ActorPolygon extends ActorProceduralPath
 {
@@ -26,31 +27,26 @@ export default class ActorPolygon extends ActorProceduralPath
         super.copy(node, resetActor);
         this._Sides = node._Sides;
     }
+    
+	getPathPoints()
+	{
+		const pathPoints = [];
+		const radiusX = this.width/2;
+		const radiusY = this.height/2;
+		const sides = this._Sides;
+		let angle = -Math.PI/2.0;
+		const inc = (Math.PI*2.0)/sides;
+		for(let i = 0; i < sides; i++)
+		{
+			pathPoints.push({
+				pointType: PointType.Straight, 
+				translation: [Math.cos(angle)*radiusX, Math.sin(angle)*radiusY]
+			});
+			angle += inc;
+		}
 
-    draw(ctx)
-    {
-        const transform = this._WorldTransform;
-        ctx.save();
-        ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
-
-        const radiusX = this._Width/2;
-        const radiusY = this._Height/2;
-        const sides = this._Sides;
-
-        ctx.moveTo(0.0, -radiusY);
-        let angle = -Math.PI/2.0;
-        const inc = (Math.PI*2.0)/sides;
-        for(let i = 0; i < sides; i++)
-        {
-            ctx.lineTo(
-                Math.cos(angle)*radiusX,
-                Math.sin(angle)*radiusY
-            );
-            angle += inc;
-        }
-        ctx.closePath();
-        ctx.restore();
-    }
+		return pathPoints;
+	}
 
     getPathAABB() 
     {

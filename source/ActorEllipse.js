@@ -1,5 +1,5 @@
 import ActorProceduralPath from "./ActorProceduralPath.js";
-import {PathPoint, PointType} from "./PathPoint.js";
+import {PointType} from "./PathPoint.js";
 const CircleConstant = 0.552284749831;
 
 export default class ActorEllipse extends ActorProceduralPath

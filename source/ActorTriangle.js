@@ -1,5 +1,6 @@
 import ActorProceduralPath from "./ActorProceduralPath.js";
 import {vec2} from "gl-matrix";
+import {PointType} from "./PathPoint.js";
 
 export default class ActorTriangle extends ActorProceduralPath
 {
@@ -55,30 +56,24 @@ export default class ActorTriangle extends ActorProceduralPath
 		return [vec2.fromValues(min_x, min_y), vec2.fromValues(max_x, max_y)];
     }
 	
-	getPath(graphics)
+	getPathPoints()
 	{
-		const path = graphics.makePath(true);
-		const radiusX = Math.max(0, this._Width/2);
-		const radiusY = Math.max(0, this._Height/2);
-		path.moveTo(0.0, -radiusY);
-		path.lineTo(radiusX, radiusY);
-		path.lineTo(-radiusX, radiusY);
-		path.close();
-		return path;
+		let pathPoints = [];
+		const radiusX = this.width/2;
+		const radiusY = this.height/2;
+
+		pathPoints.push({
+			pointType: PointType.Straight, 
+			translation: [0.0, -radiusY]
+		});
+		pathPoints.push({
+			pointType: PointType.Straight, 
+			translation: [radiusX, radiusY]
+		});
+		pathPoints.push({
+			pointType: PointType.Straight, 
+			translation: [-radiusX, radiusY]
+		});
+		return pathPoints;
 	}
-
-    draw(ctx)
-    {
-        const transform = this._WorldTransform;
-		ctx.save();
-		ctx.transform(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]);
-		const radiusX = Math.max(0, this._Width/2);
-		const radiusY = Math.max(0, this._Height/2);
-
-		ctx.moveTo(0.0, -radiusY);
-		ctx.lineTo(radiusX, radiusY);
-		ctx.lineTo(-radiusX, radiusY);
-		ctx.closePath();
-		ctx.restore();
-    }
 }
