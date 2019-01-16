@@ -43,7 +43,7 @@ export default class ActorShape extends ActorNode
 
 	get stroke()
 	{
-		return this._Strokes && this._Strokes.length && this._Stroke[0];
+		return this._Strokes && this._Strokes.length && this._Strokes[0];
 	}
 
 	get isHidden()
