@@ -159,7 +159,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 			let end = (trimEnd + trimOffset)%1.0;
 			if(start < 0)  { start += 1.0; }
 			if(end < 0)  { end += 1.0; }
-			if(end > start)
+			if(end >= start)
 			{
 				effectPath.trim(start, end, false);	
 			}
