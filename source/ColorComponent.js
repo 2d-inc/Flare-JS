@@ -177,6 +177,15 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 		return this._Width;
 	}
 
+    set width(value)
+    {
+        if(this._Width === value)
+        {
+            return;
+        }
+        this._Width = value;
+    }
+
 	get trimStart()
 	{
 		return this._TrimStart;
