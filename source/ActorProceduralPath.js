@@ -11,7 +11,7 @@ export default class ActorProceduralPath extends ActorNode
         this._Width = 0;
         this._Height = 0;
         this._RenderPath = null;
-        this._RenderPathDirty = true;
+        this._IsRenderPathDirty = true;
     }
 
     initialize(actor, graphics)
@@ -80,8 +80,8 @@ export default class ActorProceduralPath extends ActorNode
     
     getPath(graphics)
 	{
-		let {_RenderPathDirty, _RenderPath} = this;
-		if(!_RenderPathDirty)
+		let {_IsRenderPathDirty, _RenderPath} = this;
+		if(!_IsRenderPathDirty)
 		{
 			return _RenderPath;
 		}
@@ -93,7 +93,7 @@ export default class ActorProceduralPath extends ActorNode
 		{
 			_RenderPath.rewind();
 		}
-		this._RenderPathDirty = false;
+		this._IsRenderPathDirty = false;
 
 		return Graphics.pointPath(_RenderPath, ActorPath.makeRenderPoints(this.getPathPoints(), true), true);
 	}
