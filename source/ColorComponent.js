@@ -152,15 +152,21 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 			{
 				return _EffectPath;
 			}
-			const start = Math.min(1.0, Math.max(0.0, trimStart+trimOffset));
-			const end = Math.min(1.0, Math.max(0.0, trimEnd+trimOffset));
-			if(end === 1.0 && start === 0.0)
-			{
-				return path;
-			}
 			const effectPath = graphics.copyPath(path);
-			effectPath.trim(Math.min(1.0, Math.max(0.0, trimStart+trimOffset)), Math.min(1.0, Math.max(0.0, trimEnd+trimOffset)), false);
 			this._EffectPath = effectPath;
+
+			let start = (trimStart + trimOffset)%1.0;
+			let end = (trimEnd + trimOffset)%1.0;
+			if(start < 0)  { start += 1.0; }
+			if(end < 0)  { end += 1.0; }
+			if(end > start)
+			{
+				effectPath.trim(start, end, false);	
+			}
+			else
+			{
+				effectPath.trim(end, start, true);	
+			}
 			
 			return effectPath;
 		}
