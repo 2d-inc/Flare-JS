@@ -160,6 +160,8 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 				let start = (trimStart + trimOffset)%1;
 				let end = (trimEnd + trimOffset)%1;
 
+				if(start < 0) {start += 1.0;}
+				if(end < 0) {end += 1.0;}
 				if(trimStart > trimEnd)
 				{
 					const swap = end;
