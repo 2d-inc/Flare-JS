@@ -1,9 +1,10 @@
-let CanvasKit = null;
 import { mat2d, vec2 } from "gl-matrix";
 import FillRule from "./FillRule.js";
 import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
 import {PointType} from "./PathPoint.js";
+
+let CanvasKit = null;
 
 export default class Graphics
 {
@@ -16,29 +17,42 @@ export default class Graphics
 
 	initialize(staticPath, cb)
 	{
-		CanvasKitInit(
+		if(CanvasKit === null)
 		{
-			locateFile: (file) => staticPath + file,
-		}).then((CK) => 
-		{
-			// when debugging, it can be handy to not run directly in the then, because if there
-			// is a failure (for example, miscalling an API), the WASM loader tries to re-load
-			// the web assembly in the (much slower) ArrayBuffer version. This will also fail
-			// and thus there is a lot of extra log spew.
-			// Thus, the setTimeout to run on the next microtask avoids this second loading
-			// and the log spew.
-			setTimeout(() => 
+			CanvasKitInit(
 			{
-				CanvasKit = CK;
+				locateFile: (file) => staticPath + file,
+			}).then((CK) => 
+			{
+				// when debugging, it can be handy to not run directly in the then, because if there
+				// is a failure (for example, miscalling an API), the WASM loader tries to re-load
+				// the web assembly in the (much slower) ArrayBuffer version. This will also fail
+				// and thus there is a lot of extra log spew.
+				// Thus, the setTimeout to run on the next microtask avoids this second loading
+				// and the log spew.
+				setTimeout(() => 
+				{
+					CanvasKit = CK;
+					this.init();
+					cb();
+				}, 0);
+			});
+		}
+		else
+		{
+			this.init();
+			cb();
+		}
+	}
 
-				this.updateSurface();
-				const clearPaint = new CanvasKit.SkPaint();
-				clearPaint.setStyle(CanvasKit.PaintStyle.Fill);
-				clearPaint.setBlendMode(CanvasKit.BlendMode.Clear);
-				this._ClearPaint = clearPaint;
-				cb();
-			}, 0);
-		});
+	init()
+	{
+		this.updateSurface();
+
+		const clearPaint = new CanvasKit.SkPaint();
+		clearPaint.setStyle(CanvasKit.PaintStyle.Fill);
+		clearPaint.setBlendMode(CanvasKit.BlendMode.Clear);
+		this._ClearPaint = clearPaint;
 	}
 
 	updateSurface()
