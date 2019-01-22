@@ -4,6 +4,9 @@ import FillRule from "./FillRule.js";
 import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
 import Graphics from "./Graphics.js";
+import DirtyFlags from "./DirtyFlags.js";
+
+const {PaintDirty} = DirtyFlags;
 
 class ActorPaint extends ActorComponent
 {
@@ -14,6 +17,11 @@ class ActorPaint extends ActorComponent
 		this._Opacity = 1.0;
 	}
 	
+	markDirty()
+	{
+		this._Actor.addDirt(this, PaintDirty, true);
+	}
+
 	copy(node, resetActor)
 	{
 		super.copy(node, resetActor);

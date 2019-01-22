@@ -1,9 +1,8 @@
 import ActorComponent from "./ActorComponent.js";
 import {vec2, mat2d} from "gl-matrix";
+import DirtyFlags from "./DirtyFlags.js";
 
-
-const TransformDirty = 1<<0;
-const WorldTransformDirty = 1<<1;
+const {WorldTransformDirty, TransformDirty} = DirtyFlags;
 
 function _UpdateTransform(node)
 {

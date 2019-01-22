@@ -434,6 +434,7 @@ export default class Animation
 						{
 							component._Opacity = component._Opacity * imix + value * mix;
 						}
+						component.markDirty();
 						break;
 					case AnimatedPropertyTypes.FillColor:
 					case AnimatedPropertyTypes.StrokeColor:
@@ -453,6 +454,7 @@ export default class Animation
 							color[2] = color[2] * imix + value[2] * mix;
 							color[3] = color[3] * imix + value[3] * mix;
 						}
+						component.markDirty();
 						break;
 					}
 					case AnimatedPropertyTypes.FillGradient:
@@ -489,6 +491,7 @@ export default class Animation
 								wi++;
 							}
 						}
+						component.markDirty();
 						break;
 					}
 					case AnimatedPropertyTypes.FillRadial:
@@ -527,6 +530,7 @@ export default class Animation
 								wi++;
 							}
 						}
+						component.markDirty();
 						break;
 					}
 					case AnimatedPropertyTypes.ShapeHeight:
