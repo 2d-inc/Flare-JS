@@ -2,7 +2,8 @@ import ActorNode from "./ActorNode.js";
 import ActorPath from "./ActorPath.js";
 import ActorProceduralPath from "./ActorProceduralPath.js";
 import {RadialGradientFill, GradientFill, ColorFill, ColorStroke, GradientStroke, RadialGradientStroke} from "./ColorComponent.js";
-
+import DirtyFlags from "./DirtyFlags.js";
+const {WorldTransformDirty} = DirtyFlags;
 import {vec2, mat2d} from "gl-matrix";
 
 export default class ActorShape extends ActorNode
@@ -310,6 +311,15 @@ export default class ActorShape extends ActorNode
 				}
 				graphics.clipPath(clipPath);
 			}
+		}
+	}
+
+	update(dirt)
+	{
+		super.update(dirt);
+		if((dirt & WorldTransformDirty) === WorldTransformDirty)
+		{
+			this.invalidatePath();
 		}
 	}
 
