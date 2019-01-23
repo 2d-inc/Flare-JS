@@ -188,7 +188,11 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 					effectPath = trimCall(path, end, start, true);
 				}
 			}
-			this._EffectPath = effectPath || path;
+			if(!effectPath)
+			{
+				effectPath = path;
+			}
+			this._EffectPath = effectPath;
 			
 			return effectPath;
 		}
