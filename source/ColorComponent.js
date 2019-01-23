@@ -190,7 +190,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 			}
 			if(!effectPath)
 			{
-				effectPath = path;
+				effectPath = path.copy();
 			}
 			this._EffectPath = effectPath;
 			
