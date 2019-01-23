@@ -5,8 +5,11 @@ import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
 import Graphics from "./Graphics.js";
 import DirtyFlags from "./DirtyFlags.js";
+import TrimPath from "./TrimPath.js";
 
+const {Off:TrimPathOff, Sequential:TrimPathSequential, Synced:TrimPathSynced} = TrimPath;
 const {PaintDirty} = DirtyFlags;
+const {trimPath, trimPathSync} = Graphics;
 
 class ActorPaint extends ActorComponent
 {
@@ -132,7 +135,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 		this._Width = 0.0;
 		this._Cap = StrokeCap.Butt;
 		this._Join = StrokeJoin.Miter;
-		this._IsTrimmed = false;
+		this._Trim = TrimPathOff;
 		this._TrimStart = 0.0;
 		this._TrimEnd = 1.0;
 		this._TrimOffset = 0.0;
@@ -150,19 +153,19 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 
 	prepStroke(graphics, path)
 	{
-		const { _Paint, _IsTrimmed, width } = this;
+		const { _Paint, _Trim, width } = this;
 		_Paint.setStrokeWidth(width);
 
-		if(_IsTrimmed)
+		if(_Trim !== TrimPathOff)
 		{
+			const trimCall = _Trim === TrimPathSequential ? trimPath : trimPathSync;
 			const {trimStart, trimEnd, trimOffset, _EffectPath} = this;
 			if(_EffectPath)
 			{
 				return _EffectPath;
 			}
-			const effectPath = graphics.copyPath(path);
-			this._EffectPath = effectPath;
-
+			
+			let effectPath = null;
 			if(Math.abs(trimStart-trimEnd) !== 1.0)
 			{
 				let start = (trimStart + trimOffset)%1;
@@ -178,13 +181,14 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 				}
 				if(end >= start)
 				{
-					effectPath.trim(start, end, false);	
+					effectPath = trimCall(path, start, end, false);
 				}
 				else
 				{
-					effectPath.trim(end, start, true);	
+					effectPath = trimCall(path, end, start, true);
 				}
 			}
+			this._EffectPath = effectPath;
 			
 			return effectPath;
 		}
@@ -278,7 +282,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 		this._Width = node._Width;
 		this._Join = node._Join;
 		this._Cap = node._Cap;
-		this._IsTrimmed = node._IsTrimmed;
+		this._Trim = node._Trim;
 		this._TrimStart = node._TrimStart;
 		this._TrimEnd = node._TrimEnd;
 		this._TrimOffset = node._TrimOffset;

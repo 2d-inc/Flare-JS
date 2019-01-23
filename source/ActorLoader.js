@@ -41,8 +41,11 @@ import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
 import {KeyFrame, PathsKeyFrame} from "./KeyFrame.js";
 import {mat2d, vec2} from "gl-matrix";
 import {Hold, Linear, Cubic} from "./Interpolation.js";
+import TrimPath from "./TrimPath.js";
 import Block from "./Block.js";
 const _BlockTypes = Block.Types;
+const {Off:TrimPathOff} = TrimPath;
+
 const _AnimatedPropertyTypes = AnimatedProperty.Types;
 
 const _Readers = {
@@ -1205,8 +1208,8 @@ function _ReadStroke(reader, component)
 	component._Width = reader.readFloat32("width");
 	component._Cap = reader.readUint8("cap");
 	component._Join = reader.readUint8("join");
-	component._IsTrimmed = reader.readBool("isTrimmed");
-	if(component._IsTrimmed)
+	component._Trim = reader.readUint8("trim");
+	if(component._Trim !== TrimPathOff)
 	{
 		component._TrimStart = reader.readFloat32("start");
 		component._TrimEnd = reader.readFloat32("end");

@@ -1,8 +1,8 @@
-import { mat2d, vec2 } from "gl-matrix";
+import { mat2d } from "gl-matrix";
 import FillRule from "./FillRule.js";
 import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
-import {PointType} from "./PathPoint.js";
+import { PointType } from "./PathPoint.js";
 
 let CanvasKit = null;
 
@@ -17,26 +17,26 @@ export default class Graphics
 
 	initialize(staticPath, cb)
 	{
-		if(CanvasKit === null)
+		if (CanvasKit === null)
 		{
 			CanvasKitInit(
-			{
-				locateFile: (file) => staticPath + file,
-			}).then((CK) => 
-			{
-				// when debugging, it can be handy to not run directly in the then, because if there
-				// is a failure (for example, miscalling an API), the WASM loader tries to re-load
-				// the web assembly in the (much slower) ArrayBuffer version. This will also fail
-				// and thus there is a lot of extra log spew.
-				// Thus, the setTimeout to run on the next microtask avoids this second loading
-				// and the log spew.
-				setTimeout(() => 
 				{
-					CanvasKit = CK;
-					this.init();
-					cb();
-				}, 0);
-			});
+					locateFile: (file) => staticPath + file,
+				}).then((CK) => 
+				{
+					// when debugging, it can be handy to not run directly in the then, because if there
+					// is a failure (for example, miscalling an API), the WASM loader tries to re-load
+					// the web assembly in the (much slower) ArrayBuffer version. This will also fail
+					// and thus there is a lot of extra log spew.
+					// Thus, the setTimeout to run on the next microtask avoids this second loading
+					// and the log spew.
+					setTimeout(() => 
+					{
+						CanvasKit = CK;
+						this.init();
+						cb();
+					}, 0);
+				});
 		}
 		else
 		{
@@ -57,18 +57,14 @@ export default class Graphics
 
 	updateSurface()
 	{
-		if(!CanvasKit)
+		if (!CanvasKit)
 		{
 			return;
 		}
-		if(this._CanvasSurface)
+		if (this._CanvasSurface)
 		{
 			this._CanvasSurface.delete();
 		}
-		// if(this._SkCanvas)
-		// {
-		// 	this._SkCanvas.delete();
-		// }
 		this._CanvasSurface = CanvasKit.MakeCanvasSurface(this._Canvas.id);
 		this._SkCanvas = this._CanvasSurface.getCanvas();
 		this._Context = CanvasKit.currentContext();
@@ -111,11 +107,11 @@ export default class Graphics
 
 	clear(color)
 	{
-		const {_Context:ctx, _ClearPaint:clearPaint, _SkCanvas:skCanvas, width, height} = this;
+		const { _Context: ctx, _ClearPaint: clearPaint, _SkCanvas: skCanvas, width, height } = this;
 		CanvasKit.setCurrentContext(ctx);
-		if(color)
+		if (color)
 		{
-			clearPaint.setColor(CanvasKit.Color(Math.round(color[0]*255), Math.round(color[1]*255), Math.round(color[2]*255), color[3]));
+			clearPaint.setColor(CanvasKit.Color(Math.round(color[0] * 255), Math.round(color[1] * 255), Math.round(color[2] * 255), color[3]));
 			clearPaint.setBlendMode(CanvasKit.BlendMode.SrcOver);
 		}
 		else
@@ -141,7 +137,7 @@ export default class Graphics
 		this._SkCanvas.concat(
 			[matrix[0], matrix[2], matrix[4],
 			matrix[1], matrix[3], matrix[5],
-			0, 0,  1]);
+				0, 0, 1]);
 	}
 
 	addPath(path, addition, matrix)
@@ -150,15 +146,15 @@ export default class Graphics
 		// 	matrix[2], matrix[3], 0,
 		// 	matrix[4], matrix[5],  1]);
 		path.addPath(addition, [matrix[0], matrix[2], matrix[4],
-			matrix[1], matrix[3], matrix[5],
-			0, 0,  1]);
+		matrix[1], matrix[3], matrix[5],
+			0, 0, 1]);
 	}
 
 	makePath(ephemeral)
 	{
 		const path = new CanvasKit.SkPath();
-		
-		if(ephemeral)
+
+		if (ephemeral)
 		{
 			this._Cleanup.push(path);
 		}
@@ -168,7 +164,7 @@ export default class Graphics
 	copyPath(path, ephemeral)
 	{
 		const copy = path.copy();
-		if(ephemeral)
+		if (ephemeral)
 		{
 			this._Cleanup.push(copy);
 		}
@@ -177,7 +173,7 @@ export default class Graphics
 
 	pathEllipse(path, x, y, radiusX, radiusY, startAngle, endAngle, ccw)
 	{
-		var bounds = CanvasKit.LTRBRect(x-radiusX, y-radiusY, x+radiusX, y+radiusY);
+		var bounds = CanvasKit.LTRBRect(x - radiusX, y - radiusY, x + radiusX, y + radiusY);
 		var sweep = radiansToDegrees(endAngle - startAngle) - (360 * !!ccw);
 		// Skia takes degrees. JS tends to be radians.
 		path.addArc(bounds, radiansToDegrees(startAngle), sweep);
@@ -190,14 +186,14 @@ export default class Graphics
 
 	makeLinearGradient(start, end, colors, stops)
 	{
-		colors = colors.map(color => CanvasKit.Color(Math.round(color[0]*255), Math.round(color[1]*255), Math.round(color[2]*255), color[3]));
+		colors = colors.map(color => CanvasKit.Color(Math.round(color[0] * 255), Math.round(color[1] * 255), Math.round(color[2] * 255), color[3]));
 		//start, end, colors, pos, mode, localMatrix, flags
 		return CanvasKit.MakeLinearGradientShader(start, end, colors, stops, CanvasKit.TileMode.Clamp, null, 0);
 	}
 
 	makeRadialGradient(center, radius, colors, stops)
 	{
-		colors = colors.map(color => CanvasKit.Color(Math.round(color[0]*255), Math.round(color[1]*255), Math.round(color[2]*255), color[3]));
+		colors = colors.map(color => CanvasKit.Color(Math.round(color[0] * 255), Math.round(color[1] * 255), Math.round(color[2] * 255), color[3]));
 		// center, radius, colors, pos, mode, localMatrix, flags
 		return CanvasKit.MakeRadialGradientShader(center, radius, colors, stops, CanvasKit.TileMode.Clamp, null, 0);
 	}
@@ -217,7 +213,7 @@ export default class Graphics
 		const paint = new CanvasKit.SkPaint();
 		paint.setAntiAlias(true);
 		paint.setBlendMode(CanvasKit.BlendMode.SrcOver);
-		if(ephemeral)
+		if (ephemeral)
 		{
 			this._Cleanup.push(paint);
 		}
@@ -231,13 +227,13 @@ export default class Graphics
 
 	setPaintColor(paint, color)
 	{
-		paint.setColor(CanvasKit.Color(Math.round(color[0]*255), Math.round(color[1]*255), Math.round(color[2]*255), color[3]));
+		paint.setColor(CanvasKit.Color(Math.round(color[0] * 255), Math.round(color[1] * 255), Math.round(color[2] * 255), color[3]));
 	}
 
 	setPathFillType(path, fillRule)
 	{
 		let fillType;
-		switch(fillRule)
+		switch (fillRule)
 		{
 			case FillRule.EvenOdd:
 				fillType = CanvasKit.FillType.EvenOdd;
@@ -252,7 +248,7 @@ export default class Graphics
 	static setPaintStrokeCap(paint, cap)
 	{
 		let strokeCap;
-		switch(cap)
+		switch (cap)
 		{
 			case StrokeCap.Butt:
 				strokeCap = CanvasKit.StrokeCap.Butt;
@@ -273,7 +269,7 @@ export default class Graphics
 	static setPaintStrokeJoin(paint, join)
 	{
 		let strokeJoin;
-		switch(join)
+		switch (join)
 		{
 			case StrokeJoin.Miter:
 				strokeJoin = CanvasKit.StrokeJoin.Miter;
@@ -311,7 +307,7 @@ export default class Graphics
 		this._SkCanvas.restore();
 		this._CanvasSurface.flush();
 
-		for(const obj of this._Cleanup)
+		for (const obj of this._Cleanup)
 		{
 			obj.delete();
 		}
@@ -330,7 +326,7 @@ export default class Graphics
 
 	setSize(width, height)
 	{
-		if(this.width !== width || this.height !== height)
+		if (this.width !== width || this.height !== height)
 		{
 			this._Canvas.width = width;
 			this._Canvas.height = height;
@@ -342,26 +338,26 @@ export default class Graphics
 
 	static pointPath(path, points, isClosed)
 	{
-		if(points.length)
+		if (points.length)
 		{
 			let firstPoint = points[0];
 			path.moveTo(firstPoint.translation[0], firstPoint.translation[1]);
-			for(let i = 0, l = isClosed ? points.length : points.length-1, pl = points.length; i < l; i++)
+			for (let i = 0, l = isClosed ? points.length : points.length - 1, pl = points.length; i < l; i++)
 			{
 				let point = points[i];
-				let nextPoint = points[(i+1)%pl];
+				let nextPoint = points[(i + 1) % pl];
 				let cin = nextPoint.pointType === PointType.Straight ? null : nextPoint.in, cout = point.pointType === PointType.Straight ? null : point.out;
-				if(cin === null && cout === null)
+				if (cin === null && cout === null)
 				{
-					path.lineTo(nextPoint.translation[0], nextPoint.translation[1]);	
+					path.lineTo(nextPoint.translation[0], nextPoint.translation[1]);
 				}
 				else
 				{
-					if(cout === null)
+					if (cout === null)
 					{
 						cout = point.translation;
 					}
-					if(cin === null)
+					if (cin === null)
 					{
 						cin = nextPoint.translation;
 					}
@@ -373,7 +369,7 @@ export default class Graphics
 						nextPoint.translation[0], nextPoint.translation[1]);
 				}
 			}
-			if(isClosed)
+			if (isClosed)
 			{
 				path.close();
 			}
@@ -381,9 +377,131 @@ export default class Graphics
 
 		return path;
 	}
+
+	static trimPath(path, startT, stopT, complement)
+	{
+		const result = new CanvasKit.SkPath();
+		// Measure length of all the contours.
+		let totalLength = 0.0;
+		{
+			const measure = new CanvasKit.SkPathMeasure(path, false, 1.0);
+			do
+			{
+				totalLength += measure.getLength();
+			} while (measure.nextContour());
+			measure.delete();
+		}
+		// Reset measure from the start.
+		const measure = new CanvasKit.SkPathMeasure(path, false, 1.0);
+		let trimStart = totalLength * startT;
+		let trimStop = totalLength * stopT;
+		let offset = 0.0;
+
+		if (complement) 
+		{
+			if (trimStart > 0.0) 
+			{
+				offset = appendPathSegment(measure, result, offset, 0.0, trimStart);
+			}
+			if (trimStop < totalLength) 
+			{
+				offset = appendPathSegment(measure, result, offset, trimStop, totalLength);
+			}
+		}
+		else 
+		{
+			if (trimStart < trimStop) 
+			{
+				offset = appendPathSegment(measure, result, offset, trimStart, trimStop);
+			}
+		}
+		measure.delete();
+
+		return result;
+	}
+
+	static trimPathSync(path, startT, stopT, complement)
+	{
+		const result = new CanvasKit.SkPath();
+
+		// Reset measure from the start.
+		const measure = new CanvasKit.SkPathMeasure(path, false, 1.0);
+		do
+		{
+			const length = measure.getLength();
+			let trimStart = length * startT;
+			let trimStop = length * stopT;
+			let offset = 0.0;
+
+			if (complement) 
+			{
+				if (trimStart > 0.0) 
+				{
+					appendPathSegmentSync(measure, result, offset, 0.0, trimStart);
+				}
+				if (trimStop < length) 
+				{
+					appendPathSegmentSync(measure, result, offset, trimStop, length);
+				}
+			}
+			else 
+			{
+				if (trimStart < trimStop) 
+				{
+					appendPathSegmentSync(measure, result, offset, trimStart, trimStop);
+				}
+			}
+		} while (measure.nextContour());
+		measure.delete();
+
+		return result;
+	}
 }
 
 function radiansToDegrees(rad) 
 {
 	return (rad / Math.PI) * 180;
+}
+
+const Identity = [
+	1, 0, 0,
+	0, 1, 0
+];
+
+function appendPathSegment(measure, to, offset, start, stop) 
+{
+	let nextOffset = offset;
+	do
+	{
+		nextOffset = offset + measure.getLength();
+		if (start < nextOffset)
+		{
+			let extracted = new CanvasKit.SkPath();
+			if (measure.getSegment(start - offset, stop - offset, extracted, true))
+			{
+				to.addPath(extracted, Identity);
+				extracted.delete();
+			}
+			if (stop < nextOffset)
+			{
+				break;
+			}
+		}
+		offset = nextOffset;
+	} while (measure.nextContour());
+	return offset;
+}
+
+function appendPathSegmentSync(measure, to, offset, start, stop) 
+{
+	let nextOffset = offset + measure.getLength();
+	if (start < nextOffset)
+	{
+		let extracted = new CanvasKit.SkPath();
+		if (measure.getSegment(start - offset, stop - offset, extracted, true))
+		{
+			to.addPath(extracted, Identity);
+			extracted.delete();
+		}
+	}
 }
