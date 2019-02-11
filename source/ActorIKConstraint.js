@@ -84,7 +84,9 @@ export default class ActorIKConstraint extends ActorTargetedConstraint
 
 	markDirty()
 	{
-		for(const item of this._FKChain)
+		const {_FKChain} = this;
+		if(_FKChain === null) { return; }
+		for(const item of _FKChain)
 		{
 			item.bone.markTransformDirty();
 		}
