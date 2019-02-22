@@ -27,7 +27,7 @@
 		"eslint-loader": "^1.7.1",
 		"gl-matrix": "^2.8.1",
 		"webpack": "^4.17.1",
-		"webpack-cli": "^3.1.0"
+		"webpack-cli": "^3.2.3"
 	},
 	"dependencies": {
 		"npm": "^5.10.0"
