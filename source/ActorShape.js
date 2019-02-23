@@ -1,16 +1,15 @@
-import ActorDrawable from "./ActorDrawable.js";
 import ActorPath from "./ActorPath.js";
+import ActorDrawable from "./ActorDrawable.js";
 import ActorProceduralPath from "./ActorProceduralPath.js";
-import {RadialGradientFill, GradientFill, ColorFill, ColorStroke, GradientStroke, RadialGradientStroke} from "./ColorComponent.js";
 import DirtyFlags from "./DirtyFlags.js";
+import {vec2} from "gl-matrix";
 const {WorldTransformDirty} = DirtyFlags;
-import {vec2, mat2d} from "gl-matrix";
 
 export default class ActorShape extends ActorDrawable
 {
-	constructor()
+	constructor(actor)
 	{
-		super();
+		super(actor);
 
 		this._Paths = null;
 		this._Fills = null;

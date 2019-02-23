@@ -294,31 +294,31 @@ export default class Animation
 							}
 						}
 						break;
-					case AnimatedPropertyTypes.VertexDeform:
+					case AnimatedPropertyTypes.ImageVertices:
 					{
 						component._VerticesDirty = true;
 						const nv = component._NumVertices;
-						const to = component._AnimationDeformedVertices;
-						let tidx = 0;
+						const to = component.deformVertices;
 						let fidx = 0;
 						if(mix === 1.0)
 						{
 							for(let l = 0; l < nv; l++)
 							{
-								to[tidx] = value[fidx++];
-								to[tidx+1] = value[fidx++];
-								tidx+=2;
+								const p = to[l];
+								p[0] = value[fidx++];
+								p[1] = value[fidx++];
 							}
 						}
 						else
 						{
 							for(let l = 0; l < nv; l++)
 							{
-								to[tidx] = to[tidx] * imix + value[fidx++] * mix;
-								to[tidx+1] = to[tidx+1] * imix + value[fidx++] * mix;
-								tidx+=2;
+								const p = to[l];
+								p[0] = p[0] * imix + value[fidx++] * mix;
+								p[1] = p[1] * imix + value[fidx++] * mix;
 							}
 						}
+						component.invalidateDrawable();
 						break;
 					}
 					case AnimatedPropertyTypes.StringProperty:

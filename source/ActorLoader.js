@@ -294,7 +294,7 @@ function _ReadAnimationBlock(artboard, reader)
 						case _AnimatedPropertyTypes.Opacity:
 						case _AnimatedPropertyTypes.DrawOrder:
 						case _AnimatedPropertyTypes.Length:
-						case _AnimatedPropertyTypes.VertexDeform:
+						case _AnimatedPropertyTypes.ImageVertices:
 						case _AnimatedPropertyTypes.ConstraintStrength:
 						case _AnimatedPropertyTypes.Trigger:
 						case _AnimatedPropertyTypes.IntProperty:
@@ -459,8 +459,7 @@ function _ReadAnimationBlock(artboard, reader)
 						else if(propertyType === _AnimatedPropertyTypes.ImageVertices)
 						{
 							keyFrame._Value = new Float32Array(component._NumVertices * 2);
-							component.hasVertexDeformAnimation = true;
-							propertyReader.readFloat32Array(keyFrame._Value, "value");
+							propertyReader.readFloat32Array(keyFrame._Value, "array");
 						}
 						else
 						{
@@ -1272,7 +1271,7 @@ function _ReadSkinnable(reader, component)
 
 function _ReadActorPath(reader, component)
 {
-	_ReadDrawable(reader, component);
+	_ReadActorNode(reader, component);
 	_ReadSkinnable(reader, component);
 
 	component._IsClosed = reader.readBool("isClosed");
@@ -1281,6 +1280,7 @@ function _ReadActorPath(reader, component)
 	const pointCount = reader.readUint16Length();
 	const points = new Array(pointCount);
 	const isConnectedToBones = component._ConnectedBones && component._ConnectedBones.length > 0;
+	
 	for(let i = 0; i < pointCount; i++)
 	{
 		reader.openObject("point");

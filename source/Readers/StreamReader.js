@@ -2,7 +2,7 @@ export default class StreamReader
 {
     constructor() {}
     readFloat32() {}
-    readFloat32Array(ar, length, offset) {}
+    readFloat32Array(ar, offset) {}
     readFloat32ArrayOffset(ar, length, offset) {}
     readFloat64() {}
     isEOF() {}

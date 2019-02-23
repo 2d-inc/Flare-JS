@@ -38,6 +38,11 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 		}
 	}
 
+	get deformVertices()
+	{
+		return this._skPos;
+	}
+
 	computeAABB()
 	{
 		const worldVertices = this.computeWorldVertices();
@@ -305,7 +310,6 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 		this._AtlasIndex = node._AtlasIndex;
 		this._NumVertices = node._NumVertices;
 		this._VertexStride = node._VertexStride;
-		this._HasVertexDeformAnimation = node._HasVertexDeformAnimation;
 		this._Vertices = node._Vertices;
 		this._Triangles = node._Triangles;
 		// N.B. actor.initialize must've been called before instancing.

@@ -34,8 +34,8 @@ export default class ActorDrawable extends ActorNode
         this._BlendMode = node._BlendMode;
         this._IsHidden = node._IsHidden;
     }
-    
-    getClips()
+
+	getClips()
 	{
 		// Find clips.
 		let clipSearch = this;
@@ -67,7 +67,7 @@ export default class ActorDrawable extends ActorNode
 					let shapes = new Set();
 					clip.all(function(node)
 					{
-						if(node.constructor === ActorShape)
+						if(node.paths)
 						{
 							shapes.add(node);
 						}
