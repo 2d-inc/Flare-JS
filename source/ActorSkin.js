@@ -63,7 +63,7 @@ export default class ActorSkin extends ActorComponent
 			}
 		}
 
-		parent.invalidatePath();
+		parent.invalidateDrawable();
 	}
 
 
@@ -78,12 +78,12 @@ export default class ActorSkin extends ActorComponent
 	{
 		super.completeResolve();
 		const graph = this._Actor;
-		let path = this._Parent;
-		if(path)
+		let parent = this._Parent;
+		if(parent)
 		{
-			path.setSkin(this);
-			graph.addDependency(this, path);
-			const connectedBones = path.connectedBones;
+			parent.setSkin(this);
+			graph.addDependency(this, parent);
+			const connectedBones = parent.connectedBones;
 			if(connectedBones && connectedBones.length)
 			{
 				for(const {node} of connectedBones)

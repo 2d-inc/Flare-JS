@@ -80,6 +80,14 @@ export default class Graphics
 		this._SkCanvas.restore();
 	}
 
+	transform(matrix)
+	{
+		this._SkCanvas.concat(
+			[matrix[0], matrix[2], matrix[4],
+			matrix[1], matrix[3], matrix[5],
+				0, 0, 1]);
+	}
+
 	get canvas()
 	{
 		return this._Canvas;
@@ -150,6 +158,16 @@ export default class Graphics
 			0, 0, 1]);
 	}
 
+	makeImage(bytes)
+	{
+		return CanvasKit.MakeImageFromEncoded(bytes);
+	}
+
+	makeImageShader(image)
+	{
+		return CanvasKit.MakeImageShader(image, CanvasKit.TileMode.Clamp, CanvasKit.TileMode.Clamp);
+	}
+
 	makePath(ephemeral)
 	{
 		const path = new CanvasKit.SkPath();
@@ -159,6 +177,16 @@ export default class Graphics
 			this._Cleanup.push(path);
 		}
 		return path;
+	}
+
+	makeVertices(pts, uvs, indices)
+	{
+		return CanvasKit.MakeSkVertices(CanvasKit.VertexMode.Triangles, pts, uvs, null, null, null, indices);
+	}
+
+	drawVertices(vertices, paint)
+	{
+		this._SkCanvas.drawVertices(vertices, CanvasKit.BlendMode.SrcOver, paint);
 	}
 
 	copyPath(path, ephemeral)
@@ -228,6 +256,12 @@ export default class Graphics
 	setPaintColor(paint, color)
 	{
 		paint.setColor(CanvasKit.Color(Math.round(color[0] * 255), Math.round(color[1] * 255), Math.round(color[2] * 255), color[3]));
+	}
+
+	setPaintShader(paint, shader)
+	{
+		paint.setShader(shader);
+		paint.setFilterQuality(CanvasKit.FilterQuality.Low);
 	}
 
 	setPathFillType(path, fillRule)

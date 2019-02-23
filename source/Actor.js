@@ -33,6 +33,10 @@ export default class Actor extends Dispatcher
 				nested.actor.initialize(graphics);
 			}
 		}
+		for(const atlas of this._Atlases)
+		{
+			atlas.initialize(graphics);
+		}
 		for(const artboard of this._Artboards)
 		{
 			artboard.initialize(graphics);

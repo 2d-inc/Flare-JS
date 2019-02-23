@@ -1,7 +1,7 @@
 const FlareExample = (function ()
 {
 	const _ViewCenter = [600.0, 600.0];
-	const _Scale = 0.25;
+	const _Scale = 0.5;
 	const _ScreenScale = 1.0;
 
 	const _ScreenMouse = vec2.create();
@@ -190,7 +190,7 @@ const FlareExample = (function ()
 			if(actorInstance._Animations.length)
 			{
 				/** Instantiate the Animation. */
-				this._Animation = actorInstance._Animations[0];
+				this._Animation = actorInstance._Animations[1%actorInstance._Animations.length];
 				this._AnimationInstance = new Flare.AnimationInstance(this._Animation._Actor, this._Animation);
 				
 				if(!this._AnimationInstance) 

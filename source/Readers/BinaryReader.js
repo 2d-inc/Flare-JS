@@ -87,12 +87,9 @@ export default class BinaryReader extends StreamReader
 		return v;
 	}
 
-	readUint16Array(ar, length)
+	readUint16Array(ar)
 	{
-		if (!length)
-		{
-			length = ar.length;
-		}
+		const {length} = ar;
 		for (let i = 0; i < length; i++)
 		{
 			ar[i] = this.dataView.getUint16(this.readIndex, !this.isBigEndian);
@@ -197,12 +194,11 @@ export default class BinaryReader extends StreamReader
 			const image = this.readString();
 			const req = new XMLHttpRequest();
 			req.open("GET", image, true);
-			req.responseType = "blob";
+			req.responseType = "arraybuffer";
 
 			req.onload = function()
 			{
-				const blob = this.response;
-				cb(blob);
+				cb(this.response);
 			};
 			req.send();
 		}
@@ -211,9 +207,8 @@ export default class BinaryReader extends StreamReader
 			const size = this.readUint32();
 			const atlasData = new Uint8Array(size);
 			this.readRaw(atlasData, atlasData.length);
-			const blob = new Blob([atlasData], {type: "image/png"});
 
-			cb(blob);
+			cb(atlasData);
 		}
 	}
 	

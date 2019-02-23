@@ -11,7 +11,7 @@ const Blocks =
 	Opacity: block(6, "opacity"),
 	DrawOrder: block(7, "drawOrder"),
 	Length: block(8, "length"),
-	VertexDeform: block(9, "vertices"),
+	ImageVertices: block(9, "imageVertices"),
 	ConstraintStrength: block(10, "strength"),
 	Trigger: block(11, "trigger"),
 	IntProperty: block(12, "intValue"),

@@ -1,4 +1,4 @@
-import ActorNode from "./ActorNode.js";
+import ActorDrawable from "./ActorDrawable.js";
 import ActorPath from "./ActorPath.js";
 import ActorProceduralPath from "./ActorProceduralPath.js";
 import {RadialGradientFill, GradientFill, ColorFill, ColorStroke, GradientStroke, RadialGradientStroke} from "./ColorComponent.js";
@@ -6,13 +6,11 @@ import DirtyFlags from "./DirtyFlags.js";
 const {WorldTransformDirty} = DirtyFlags;
 import {vec2, mat2d} from "gl-matrix";
 
-export default class ActorShape extends ActorNode
+export default class ActorShape extends ActorDrawable
 {
 	constructor()
 	{
 		super();
-		this._DrawOrder = 0;
-		this._IsHidden = false;
 
 		this._Paths = null;
 		this._Fills = null;
@@ -45,16 +43,6 @@ export default class ActorShape extends ActorNode
 	get stroke()
 	{
 		return this._Strokes && this._Strokes.length && this._Strokes[0];
-	}
-
-	get isHidden()
-	{
-		return this._IsHidden;
-	}
-
-	set isHidden(hidden)
-	{
-		this._IsHidden = hidden;
 	}
 
 	initialize(actor, graphics)
@@ -263,57 +251,6 @@ export default class ActorShape extends ActorNode
 		return shapePath;
 	}
 
-	getClips()
-	{
-		// Find clips.
-		let clipSearch = this;
-		let clips = [];
-		while(clipSearch)
-		{
-			if(clipSearch._Clips)
-			{
-				clips.push(clipSearch._Clips);
-			}
-			clipSearch = clipSearch.parent;
-		}
-
-		return clips;
-	}
-	
-	clip(graphics)
-	{
-		// Find clips.
-		const clips = this.getClips();
-
-		if(clips.length)
-		{
-			for(const clipList of clips)
-			{
-				const clipPath = graphics.makePath(true);
-				for(let clip of clipList)
-				{
-					let shapes = new Set();
-					clip.all(function(node)
-					{
-						if(node.constructor === ActorShape)
-						{
-							shapes.add(node);
-						}
-					});
-					for(let shape of shapes)
-					{
-						const paths = shape.paths;
-						for(const path of paths)
-						{
-							graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
-						}
-					}
-				}
-				graphics.clipPath(clipPath);
-			}
-		}
-	}
-
 	update(dirt)
 	{
 		super.update(dirt);
@@ -335,13 +272,5 @@ export default class ActorShape extends ActorNode
 		node._IsInstance = true;
 		node.copy(this, resetActor);
 		return node;	
-	}
-
-	copy(node, resetActor)
-	{
-		super.copy(node, resetActor);
-
-		this._DrawOrder = node._DrawOrder;
-		this._IsHidden = node._IsHidden;
 	}
 }

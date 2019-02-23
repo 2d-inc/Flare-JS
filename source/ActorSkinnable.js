@@ -1,11 +1,20 @@
-import ActorNode from "./ActorNode.js";
-
-export default class ActorSkinnableNode extends ActorNode
+const ActorSkinnable = (ActorSkinnable) => class extends ActorSkinnable
 {
 	constructor()
 	{
 		super();
 		this._ConnectedBones = null;
+		this._Skin = null;
+	}
+
+	setSkin(skin)
+	{
+		this._Skin = skin;
+	}
+
+	get skin()
+	{
+		return this._Skin;
 	}
 
 	get connectedBones()
@@ -50,3 +59,5 @@ export default class ActorSkinnableNode extends ActorNode
 		}
 	}
 }
+
+export default ActorSkinnable;

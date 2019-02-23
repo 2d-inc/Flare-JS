@@ -1,4 +1,5 @@
 import StreamReader from "./StreamReader.js";
+import dataURItoArrayBuffer from "./dataURItoArrayBuffer.js";
 
 export default class JSONReader extends StreamReader
 {
@@ -206,18 +207,17 @@ export default class JSONReader extends StreamReader
 		{
 			const req = new XMLHttpRequest();
 			req.open("GET", image, true);
-			req.responseType = "blob";
+			req.responseType = "arraybuffer";
 
 			req.onload = function()
 			{
-				const blob = this.response;
-				cb(blob);
+				cb(this.response);
 			};
 			req.send();
 		}
 		else
 		{
-			cb(image);
+			cb(dataURItoArrayBuffer(image));
 		}
 	}
 
@@ -292,3 +292,4 @@ export default class JSONReader extends StreamReader
 		return this._context[0];
 	}
 }
+

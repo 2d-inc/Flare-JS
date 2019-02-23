@@ -1,4 +1,5 @@
 import Animation from "./Animation.js";
+import Atlas from "./Atlas.js";
 import BinaryReader from "./Readers/BinaryReader.js";
 import JSONReader from "./Readers/JSONReader.js";
 import Actor from "./Actor.js";
@@ -60,8 +61,6 @@ const _Readers = {
 		extension: "nmj"
 	}
 };
-
-let _ReadAtlasesBlock = null;
 
 function _ReadNextBlock(reader, error, block)
 {
@@ -457,7 +456,7 @@ function _ReadAnimationBlock(artboard, reader)
 							propertyReader.closeArray();
 							keyFrame._Value = orderValue;
 						}
-						else if(propertyType === _AnimatedPropertyTypes.VertexDeform)
+						else if(propertyType === _AnimatedPropertyTypes.ImageVertices)
 						{
 							keyFrame._Value = new Float32Array(component._NumVertices * 2);
 							component.hasVertexDeformAnimation = true;
@@ -539,173 +538,112 @@ function _ReadNestedActorAssets(actor, reader)
 	}
 }
 
-function _BuildJpegAtlas(atlas, img, imga, callback)
+// function _BuildJpegAtlas(atlas, img, imga, callback)
+// {
+// 	const canvas = document.createElement("canvas");
+// 	canvas.width = img.width;
+//     canvas.height = img.height;
+//     const ctx = canvas.getContext("2d");
+// 	ctx.drawImage(img, 0, 0, img.width, img.height);
+	
+// 	if(imga)
+// 	{
+// 		const imageDataRGB = ctx.getImageData(0,0,canvas.width, canvas.height);
+// 		const dataRGB = imageDataRGB.data;
+// 		const canvasAlpha = document.createElement("canvas");
+
+// 		canvasAlpha.width = img.width;
+// 		canvasAlpha.height = img.height;
+// 		const actx = canvasAlpha.getContext("2d");
+// 		actx.drawImage(imga, 0, 0, imga.width, imga.height);
+	
+// 		const imageDataAlpha = actx.getImageData(0,0,canvasAlpha.width, canvasAlpha.height);
+// 		const dataAlpha = imageDataAlpha.data;
+	
+// 		const pixels = dataAlpha.length/4;
+// 		let widx = 3;
+	
+// 		for(let j = 0; j < pixels; j++)
+// 		{
+// 			dataRGB[widx] = dataAlpha[widx-1];
+// 			widx+=4;
+// 		}
+// 		ctx.putImageData(imageDataRGB, 0, 0);
+// 	}
+
+
+// 	const atlasImage = new Image();
+// 	const enc = canvas.toDataURL();
+// 	atlasImage.src = enc;
+// 	atlasImage.onload = function()
+// 	{
+// 		atlas.img = this;
+// 		callback();
+// 	};
+// }
+
+// function _JpegAtlas(dataRGB, dataAlpha, callback)
+// {
+// 	const _This = this;
+// 	const img = document.createElement("img");
+// 	let imga;
+// 	let c = 0;
+// 	let target = 1;
+// 	img.onload = function()
+// 	{
+// 		c++;
+// 		if(c === target)
+// 		{
+// 			_BuildJpegAtlas(_This, img, imga, callback);
+// 		}
+// 	};
+	
+// 	if(dataAlpha)
+// 	{
+// 		imga = document.createElement("img");
+// 		imga.onload = function()
+// 		{
+// 			c++;
+// 			if(c == target)
+// 			{
+// 				_BuildJpegAtlas(_This, img, imga, callback);
+// 			}
+// 		};
+// 		imga.src = URL.createObjectURL(dataAlpha);
+// 	}
+// 	img.src = URL.createObjectURL(dataRGB);
+// }
+
+
+function _ReadAtlasesBlock(actor, reader, callback)
 {
-	const canvas = document.createElement("canvas");
-	canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext("2d");
-	ctx.drawImage(img, 0, 0, img.width, img.height);
-	
-	if(imga)
-	{
-		const imageDataRGB = ctx.getImageData(0,0,canvas.width, canvas.height);
-		const dataRGB = imageDataRGB.data;
-		const canvasAlpha = document.createElement("canvas");
-
-		canvasAlpha.width = img.width;
-		canvasAlpha.height = img.height;
-		const actx = canvasAlpha.getContext("2d");
-		actx.drawImage(imga, 0, 0, imga.width, imga.height);
-	
-		const imageDataAlpha = actx.getImageData(0,0,canvasAlpha.width, canvasAlpha.height);
-		const dataAlpha = imageDataAlpha.data;
-	
-		const pixels = dataAlpha.length/4;
-		let widx = 3;
-	
-		for(let j = 0; j < pixels; j++)
-		{
-			dataRGB[widx] = dataAlpha[widx-1];
-			widx+=4;
-		}
-		ctx.putImageData(imageDataRGB, 0, 0);
-	}
-
-
-	const atlasImage = new Image();
-	const enc = canvas.toDataURL();
-	atlasImage.src = enc;
-	atlasImage.onload = function()
-	{
-		atlas.img = this;
-		callback();
-	};
-}
-
-function _JpegAtlas(dataRGB, dataAlpha, callback)
-{
-	const _This = this;
-	const img = document.createElement("img");
-	let imga;
-	let c = 0;
-	let target = 1;
-	img.onload = function()
-	{
-		c++;
-		if(c === target)
-		{
-			_BuildJpegAtlas(_This, img, imga, callback);
-		}
-	};
-	
-	if(dataAlpha)
-	{
-		imga = document.createElement("img");
-		imga.onload = function()
-		{
-			c++;
-			if(c == target)
-			{
-				_BuildJpegAtlas(_This, img, imga, callback);
-			}
-		};
-		imga.src = URL.createObjectURL(dataAlpha);
-	}
-	img.src = URL.createObjectURL(dataRGB);
-}
-
-function _ReadAtlasesBlock14(actor, reader, callback)
-{
-	// Read atlases.
-	const numAtlases = reader.readUint16();
-
-	let waitCount = 0;
-	let loadedCount = 0;
-	function loaded()
-	{
-		loadedCount++;
-		if(loadedCount === waitCount)
-		{
-			callback();
-		}
-	}
-
-	for(let i = 0; i < numAtlases; i++)
-	{
-		let size = reader.readUint32();
-		const atlasDataRGB = new Uint8Array(size);
-		reader.readRaw(atlasDataRGB, atlasDataRGB.length);
-
-		size = reader.readUint32();
-		const atlasDataAlpha = new Uint8Array(size);
-		reader.readRaw(atlasDataAlpha, atlasDataAlpha.length);
-
-		const rgbSrc = new Blob([atlasDataRGB], {type: "image/jpeg"});
-		const alphaSrc = new Blob([atlasDataAlpha], {type: "image/jpeg"});
-
-		waitCount++;
-		const atlas = new _JpegAtlas(rgbSrc, alphaSrc, loaded);
-
-		actor._Atlases.push(atlas);//new Blob([atlasDataRGB], {type: "image/jpeg"}));
-	}
-
-	// Return true if we are waiting for atlases
-	return waitCount !== loadedCount;
-}
-
-function _ReadAtlasesBlock15(actor, reader, callback)
-{
-	// Internal Callback
-	function loaded()
-	{
-		loadedCount++;
-		if(loadedCount === waitCount)
-		{
-			callback();
-		}
-	}
-	// ==== 
-	
 	// Read atlases.
 	const isOOB = reader.readBool("isOOB");
 	reader.openArray("data");
 	const numAtlases = reader.readUint16Length();
 
-	let waitCount = 0;
+	let waitCount = numAtlases;
 	let loadedCount = 0;
+	let waiting = waitCount !== loadedCount;
 
 	for(let i = 0; i < numAtlases; i++)
 	{
-		waitCount++;
-		let readCallback = function(data)
+		reader.readImage(isOOB, (data) =>
 		{
-			if(data.constructor === Blob)
+			actor._Atlases.push(new Atlas(data));
+			loadedCount++;
+			if(loadedCount === waitCount)
 			{
-				const atlas = new _JpegAtlas(data, undefined, loaded);
-				actor._Atlases.push(atlas);
+				waiting = false;
+				callback();
 			}
-			else if(data.constructor === String)
-			{
-				const imgElm = document.createElement("img");
-				const atlas = {};
-				imgElm.onload = function()
-				{
-					atlas.img = this;
-					loaded();
-				};
-				actor._Atlases.push(atlas);
-				imgElm.src = data;
-			}
-		};
-
-		reader.readImage(isOOB, readCallback); 
+		}); 
 	}
 
 	reader.closeArray();
 
 	// Return true if we are waiting for atlases
-	return waitCount !== loadedCount;
+	return waiting;
 }
 
 function _LoadNestedAssets(loader, actor, callback)
@@ -1287,10 +1225,17 @@ function _ReadRadialGradientStroke(reader, component)
 	return component;
 }
 
-function _ReadSkinnable(reader, component)
+function _ReadDrawable(reader, component)
 {
 	_ReadActorNode(reader, component);
 
+	component._BlendMode = reader.readUint8("blendMode");
+	component._DrawOrder = reader.readUint16("drawOrder");
+	component._IsHidden = !reader.readBool("isVisible");
+}
+
+function _ReadSkinnable(reader, component)
+{
 	reader.openArray("bones");
 	const numConnectedBones = reader.readUint8Length();
 	if(numConnectedBones > 0)
@@ -1327,8 +1272,9 @@ function _ReadSkinnable(reader, component)
 
 function _ReadActorPath(reader, component)
 {
+	_ReadDrawable(reader, component);
 	_ReadSkinnable(reader, component);
-	component._IsHidden = !reader.readBool("isVisible");
+
 	component._IsClosed = reader.readBool("isClosed");
 
 	reader.openArray("points");
@@ -1386,49 +1332,15 @@ function _ReadActorPath(reader, component)
 
 function _ReadActorImage(reader, component)
 {
-	_ReadActorNode(reader, component);
-	const isVisible = reader.readBool("isVisible");
-	if(isVisible)
+	_ReadDrawable(reader, component);
+	_ReadSkinnable(reader, component);
+
+	if(!component.isHidden)
 	{
-		component._BlendMode = reader.readUint8("blendMode");
-		component._DrawOrder = reader.readUint16("drawOrder");
 		component._AtlasIndex = reader.readUint8("atlas");
 
-		reader.openArray("bones");
-		const numConnectedBones = reader.readUint8Length();
-		if(numConnectedBones > 0)
-		{
-			component._ConnectedBones = [];
-			for(let i = 0; i < numConnectedBones; i++)
-			{
-				reader.openObject("bone");
-				const bind = mat2d.create();
-				const componentIndex = reader.readId("component");
-				reader.readFloat32Array(bind, "bind");
-				reader.closeObject();
-
-				component._ConnectedBones.push({
-					componentIndex:componentIndex,
-					bind:bind,
-					ibind:mat2d.invert(mat2d.create(), bind)
-				});
-			}
-			reader.closeArray();
-
-			// Read the final override parent world.
-			const overrideWorld = mat2d.create();
-			reader.readFloat32Array(overrideWorld, "worldTransform");
-			mat2d.copy(component._WorldTransform, overrideWorld);
-			component._OverrideWorldTransform = true;
-		}
-		else
-		{
-			// Close the previously opened JSON Array.
-			reader.closeArray();
-		}
-
 		const numVertices = reader.readUint32("numVertices");
-		const vertexStride = numConnectedBones > 0 ? 12 : 4;
+		const vertexStride = component.isConnectedToBones ? 12 : 4;
 		
 		component._NumVertices = numVertices;
 		component._VertexStride = vertexStride;
