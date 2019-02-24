@@ -18,7 +18,7 @@ There are a few steps to start rendering a Flare file:
 1. Create a `canvas` element in HTML
 2. Instantiate and initialize the `Graphics` object with the `canvas` reference
 3. Start the render loop with `window.requestAnimationFrame()`
-4. Load the an Actor from file with `Flare.ActorLoader.load(fileLocation, callback)`
+4. Load an Actor from file with `Flare.ActorLoader.load(fileLocation, callback)`
 5. Initialize and instantiate the `Actor` - that will initialize the `ActorArtboard`s for the loaded Flare file: 
     - First `Actor.initialize()`
     - then `actor.makeInstance()`
