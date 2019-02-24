@@ -1078,10 +1078,7 @@ function _ReadAxisConstraint(reader, component)
 
 function _ReadActorShape(reader, component)
 {
-	_ReadActorNode(reader, component);
-	component._IsHidden = !reader.readBool("isVisible");
-	/*component._BlendMode =*/ reader.readUint8("blendMode");
-	component._DrawOrder = reader.readUint16("drawOrder");
+	_ReadDrawable(reader, component);
 
 	return component;
 }
@@ -1274,6 +1271,7 @@ function _ReadActorPath(reader, component)
 	_ReadActorNode(reader, component);
 	_ReadSkinnable(reader, component);
 
+	component._IsHidden = !reader.readBool("isVisible");
 	component._IsClosed = reader.readBool("isClosed");
 
 	reader.openArray("points");
