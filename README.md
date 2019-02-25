@@ -30,17 +30,19 @@ There are a few steps to start rendering a Flare file:
 
 ### Running the Example
 
-The [example folder](https://github.com/2d-inc/Flare-JS/blob/master/example) contains two files, `example.html` and `example.js`, with an example implementation on how to achieve this.
+The [example folder](https://github.com/2d-inc/Flare-JS/blob/master/example) contains two files, `example.html` and `example.js`, with an example implementation on how to use this runtime.
 
-Use NPM to get the dependencies:
+Use NPM to get the `gl-matrix` dependency:
 ```
 npm install gl-matrix
-npm install canvaskit-wasm
 ```
-The needed files will be in their respective `node_modules` folder:
-`node_modules/gl-matrix/dist` and `node_modules/canvaskit-wasm/bin`.
 
-Place these two files in the `/build` folder and then build with webpack.
+After the installation completes, copy `gl-matrix.js` from `node_modules/gl-matrix-dist` into the repo's `/build` folder. *(N.B. `canvaskit` is downloaded with this repo, and already present in the `/build` folder.)*
+
+At this point run a webpack build:
+```
+npm run dev
+```
 
 Use a local web server such as [NGINX](https://www.nginx.com/) or [MAMP](https://www.mamp.info/en/) to expose the resources.
 
