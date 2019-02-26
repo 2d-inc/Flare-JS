@@ -471,10 +471,6 @@ function _ReadAnimationBlock(artboard, reader)
 							// Always hold draw order.
 							keyFrame._Interpolator = Hold.instance;
 						}
-						else if(propertyType === _AnimatedPropertyTypes.VertexDeform)
-						{
-							keyFrame._Interpolator = Linear.instance;
-						}
 
 						if(lastKeyFrame)
 						{

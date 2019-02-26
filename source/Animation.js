@@ -296,7 +296,6 @@ export default class Animation
 						break;
 					case AnimatedPropertyTypes.ImageVertices:
 					{
-						component._VerticesDirty = true;
 						const nv = component._NumVertices;
 						const to = component.deformVertices;
 						let fidx = 0;
