@@ -1,4 +1,5 @@
 import ActorNode from "./ActorNode.js";
+import BlendMode from "./BlendMode.js";
 
 export default class ActorDrawable extends ActorNode
 {
@@ -7,13 +8,18 @@ export default class ActorDrawable extends ActorNode
 		super(actor);
 
         this._DrawOrder = 0;
-        this._BlendMode = null;
+        this._BlendMode = BlendMode.SrcOver;
         this._IsHidden = false;
     }
     
     get drawOrder()
     {
         return this._DrawOrder;
+    }
+
+    get blendMode()
+    {
+        return this._BlendMode;
     }
 
     get isHidden()

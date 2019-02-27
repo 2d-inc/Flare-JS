@@ -44,6 +44,8 @@ import {mat2d, vec2} from "gl-matrix";
 import {Hold, Linear, Cubic} from "./Interpolation.js";
 import TrimPath from "./TrimPath.js";
 import Block from "./Block.js";
+import BlendMode from "./BlendMode.js";
+
 const _BlockTypes = Block.Types;
 const {Off:TrimPathOff} = TrimPath;
 
@@ -1221,9 +1223,10 @@ function _ReadDrawable(reader, component)
 {
 	_ReadActorNode(reader, component);
 
-	component._BlendMode = reader.readUint8("blendMode");
-	component._DrawOrder = reader.readUint16("drawOrder");
 	component._IsHidden = !reader.readBool("isVisible");
+	const blendID = reader.readUint8("blendMode");
+	component._BlendMode = BlendMode.fromID(blendID);
+	component._DrawOrder = reader.readUint16("drawOrder");
 }
 
 function _ReadSkinnable(reader, component)

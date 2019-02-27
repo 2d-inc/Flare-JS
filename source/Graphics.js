@@ -2,6 +2,7 @@ import { mat2d } from "gl-matrix";
 import FillRule from "./FillRule.js";
 import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
+import BlendMode from "./BlendMode.js";
 import { PointType } from "./PathPoint.js";
 
 let CanvasKit = null;
@@ -52,6 +53,7 @@ export default class Graphics
 		const clearPaint = new CanvasKit.SkPaint();
 		clearPaint.setStyle(CanvasKit.PaintStyle.Fill);
 		clearPaint.setBlendMode(CanvasKit.BlendMode.Clear);
+		BlendMode.setCanvasKit(CanvasKit);
 		this._ClearPaint = clearPaint;
 	}
 
@@ -262,6 +264,11 @@ export default class Graphics
 	{
 		paint.setShader(shader);
 		paint.setFilterQuality(CanvasKit.FilterQuality.Low);
+	}
+
+	static setPaintBlendMode(paint, blendMode)
+	{
+		paint.setBlendMode(blendMode.sk);
 	}
 
 	setPathFillType(path, fillRule)

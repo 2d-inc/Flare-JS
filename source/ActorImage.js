@@ -1,6 +1,7 @@
 import ActorSkinnable from "./ActorSkinnable.js";
 import ActorDrawable from "./ActorDrawable.js";
 import {vec2, mat2d} from "gl-matrix";
+import Graphics from "./Graphics.js";
 
 const White = [1.0, 1.0, 1.0, 1.0];
 export default class ActorImage extends ActorSkinnable(ActorDrawable)
@@ -256,6 +257,7 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 		{
 			graphics.transform(this.worldTransform);
 		}
+		Graphics.setPaintBlendMode(paint, this._BlendMode);
 		graphics.setPaintColor(paint, [1.0, 1.0, 1.0, this._RenderOpacity]);
 		graphics.drawVertices(vertices, paint);
 		graphics.restore();
