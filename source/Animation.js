@@ -368,7 +368,7 @@ export default class Animation
 
 					case AnimatedPropertyTypes.PathVertices:
 					{
-						component.invalidatePath();
+						component.invalidateDrawable();
 						let readIdx = 0;
 						if(mix !== 1.0)
 						{
