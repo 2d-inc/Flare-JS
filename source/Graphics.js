@@ -19,7 +19,7 @@ export default class Graphics
 		this._Cleanup = [];
 	}
 
-	initialize(cb)
+	initialize(cb, staticPath)
 	{
 		if (CanvasKit === null)
 		{
