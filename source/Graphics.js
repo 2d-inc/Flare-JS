@@ -23,7 +23,7 @@ export default class Graphics
 			CanvasKitInit(
 				{
 					locateFile: (file) => staticPath + file,
-				}).then((CK) => 
+				}).ready().then((CK) => 
 				{
 					// when debugging, it can be handy to not run directly in the then, because if there
 					// is a failure (for example, miscalling an API), the WASM loader tries to re-load
