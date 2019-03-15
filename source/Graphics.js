@@ -4,12 +4,10 @@ import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
 import BlendMode from "./BlendMode.js";
 import { PointType } from "./PathPoint.js";
-
 /// #if CanvasKitLocation == "embedded"
 import CanvasKitInit from '../canvaskit/canvaskit.js';
 import CanvasKitModule from '../canvaskit/canvaskit.wasm';
 /// #endif
-
 let CanvasKit = null;
 
 export default class Graphics
@@ -21,7 +19,7 @@ export default class Graphics
 		this._Cleanup = [];
 	}
 
-	initialize(staticPath, cb)
+	initialize(cb)
 	{
 		if (CanvasKit === null)
 		{
@@ -57,7 +55,9 @@ export default class Graphics
 
 	init()
 	{
-		this.updateSurface();
+		this._GLContext = CanvasKit.GetWebGLContext(this._Canvas);
+		this._SkContext = CanvasKit.MakeGrContext(this._GLContext);
+		this.updateBackendSurface();
 
 		const clearPaint = new CanvasKit.SkPaint();
 		clearPaint.setStyle(CanvasKit.PaintStyle.Fill);
@@ -66,19 +66,20 @@ export default class Graphics
 		this._ClearPaint = clearPaint;
 	}
 
-	updateSurface()
+	updateBackendSurface()
 	{
 		if (!CanvasKit)
 		{
 			return;
 		}
-		if (this._CanvasSurface)
+		if (this._SkSurface)
 		{
-			this._CanvasSurface.delete();
+			this._SkSurface.delete();
 		}
-		this._CanvasSurface = CanvasKit.MakeCanvasSurface(this._Canvas.id);
-		this._SkCanvas = this._CanvasSurface.getCanvas();
-		this._Context = CanvasKit.currentContext();
+		CanvasKit.setCurrentContext(this._GLContext);
+
+		this._SkSurface = CanvasKit.MakeOnScreenGLSurface(this._SkContext, this.width, this.height);
+		this._SkCanvas = this._SkSurface.getCanvas();
 	}
 
 	save()
@@ -106,7 +107,7 @@ export default class Graphics
 
 	get ctx()
 	{
-		return this._Context;
+		return this._GLContext;
 	}
 
 	dispose()
@@ -126,17 +127,18 @@ export default class Graphics
 
 	clear(color)
 	{
-		const { _Context: ctx, _ClearPaint: clearPaint, _SkCanvas: skCanvas, width, height } = this;
+		const { _GLContext: ctx, _ClearPaint: clearPaint, _SkCanvas: skCanvas, width, height } = this;
 		CanvasKit.setCurrentContext(ctx);
 		if (color)
 		{
 			clearPaint.setColor(CanvasKit.Color(Math.round(color[0] * 255), Math.round(color[1] * 255), Math.round(color[2] * 255), color[3]));
-			clearPaint.setBlendMode(CanvasKit.BlendMode.SrcOver);
+			clearPaint.setBlendMode(CanvasKit.BlendMode.Src);
 		}
 		else
 		{
 			clearPaint.setBlendMode(CanvasKit.BlendMode.Clear);
 		}
+
 		skCanvas.drawRect(CanvasKit.LTRBRect(0, 0, width, height), clearPaint);
 		skCanvas.save();
 	}
@@ -355,7 +357,7 @@ export default class Graphics
 	flush()
 	{
 		this._SkCanvas.restore();
-		this._CanvasSurface.flush();
+		this._SkSurface.flush();
 
 		for (const obj of this._Cleanup)
 		{
@@ -380,7 +382,7 @@ export default class Graphics
 		{
 			this._Canvas.width = width;
 			this._Canvas.height = height;
-			this.updateSurface();
+			this.updateBackendSurface();
 			return true;
 		}
 		return false;
