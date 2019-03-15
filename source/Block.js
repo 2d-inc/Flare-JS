@@ -43,7 +43,8 @@ const Blocks =
 	ActorPolygon: block(112, "polygon"),
 	ActorSkin: block(113, "skin"),
 	ActorArtboard: block(114, "artboard"),
-	Artboards: block(115, "artboards")
+	Artboards: block(115, "artboards"),
+	ActorCacheNode: block(116, "cacheNode")
 };
 
 const _Types = {};

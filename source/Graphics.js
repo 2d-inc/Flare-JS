@@ -5,6 +5,11 @@ import StrokeJoin from "./StrokeJoin.js";
 import BlendMode from "./BlendMode.js";
 import { PointType } from "./PathPoint.js";
 
+/// #if CanvasKitLocation == "embedded"
+import CanvasKitInit from '../canvaskit/canvaskit.js';
+import CanvasKitModule from '../canvaskit/canvaskit.wasm';
+/// #endif
+
 let CanvasKit = null;
 
 export default class Graphics
@@ -22,7 +27,11 @@ export default class Graphics
 		{
 			CanvasKitInit(
 				{
+				/// #if CanvasKitLocation == "embedded"
+					wasmBinary: CanvasKitModule,
+				/// #else
 					locateFile: (file) => staticPath + file,
+				/// #endif 
 				}).ready().then((CK) => 
 				{
 					// when debugging, it can be handy to not run directly in the then, because if there

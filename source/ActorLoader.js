@@ -135,6 +135,7 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadActorEvent(block.reader, new ActorEvent());
 				break;
 			case _BlockTypes.ActorNode:
+			case _BlockTypes.ActorCacheNode:
 				component = _ReadActorNode(block.reader, new ActorNode());
 				break;
 			case _BlockTypes.ActorBone:

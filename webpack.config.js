@@ -8,6 +8,10 @@ const config =
 	mode: "development",
 	target: "web",
 	devtool: "source-map",
+	node:
+	{
+		fs: "empty"
+	},
 	entry: 
 	{
 		Flare: APP_DIR + "/Flare.js"
@@ -24,9 +28,24 @@ const config =
 		rules :
 		[
 			{
-				test : /\.js?/,
-				include : APP_DIR,
-				use: { loader: "babel-loader" }
+				test : /\.js$/,
+				use: [
+					{ loader: "babel-loader"},
+					{
+						loader: "ifdef-loader",
+						options: 
+						{
+							CanvasKitLocation: "embedded",
+							"ifdef-verbose": true,       // add this for verbose output
+							"ifdef-triple-slash": true 
+						}
+					}
+				]
+			},
+			{
+				test: /\.wasm$/,
+				type: "javascript/auto",
+				use: { loader: "arraybuffer-loader" }
 			}
 		]
 	}
