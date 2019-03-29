@@ -5,6 +5,7 @@ Javascript ES6 runtime with Canvas rendering.
 
 ### 29 March 2019 Example Fix
 Thanks to [krispypen](https://github.com/2d-inc/Flare-JS/issues/2#issuecomment-450876872) I got the example to work
+
 ```bash
 npm install gl-matrix canvaskit-wasm
 npm start --
@@ -12,7 +13,10 @@ cp node_modules/canvaskit-wasm/bin/canvaskit.* build/
 cp node_modules/gl-matrix/dist/gl-matrix.js build/
 wget "https://github.com/2d-inc/Flare-Flutter/raw/master/example/simple/assets/Filip.flr" -O example/Filip.flr
 sed -i '' 's/ball\.flj/Filip\.flr/g' example/example.html
-http-server ##npm install -g http-server to install it
+npm install -g http-server
+http-server
+```
+```bash
 open "http://localhost:8080/example/example.html"
 ```
 
@@ -36,11 +40,11 @@ There are a few steps to start rendering a Flare file:
 2. Instantiate and initialize the `Graphics` object with the `canvas` reference
 3. Start the render loop with `window.requestAnimationFrame()`
 4. Load the an Actor from file with `Flare.ActorLoader.load(fileLocation, callback)`
-5. Initialize and instantiate the `Actor` - that will initialize the `ActorArtboard`s for the loaded Flare file: 
+5. Initialize and instantiate the `Actor` - that will initialize the `ActorArtboard`s for the loaded Flare file:
     - First `Actor.initialize()`
     - then `actor.makeInstance()`
 6. Create a new `AnimationInstance(actor, animation)`
-7. Advance the `AnimationInstance` within the `window.requestAnimationFrame` callback: 
+7. Advance the `AnimationInstance` within the `window.requestAnimationFrame` callback:
     - increase its time value with the provided setter `animationInstance.time`
     - then apply it with `animationInstance.apply()`
 8. Advance the actor: `actor.advance(elapsed)`
@@ -71,7 +75,7 @@ The `<script>` tag will have implement the `onLoad()` callback for the `body` HT
 
 ### example.js
 
-This `js` file creates a `FlareExample` object. 
+This `js` file creates a `FlareExample` object.
 Its constructor initialized the `Graphics` object, starts the rendering loop and calls-back to the script.
 
 The callback, in the HTML file will call `FlareExample.load(filename)` to load the file from disk. Once `Flare.ActorLoader` is done, its load callback will finish setting up the actor within the Example via `FlareExample.setActor()`.
