@@ -4,7 +4,8 @@ Javascript ES6 runtime with Canvas rendering.
 ---
 
 ### 29 March 2019 Example Fix
-Thanks to [krispypen](https://github.com/2d-inc/Flare-JS/issues/2#issuecomment-450876872) I got the example to work
+
+Thanks to [mhamri](https://github.com/2d-inc/Flare-JS/pull/16) and [krispypen](https://github.com/2d-inc/Flare-JS/issues/2#issuecomment-450876872) I got the example to work
 
 ```bash
 npm install gl-matrix canvaskit-wasm
