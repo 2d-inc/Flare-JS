@@ -1,6 +1,23 @@
 ## Flare-JS
 Javascript ES6 runtime with Canvas rendering.
 
+---
+
+### 29 March 2019 Example Fix
+Thanks to [krispypen](https://github.com/2d-inc/Flare-JS/issues/2#issuecomment-450876872) I got the example to work
+```bash
+npm install gl-matrix canvaskit-wasm
+npm start --
+cp node_modules/canvaskit-wasm/bin/canvaskit.* build/
+cp node_modules/gl-matrix/dist/gl-matrix.js build/
+wget "https://github.com/2d-inc/Flare-Flutter/raw/master/example/simple/assets/Filip.flr" -O example/Filip.flr
+sed -i '' 's/ball\.flj/Filip\.flr/g' example/example.html
+http-server ##npm install -g http-server to install it
+open "http://localhost:8080/example/example.html"
+```
+
+---
+
 ### CanvasKit vs Canvas
 There are currently two branches: master with CanvasKit rendering (Skia via WebAssembly) and context2d with the standard CanvasRenderingContext2D. The context2d branch is deprecated.
 
