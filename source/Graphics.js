@@ -12,11 +12,30 @@ let CanvasKit = null;
 
 export default class Graphics
 {
-	constructor(canvas)
+	constructor(canvasOrGraphics)
 	{
-		this._Canvas = canvas;
+		if(canvasOrGraphics instanceof HTMLCanvasElement)
+		{
+			this._Canvas = canvasOrGraphics;
+			this._Cleanup = [];
+		}
+		else
+		{
+			const graphics = canvasOrGraphics;
+			this._onSurfaceUpdated = () =>
+			{
+				this._SkContext = graphics.skCtx;
+				this._SkCanvas = graphics.skCanvas;
+			};
+			graphics.addEventListener("surfaceUpdate", this._onSurfaceUpdated);
+			CanvasKit = graphics.canvasKit;
+			this._SkContext = graphics.skCtx;
+			this._SkCanvas = graphics.skCanvas;
+			this._ProxyGraphics = canvasOrGraphics;
+			this._ViewTransform = mat2d.create();
+			this._Cleanup = graphics._Cleanup;
+		}
 		this._ViewTransform = mat2d.create();
-		this._Cleanup = [];
 	}
 
 	initialize(cb, staticPath)
@@ -112,7 +131,10 @@ export default class Graphics
 
 	dispose()
 	{
-
+		if(this._proxy)
+		{
+			this._proxy.removeEventListener("surfaceUpdate", this._onSurfaceUpdated);
+		}
 	}
 
 	get width()
