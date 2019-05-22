@@ -186,9 +186,6 @@ export default class Graphics
 
 	addPath(path, addition, matrix)
 	{
-		// path.addPath(addition, [matrix[0], matrix[1], 0,
-		// 	matrix[2], matrix[3], 0,
-		// 	matrix[4], matrix[5],  1]);
 		path.addPath(addition, [matrix[0], matrix[2], matrix[4],
 		matrix[1], matrix[3], matrix[5],
 			0, 0, 1]);
@@ -201,7 +198,7 @@ export default class Graphics
 
 	makeImageShader(image)
 	{
-		return CanvasKit.MakeImageShader(image, CanvasKit.TileMode.Clamp, CanvasKit.TileMode.Clamp);
+		return image.makeShader(CanvasKit.TileMode.Clamp, CanvasKit.TileMode.Clamp);
 	}
 
 	makePath(ephemeral)
