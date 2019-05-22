@@ -29,6 +29,7 @@ export default class Graphics
 			};
 			graphics.addEventListener("surfaceUpdate", this._onSurfaceUpdated);
 			CanvasKit = graphics.canvasKit;
+			BlendMode.setCanvasKit(CanvasKit);
 			this._SkContext = graphics.skCtx;
 			this._SkCanvas = graphics.skCanvas;
 			this._ProxyGraphics = canvasOrGraphics;
