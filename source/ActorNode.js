@@ -51,6 +51,11 @@ export default class ActorNode extends ActorComponent
 		return true;
 	}
 
+	get children()
+	{
+		return this._Children;
+	}
+
 	eachChildRecursive(cb)
 	{
 		const children = this._Children;

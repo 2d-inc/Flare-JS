@@ -7,3 +7,6 @@ exports.ActorColliderLine = require("./ActorColliderLine.js").default;
 exports.ActorColliderCircle = require("./ActorColliderCircle.js").default;
 exports.ActorColliderRectangle = require("./ActorColliderRectangle.js").default;
 exports.ActorColliderTriangle = require("./ActorColliderTriangle.js").default;
+exports.ActorBone = require("./ActorBone.js").default;
+exports.ActorNode = require("./ActorNode.js").default;
+exports.ActorTargetNode = require("./ActorTargetNode.js").default;

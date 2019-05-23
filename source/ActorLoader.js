@@ -5,6 +5,7 @@ import JSONReader from "./Readers/JSONReader.js";
 import Actor from "./Actor.js";
 import ActorEvent from "./ActorEvent.js";
 import ActorNode from "./ActorNode.js";
+import ActorTargetNode from "./ActorTargetNode.js";
 import ActorNodeSolo from "./ActorNodeSolo.js";
 import ActorBone from "./ActorBone.js";
 import ActorEllipse from "./ActorEllipse.js";
@@ -37,17 +38,17 @@ import ActorShape from "./ActorShape.js";
 import ActorPath from "./ActorPath.js";
 import ActorSkin from "./ActorSkin.js";
 import ActorArtboard from "./ActorArtboard.js";
-import {ColorFill, ColorStroke, GradientFill, GradientStroke, RadialGradientFill, RadialGradientStroke} from "./ColorComponent.js";
-import {StraightPathPoint, CubicPathPoint, PointType} from "./PathPoint.js";
-import {KeyFrame, PathsKeyFrame} from "./KeyFrame.js";
-import {mat2d, vec2} from "gl-matrix";
-import {Hold, Linear, Cubic} from "./Interpolation.js";
+import { ColorFill, ColorStroke, GradientFill, GradientStroke, RadialGradientFill, RadialGradientStroke } from "./ColorComponent.js";
+import { StraightPathPoint, CubicPathPoint, PointType } from "./PathPoint.js";
+import { KeyFrame, PathsKeyFrame } from "./KeyFrame.js";
+import { mat2d, vec2 } from "gl-matrix";
+import { Hold, Linear, Cubic } from "./Interpolation.js";
 import TrimPath from "./TrimPath.js";
 import Block from "./Block.js";
 import BlendMode from "./BlendMode.js";
 
 const _BlockTypes = Block.Types;
-const {Off:TrimPathOff} = TrimPath;
+const { Off: TrimPathOff } = TrimPath;
 
 const _AnimatedPropertyTypes = AnimatedProperty.Types;
 
@@ -66,7 +67,7 @@ const _Readers = {
 
 function _ReadNextBlock(reader, error, block)
 {
-	if(reader.isEOF())
+	if (reader.isEOF())
 	{
 		return null;
 	}
@@ -77,7 +78,7 @@ function _ReadNextBlock(reader, error, block)
 	{
 		// blockType = reader.readUint8();
 		blockType = reader.readBlockType(block);
-		if(blockType === undefined)
+		if (blockType === undefined)
 		{
 			return null;
 		}
@@ -86,16 +87,16 @@ function _ReadNextBlock(reader, error, block)
 		container = new streamReader["container"](length);
 		reader.readRaw(container, length);
 	}
-	catch(err)
+	catch (err)
 	{
 		console.log(err.constructor);
-		if(error)
+		if (error)
 		{
 			error(err);
 		}
 		return null;
 	}
-	return {type:blockType, reader: new streamReader.stream(container)};
+	return { type: blockType, reader: new streamReader.stream(container) };
 }
 
 function _ReadComponentsBlock(artboard, reader)
@@ -105,10 +106,10 @@ function _ReadComponentsBlock(artboard, reader)
 
 	// Guaranteed from the exporter to be in index order.
 	let block = null;
-	while((block = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;}, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, Block)) !== null)
 	{
 		let component = null;
-		switch(block.type)
+		switch (block.type)
 		{
 			case _BlockTypes.CustomIntProperty:
 			case _BlockTypes.CustomStringProperty:
@@ -137,6 +138,9 @@ function _ReadComponentsBlock(artboard, reader)
 			case _BlockTypes.ActorNode:
 			case _BlockTypes.ActorCacheNode:
 				component = _ReadActorNode(block.reader, new ActorNode());
+				break;
+			case _BlockTypes.ActorTargetNode:
+				component = _ReadActorNode(block.reader, new ActorTargetNode());
 				break;
 			case _BlockTypes.ActorBone:
 				component = _ReadActorBone(block.reader, new ActorBone());
@@ -226,7 +230,7 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadActorComponent(block.reader, new ActorSkin());
 				break;
 		}
-		if(component)
+		if (component)
 		{
 			component._Idx = actorComponents.length;
 		}
@@ -248,46 +252,46 @@ function _ReadAnimationBlock(artboard, reader)
 	reader.openArray("keyed");
 	// Read the number of keyed nodes.
 	const numKeyedComponents = reader.readUint16Length();
-	if(numKeyedComponents > 0)
-	{	
-		for(let i = 0; i < numKeyedComponents; i++)
+	if (numKeyedComponents > 0)
+	{
+		for (let i = 0; i < numKeyedComponents; i++)
 		{
 			reader.openObject("component");
 			const componentIndex = reader.readId("component");
 			let component = artboard._Components[componentIndex];
-			if(!component)
+			if (!component)
 			{
-					// Bad component was loaded, read past the animation data.
-					// Note this only works after version 12 as we can read by the entire set of properties.
-					// TODO: test this case with JSON.
-					const props = reader.readUint16();
-					for(let j = 0; j < props; j++)
-					{
-						let propertyBlock = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;});
-					}
+				// Bad component was loaded, read past the animation data.
+				// Note this only works after version 12 as we can read by the entire set of properties.
+				// TODO: test this case with JSON.
+				const props = reader.readUint16();
+				for (let j = 0; j < props; j++)
+				{
+					let propertyBlock = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; });
+				}
 			}
 			else
 			{
 				const animatedComponent = new AnimatedComponent(componentIndex);
-				if(component.constructor === ActorEvent)
+				if (component.constructor === ActorEvent)
 				{
 					// N.B. ActorEvents currently only keyframe their trigger so we cn optimize them into a separate array.
-					animation._TriggerComponents.push(animatedComponent);	
+					animation._TriggerComponents.push(animatedComponent);
 				}
 				else
 				{
 					animation._Components.push(animatedComponent);
 				}
-				
+
 				const props = reader.readUint16Length();
-				for(let j = 0; j < props; j++)
+				for (let j = 0; j < props; j++)
 				{
-					let propertyBlock = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;}, AnimatedProperty);
+					let propertyBlock = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, AnimatedProperty);
 					const propertyReader = propertyBlock.reader;
 					const propertyType = propertyBlock.type;
 
 					let validProperty = false;
-					switch(propertyType)
+					switch (propertyType)
 					{
 						case _AnimatedPropertyTypes.PosX:
 						case _AnimatedPropertyTypes.PosY:
@@ -329,7 +333,7 @@ function _ReadAnimationBlock(artboard, reader)
 						default:
 							break;
 					}
-					if(!validProperty)
+					if (!validProperty)
 					{
 						continue;
 					}
@@ -339,15 +343,15 @@ function _ReadAnimationBlock(artboard, reader)
 					propertyReader.openArray("frames");
 					const keyFrameCount = propertyReader.readUint16Length();
 					let lastKeyFrame = null;
-					for(let k = 0; k < keyFrameCount; k++)
+					for (let k = 0; k < keyFrameCount; k++)
 					{
 						let keyFrame = new KeyFrame(animatedProperty);
 
 						propertyReader.openObject("frame");
-						
+
 						keyFrame._Time = propertyReader.readFloat64("time");
 
-						switch(propertyType)
+						switch (propertyType)
 						{
 							case _AnimatedPropertyTypes.IsCollisionEnabled:
 							case _AnimatedPropertyTypes.BooleanProperty:
@@ -359,36 +363,36 @@ function _ReadAnimationBlock(artboard, reader)
 								keyFrame._Interpolator = Hold.instance;
 								break;
 							default:
-							{
-								const type = propertyReader.readUint8("interpolatorType");
-								switch(type)
 								{
-									case 0:
-										keyFrame._Interpolator = Hold.instance;
-										break;
-									case 1:
-										keyFrame._Interpolator = Linear.instance;
-										break;
-									case 2:
-										keyFrame._Interpolator = new Cubic(
-											propertyReader.readFloat32("cubicX1"),
-											propertyReader.readFloat32("cubicY1"), 
-											propertyReader.readFloat32("cubicX2"), 
-											propertyReader.readFloat32("cubicY2")
-										);
-										break;
+									const type = propertyReader.readUint8("interpolatorType");
+									switch (type)
+									{
+										case 0:
+											keyFrame._Interpolator = Hold.instance;
+											break;
+										case 1:
+											keyFrame._Interpolator = Linear.instance;
+											break;
+										case 2:
+											keyFrame._Interpolator = new Cubic(
+												propertyReader.readFloat32("cubicX1"),
+												propertyReader.readFloat32("cubicY1"),
+												propertyReader.readFloat32("cubicX2"),
+												propertyReader.readFloat32("cubicY2")
+											);
+											break;
+									}
+									break;
 								}
-								break;
-							}
 						}
-						if(propertyType === _AnimatedPropertyTypes.PathVertices)
+						if (propertyType === _AnimatedPropertyTypes.PathVertices)
 						{
 							const path = artboard._Components[animatedComponent._ComponentIndex];
 							const pointCount = path._Points.length;
 							const points = [];
-							
+
 							propertyReader.openArray("value");
-							for(let j = 0; j < pointCount; j++)
+							for (let j = 0; j < pointCount; j++)
 							{
 								const point = path._Points[j];
 
@@ -396,7 +400,7 @@ function _ReadAnimationBlock(artboard, reader)
 								const posY = propertyReader.readFloat32("translationX");
 								points.push(posX, posY);
 
-								if(point.constructor === StraightPathPoint)
+								if (point.constructor === StraightPathPoint)
 								{
 									points.push(propertyReader.readFloat32("radius"));
 								}
@@ -405,7 +409,7 @@ function _ReadAnimationBlock(artboard, reader)
 									const inX = propertyReader.readFloat32("inValueX");
 									const inY = propertyReader.readFloat32("inValueY");
 									points.push(inX, inY);
-									
+
 									const outX = propertyReader.readFloat32("outValueX");
 									const outY = propertyReader.readFloat32("outValueY");
 									points.push(outX, outY);
@@ -414,52 +418,52 @@ function _ReadAnimationBlock(artboard, reader)
 							propertyReader.closeArray();
 							keyFrame._Value = new Float32Array(points);
 						}
-						else if(propertyType === _AnimatedPropertyTypes.FillColor || propertyType === _AnimatedPropertyTypes.StrokeColor)
+						else if (propertyType === _AnimatedPropertyTypes.FillColor || propertyType === _AnimatedPropertyTypes.StrokeColor)
 						{
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4), "value");
 						}
 
-						else if(propertyType === _AnimatedPropertyTypes.FillGradient || propertyType === _AnimatedPropertyTypes.StrokeGradient || propertyType === _AnimatedPropertyTypes.StrokeRadial || propertyType === _AnimatedPropertyTypes.FillRadial)
+						else if (propertyType === _AnimatedPropertyTypes.FillGradient || propertyType === _AnimatedPropertyTypes.StrokeGradient || propertyType === _AnimatedPropertyTypes.StrokeRadial || propertyType === _AnimatedPropertyTypes.FillRadial)
 						{
 							const fillLength = propertyReader.readUint16("length");
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(fillLength), "value");
 						}
-						else if(propertyType === _AnimatedPropertyTypes.Trigger)
+						else if (propertyType === _AnimatedPropertyTypes.Trigger)
 						{
 							// No value on keyframe.
 						}
-						else if(propertyType === _AnimatedPropertyTypes.IntProperty)
+						else if (propertyType === _AnimatedPropertyTypes.IntProperty)
 						{
 							keyFrame._Value = propertyReader.readInt32("value");
 						}
-						else if(propertyType === _AnimatedPropertyTypes.StringProperty)
+						else if (propertyType === _AnimatedPropertyTypes.StringProperty)
 						{
 							keyFrame._Value = propertyReader.readString("value");
 						}
-						else if(propertyType === _AnimatedPropertyTypes.BooleanProperty || propertyType === _AnimatedPropertyTypes.IsCollisionEnabled)
+						else if (propertyType === _AnimatedPropertyTypes.BooleanProperty || propertyType === _AnimatedPropertyTypes.IsCollisionEnabled)
 						{
 							keyFrame._Value = propertyReader.readBool("value");
 						}
-						else if(propertyType === _AnimatedPropertyTypes.DrawOrder)
+						else if (propertyType === _AnimatedPropertyTypes.DrawOrder)
 						{
 							propertyReader.openArray("drawOrder");
 							const orderedImages = propertyReader.readUint16Length();
 							const orderValue = [];
-							for(let l = 0; l < orderedImages; l++)
+							for (let l = 0; l < orderedImages; l++)
 							{
 								propertyReader.openObject("order");
 								const idx = propertyReader.readId("component");
 								const order = propertyReader.readUint16("order");
 								propertyReader.closeObject();
 								orderValue.push({
-									componentIdx:idx,
-									value:order
+									componentIdx: idx,
+									value: order
 								});
 							}
 							propertyReader.closeArray();
 							keyFrame._Value = orderValue;
 						}
-						else if(propertyType === _AnimatedPropertyTypes.ImageVertices)
+						else if (propertyType === _AnimatedPropertyTypes.ImageVertices)
 						{
 							keyFrame._Value = new Float32Array(component._NumVertices * 2);
 							propertyReader.readFloat32Array(keyFrame._Value, "array");
@@ -469,13 +473,13 @@ function _ReadAnimationBlock(artboard, reader)
 							keyFrame._Value = propertyReader.readFloat32("value");
 						}
 
-						if(propertyType === _AnimatedPropertyTypes.DrawOrder)
+						if (propertyType === _AnimatedPropertyTypes.DrawOrder)
 						{
 							// Always hold draw order.
 							keyFrame._Interpolator = Hold.instance;
 						}
 
-						if(lastKeyFrame)
+						if (lastKeyFrame)
 						{
 							lastKeyFrame.setNext(keyFrame);
 						}
@@ -483,7 +487,7 @@ function _ReadAnimationBlock(artboard, reader)
 						lastKeyFrame = keyFrame;
 						propertyReader.closeObject();
 					}
-					if(lastKeyFrame)
+					if (lastKeyFrame)
 					{
 						lastKeyFrame.setNext(null);
 					}
@@ -504,9 +508,9 @@ function _ReadAnimationsBlock(artboard, reader)
 	const animationsCount = reader.readUint16Length(); // Keep the reader aligned when using BinaryReader.
 	let block = null;
 	// The animations block only contains a list of animations, so we don't need to track how many we've read in.
-	while((block = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;}, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, Block)) !== null)
 	{
-		switch(block.type)
+		switch (block.type)
 		{
 			case _BlockTypes.Animation:
 				_ReadAnimationBlock(artboard, block.reader);
@@ -525,9 +529,9 @@ function _ReadNestedActorAssets(actor, reader)
 {
 	let nestedActorCount = reader.readUint16();
 	let block = null;
-	while((block=_ReadNextBlock(reader, function(err) {actor.error = err;})) !== null)
+	while ((block = _ReadNextBlock(reader, function (err) { actor.error = err; })) !== null)
 	{
-		switch(block.type)
+		switch (block.type)
 		{
 			case _BlockTypes.NestedActorAsset:
 				_ReadNestedActorAssetBlock(actor, block.reader);
@@ -543,7 +547,7 @@ function _ReadNestedActorAssets(actor, reader)
 //     canvas.height = img.height;
 //     const ctx = canvas.getContext("2d");
 // 	ctx.drawImage(img, 0, 0, img.width, img.height);
-	
+
 // 	if(imga)
 // 	{
 // 		const imageDataRGB = ctx.getImageData(0,0,canvas.width, canvas.height);
@@ -554,13 +558,13 @@ function _ReadNestedActorAssets(actor, reader)
 // 		canvasAlpha.height = img.height;
 // 		const actx = canvasAlpha.getContext("2d");
 // 		actx.drawImage(imga, 0, 0, imga.width, imga.height);
-	
+
 // 		const imageDataAlpha = actx.getImageData(0,0,canvasAlpha.width, canvasAlpha.height);
 // 		const dataAlpha = imageDataAlpha.data;
-	
+
 // 		const pixels = dataAlpha.length/4;
 // 		let widx = 3;
-	
+
 // 		for(let j = 0; j < pixels; j++)
 // 		{
 // 			dataRGB[widx] = dataAlpha[widx-1];
@@ -595,7 +599,7 @@ function _ReadNestedActorAssets(actor, reader)
 // 			_BuildJpegAtlas(_This, img, imga, callback);
 // 		}
 // 	};
-	
+
 // 	if(dataAlpha)
 // 	{
 // 		imga = document.createElement("img");
@@ -624,18 +628,18 @@ function _ReadAtlasesBlock(actor, reader, callback)
 	let loadedCount = 0;
 	let waiting = waitCount !== loadedCount;
 
-	for(let i = 0; i < numAtlases; i++)
+	for (let i = 0; i < numAtlases; i++)
 	{
 		reader.readImage(isOOB, (data) =>
 		{
 			actor._Atlases.push(new Atlas(data));
 			loadedCount++;
-			if(loadedCount === waitCount)
+			if (loadedCount === waitCount)
 			{
 				waiting = false;
 				callback();
 			}
-		}); 
+		});
 	}
 
 	reader.closeArray();
@@ -648,19 +652,19 @@ function _LoadNestedAssets(loader, actor, callback)
 {
 	let loadCount = actor._NestedActorAssets.length;
 	let nestedLoad = loader.loadNestedActor;
-	if(loadCount == 0 || !nestedLoad)
+	if (loadCount == 0 || !nestedLoad)
 	{
 		callback(actor);
 		return;
 	}
 
-	for(let asset of actor._NestedActorAssets)
+	for (let asset of actor._NestedActorAssets)
 	{
-		nestedLoad(asset, function(nestedActor)
+		nestedLoad(asset, function (nestedActor)
 		{
 			asset._Actor = nestedActor;
 			loadCount--;
-			if(loadCount <= 0)
+			if (loadCount <= 0)
 			{
 				callback(actor);
 			}
@@ -675,19 +679,19 @@ function _ReadArtboardsBlock(actor, reader)
 
 	// Guaranteed from the exporter to be in index order.
 	let block = null;
-	while((block = _ReadNextBlock(reader, function(err) {actor.error = err;}, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function (err) { actor.error = err; }, Block)) !== null)
 	{
-		switch(block.type)
+		switch (block.type)
 		{
 			case _BlockTypes.ActorArtboard:
-			{
-				const artboard = _ReadActorArtboard(block.reader, new ActorArtboard(actor), block.type);
-				if(artboard)
 				{
-					actorArtboards.push(artboard);
+					const artboard = _ReadActorArtboard(block.reader, new ActorArtboard(actor), block.type);
+					if (artboard)
+					{
+						actorArtboards.push(artboard);
+					}
+					break;
 				}
-				break;
-			}
 		}
 	}
 }
@@ -696,11 +700,11 @@ function _ReadActor(loader, data, callback)
 {
 	let reader = new BinaryReader(new Uint8Array(data));
 	// Check signature
-	if(reader.readUint8() !== 70 || reader.readUint8() !== 76 || reader.readUint8() !== 65 || reader.readUint8() !== 82 || reader.readUint8() !== 69)
+	if (reader.readUint8() !== 70 || reader.readUint8() !== 76 || reader.readUint8() !== 65 || reader.readUint8() !== 82 || reader.readUint8() !== 69)
 	{
 		const dataView = new DataView(data);
 		const stringData = new TextDecoder("utf-8").decode(dataView);
-		reader = new JSONReader({"container": JSON.parse(stringData)});
+		reader = new JSONReader({ "container": JSON.parse(stringData) });
 	}
 
 	const version = reader.readUint32("version");
@@ -708,19 +712,19 @@ function _ReadActor(loader, data, callback)
 	actor.dataVersion = version;
 	let block = null;
 	let waitForAtlas = false;
-	while((block = _ReadNextBlock(reader, function(err) {actor.error = err;}, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function (err) { actor.error = err; }, Block)) !== null)
 	{
-		switch(block.type)
+		switch (block.type)
 		{
 			case _BlockTypes.Artboards:
 				_ReadArtboardsBlock(actor, block.reader);
 				break;
 			case _BlockTypes.Atlases:
 
-				if(_ReadAtlasesBlock(actor, block.reader, function()
-					{
-						_LoadNestedAssets(loader, actor, callback);
-					}))
+				if (_ReadAtlasesBlock(actor, block.reader, function ()
+				{
+					_LoadNestedAssets(loader, actor, callback);
+				}))
 				{
 					waitForAtlas = true;
 				}
@@ -730,7 +734,7 @@ function _ReadActor(loader, data, callback)
 				break;
 		}
 	}
-	if(!waitForAtlas)
+	if (!waitForAtlas)
 	{
 		_LoadNestedAssets(loader, actor, callback);
 	}
@@ -747,9 +751,9 @@ function _ReadActorArtboard(reader, artboard)
 	reader.readFloat32Array(artboard._Color, "color");
 
 	let block = null;
-	while((block = _ReadNextBlock(reader, function(err) {artboard.actor.error = err;}, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, Block)) !== null)
 	{
-		switch(block.type)
+		switch (block.type)
 		{
 			case _BlockTypes.Nodes:
 				_ReadComponentsBlock(artboard, block.reader);
@@ -781,7 +785,7 @@ function _ReadCustomProperty(reader, component, type)
 {
 	_ReadActorComponent(reader, component);
 
-	switch(type)
+	switch (type)
 	{
 		case _BlockTypes.CustomIntProperty:
 			component._PropertyType = CustomProperty.Type.Integer;
@@ -880,10 +884,10 @@ function _ReadActorNode(reader, component)
 
 	reader.openArray("clips");
 	const clipCount = reader.readUint8Length();
-	if(clipCount)
+	if (clipCount)
 	{
 		component._Clips = [];
-		for(let i = 0; i < clipCount; i++)
+		for (let i = 0; i < clipCount; i++)
 		{
 			component._Clips.push(reader.readId("clip"));
 		}
@@ -943,11 +947,11 @@ function _ReadActorIKTarget(version, reader, component)
 	component._InvertDirection = reader.readUint8() === 1;
 
 	let numInfluencedBones = reader.readUint8();
-	if(numInfluencedBones > 0)
+	if (numInfluencedBones > 0)
 	{
 		component._InfluencedBones = [];
 
-		for(let i = 0; i < numInfluencedBones; i++)
+		for (let i = 0; i < numInfluencedBones; i++)
 		{
 			component._InfluencedBones.push(reader.readUint16());
 		}
@@ -978,11 +982,11 @@ function _ReadActorIKConstraint(reader, component)
 
 	reader.openArray("bones");
 	const numInfluencedBones = reader.readUint8Length();
-	if(numInfluencedBones > 0)
+	if (numInfluencedBones > 0)
 	{
 		component._InfluencedBones = [];
 
-		for(let i = 0; i < numInfluencedBones; i++)
+		for (let i = 0; i < numInfluencedBones; i++)
 		{
 			component._InfluencedBones.push(reader.readId(""));// No need for a label here, since we're just clearing elements from the array.
 		}
@@ -1015,19 +1019,19 @@ function _ReadRotationConstraint(reader, component)
 {
 	_ReadActorTargetedConstraint(reader, component);
 
-	if((component._Copy = reader.readBool("copy")))
+	if ((component._Copy = reader.readBool("copy")))
 	{
 		component._Scale = reader.readFloat32("scale");
 	}
-	if((component._EnableMin = reader.readBool("enableMin")))
+	if ((component._EnableMin = reader.readBool("enableMin")))
 	{
 		component._Min = reader.readFloat32("min");
 	}
-	if((component._EnableMax = reader.readBool("enableMax")))
+	if ((component._EnableMax = reader.readBool("enableMax")))
 	{
 		component._Max = reader.readFloat32("max");
 	}
-	
+
 	component._Offset = reader.readBool("offset");
 	component._SourceSpace = reader.readUint8("sourceSpaceId");
 	component._DestSpace = reader.readUint8("destSpaceId");
@@ -1040,29 +1044,29 @@ function _ReadAxisConstraint(reader, component)
 {
 	_ReadActorTargetedConstraint(reader, component);
 	// X Axis
-	if((component._CopyX = reader.readBool("copyX")))
+	if ((component._CopyX = reader.readBool("copyX")))
 	{
 		component._ScaleX = reader.readFloat32("scaleX");
 	}
-	if((component._EnableMinX = reader.readBool("enableMinX")))
+	if ((component._EnableMinX = reader.readBool("enableMinX")))
 	{
 		component._MinX = reader.readFloat32("minX");
 	}
-	if((component._EnableMaxX = reader.readBool("enableMaxX")))
+	if ((component._EnableMaxX = reader.readBool("enableMaxX")))
 	{
 		component._MaxX = reader.readFloat32("maxX");
 	}
 
 	// Y Axis
-	if((component._CopyY = reader.readBool("copyY")))
+	if ((component._CopyY = reader.readBool("copyY")))
 	{
 		component._ScaleY = reader.readFloat32("scaleY");
 	}
-	if((component._EnableMinY = reader.readBool("enableMinY")))
+	if ((component._EnableMinY = reader.readBool("enableMinY")))
 	{
 		component._MinY = reader.readFloat32("minY");
 	}
-	if((component._EnableMaxY = reader.readBool("enableMaxY")))
+	if ((component._EnableMaxY = reader.readBool("enableMaxY")))
 	{
 		component._MaxY = reader.readFloat32("maxY");
 	}
@@ -1095,7 +1099,7 @@ function _ReadActorStar(reader, component)
 	_ReadProceduralPath(reader, component);
 	component._Points = reader.readUint32("points");
 	component._InnerRadius = reader.readFloat32("innerRadius");
-	
+
 	return component;
 }
 
@@ -1116,7 +1120,7 @@ function _ReadActorPolygon(reader, component)
 function _ReadActorTriangle(reader, component)
 {
 	_ReadProceduralPath(reader, component);
-	
+
 	return component;
 }
 
@@ -1142,7 +1146,7 @@ function _ReadStroke(reader, component)
 	component._Cap = reader.readUint8("cap");
 	component._Join = reader.readUint8("join");
 	component._Trim = reader.readUint8("trim");
-	if(component._Trim !== TrimPathOff)
+	if (component._Trim !== TrimPathOff)
 	{
 		component._TrimStart = reader.readFloat32("start");
 		component._TrimEnd = reader.readFloat32("end");
@@ -1155,14 +1159,14 @@ function _ReadColorStroke(reader, component)
 	_ReadActorPaint(reader, component);
 	reader.readFloat32Array(component._Color, "color");
 	_ReadStroke(reader, component);
-	
+
 	return component;
 }
 
 function _ReadGradient(reader, component)
 {
 	const numStops = reader.readUint8("numColorStops");
-	const stops = new Float32Array(numStops*5);
+	const stops = new Float32Array(numStops * 5);
 	reader.readFloat32Array(stops, "colorStops");
 	component._ColorStops = stops;
 
@@ -1234,10 +1238,10 @@ function _ReadSkinnable(reader, component)
 {
 	reader.openArray("bones");
 	const numConnectedBones = reader.readUint8Length();
-	if(numConnectedBones > 0)
+	if (numConnectedBones > 0)
 	{
 		component._ConnectedBones = [];
-		for(let i = 0; i < numConnectedBones; i++)
+		for (let i = 0; i < numConnectedBones; i++)
 		{
 			reader.openObject("bone");
 			const bind = mat2d.create();
@@ -1246,9 +1250,9 @@ function _ReadSkinnable(reader, component)
 			reader.closeObject();
 
 			component._ConnectedBones.push({
-				componentIndex:componentIndex,
-				bind:bind,
-				ibind:mat2d.invert(mat2d.create(), bind)
+				componentIndex: componentIndex,
+				bind: bind,
+				ibind: mat2d.invert(mat2d.create(), bind)
 			});
 		}
 		reader.closeArray();
@@ -1278,44 +1282,44 @@ function _ReadActorPath(reader, component)
 	const pointCount = reader.readUint16Length();
 	const points = new Array(pointCount);
 	const isConnectedToBones = component._ConnectedBones && component._ConnectedBones.length > 0;
-	
-	for(let i = 0; i < pointCount; i++)
+
+	for (let i = 0; i < pointCount; i++)
 	{
 		reader.openObject("point");
 		const type = reader.readUint8("pointType");
 		let point = null;
-		switch(type)
+		switch (type)
 		{
 			case PointType.Straight:
-			{
-				point = new StraightPathPoint();
-				reader.readFloat32Array(point._Translation, "translation");
-				point._Radius = reader.readFloat32("radius");
-				if(isConnectedToBones)
 				{
-					point._Weights = new Float32Array(8);
+					point = new StraightPathPoint();
+					reader.readFloat32Array(point._Translation, "translation");
+					point._Radius = reader.readFloat32("radius");
+					if (isConnectedToBones)
+					{
+						point._Weights = new Float32Array(8);
+					}
+					break;
 				}
-				break;
-			}
 			default:
-			{
-				point = new CubicPathPoint();
-				reader.readFloat32Array(point._Translation, "translation");
-				reader.readFloat32Array(point._In, "in");
-				reader.readFloat32Array(point._Out, "out");
-				if(isConnectedToBones)
 				{
-					point._Weights = new Float32Array(24);
+					point = new CubicPathPoint();
+					reader.readFloat32Array(point._Translation, "translation");
+					reader.readFloat32Array(point._In, "in");
+					reader.readFloat32Array(point._Out, "out");
+					if (isConnectedToBones)
+					{
+						point._Weights = new Float32Array(24);
+					}
+					break;
 				}
-				break;
-			}
 		}
-		if(point._Weights)
+		if (point._Weights)
 		{
 			reader.readFloat32Array(point._Weights, "weights");
 		}
 		reader.closeObject();
-		if(!point)
+		if (!point)
 		{
 			throw new Error("Invalid point type " + type);
 		}
@@ -1324,7 +1328,7 @@ function _ReadActorPath(reader, component)
 	}
 	reader.closeArray();
 	component._Points = points;
-	
+
 	return component;
 }
 
@@ -1333,13 +1337,13 @@ function _ReadActorImage(reader, component)
 	_ReadDrawable(reader, component);
 	_ReadSkinnable(reader, component);
 
-	if(!component.isHidden)
+	if (!component.isHidden)
 	{
 		component._AtlasIndex = reader.readUint8("atlas");
 
 		const numVertices = reader.readUint32("numVertices");
 		const vertexStride = component.isConnectedToBones ? 12 : 4;
-		
+
 		component._NumVertices = numVertices;
 		component._VertexStride = vertexStride;
 		component._Vertices = new Float32Array(numVertices * vertexStride);
@@ -1358,37 +1362,37 @@ function _ReadActorImageSequence(reader, component)
 	_ReadActorImage(reader, component);
 
 	// See if it was visible to begin with.
-	if(component._AtlasIndex != -1)
+	if (component._AtlasIndex != -1)
 	{
 		reader.openArray("frames");
 		const frameCount = reader.readUint16Length();
 		component._SequenceFrames = [];
-		const uvs = new Float32Array(component._NumVertices*2*frameCount);
-		const uvStride = component._NumVertices*2;
+		const uvs = new Float32Array(component._NumVertices * 2 * frameCount);
+		const uvStride = component._NumVertices * 2;
 		component._SequenceUVs = uvs;
 		const firstFrame = {
-			atlas:component._AtlasIndex,
-			offset:0
+			atlas: component._AtlasIndex,
+			offset: 0
 		};
 
 		component._SequenceFrames.push(firstFrame);
 
 		let readIdx = 2;
 		let writeIdx = 0;
-		for(let i = 0; i < component._NumVertices; i++)
+		for (let i = 0; i < component._NumVertices; i++)
 		{
 			uvs[writeIdx++] = component._Vertices[readIdx];
-			uvs[writeIdx++] = component._Vertices[readIdx+1];
+			uvs[writeIdx++] = component._Vertices[readIdx + 1];
 			readIdx += component._VertexStride;
 		}
 
 		let offset = uvStride;
-		for(let i = 1; i < frameCount; i++)
+		for (let i = 1; i < frameCount; i++)
 		{
 			reader.openObject("frame");
 			let frame = {
-				atlas:reader.readUint8("atlas"),
-				offset:offset*4
+				atlas: reader.readUint8("atlas"),
+				offset: offset * 4
 			};
 
 			component._SequenceFrames.push(frame);
@@ -1407,12 +1411,12 @@ function _ReadNestedActor(reader, component, nestedActorAssets)
 {
 	_ReadActorNode(reader, component);
 	let isVisible = reader.readUint8();
-	if(isVisible)
+	if (isVisible)
 	{
 		// Draw order
 		component._DrawOrder = reader.readUint16();
 		let assetIndex = reader.readUint16();
-		if(assetIndex < nestedActorAssets.length)
+		if (assetIndex < nestedActorAssets.length)
 		{
 			component._Asset = nestedActorAssets[assetIndex];
 		}
@@ -1425,15 +1429,15 @@ export default class ActorLoader
 	load(url, callback)
 	{
 		let loader = this;
-		if(url.constructor === String)
+		if (url.constructor === String)
 		{
 			let req = new XMLHttpRequest();
 			req.open("GET", url, true);
 			req.responseType = "blob";
-			req.onload = function()
+			req.onload = function ()
 			{
 				let fileReader = new FileReader();
-				fileReader.onload = function() 
+				fileReader.onload = function () 
 				{
 					_ReadActor(loader, this.result, callback);
 				};
@@ -1444,7 +1448,7 @@ export default class ActorLoader
 		else
 		{
 			let fileReader = new FileReader();
-			fileReader.onload = function() 
+			fileReader.onload = function () 
 			{
 				_ReadActor(loader, this.result, callback);
 			};
