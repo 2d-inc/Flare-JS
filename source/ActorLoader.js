@@ -624,28 +624,29 @@ function _ReadAtlasesBlock(actor, reader, callback)
 	reader.openArray("data");
 	const numAtlases = reader.readUint16Length();
 
-	let waitCount = numAtlases;
+	let waitCount = 1+numAtlases;
 	let loadedCount = 0;
-	let waiting = waitCount !== loadedCount;
+
+	function next()
+	{
+		loadedCount++;
+		if(loadedCount == waitCount)
+		{
+			reader.closeArray();
+			callback();
+		}
+	}
 
 	for (let i = 0; i < numAtlases; i++)
 	{
 		reader.readImage(isOOB, (data) =>
 		{
 			actor._Atlases.push(new Atlas(data));
-			loadedCount++;
-			if (loadedCount === waitCount)
-			{
-				waiting = false;
-				callback();
-			}
+			next();
 		});
 	}
 
-	reader.closeArray();
-
-	// Return true if we are waiting for atlases
-	return waiting;
+	next();
 }
 
 function _LoadNestedAssets(loader, actor, callback)
@@ -711,7 +712,18 @@ function _ReadActor(loader, data, callback)
 	const actor = new Actor();
 	actor.dataVersion = version;
 	let block = null;
-	let waitForAtlas = false;
+
+	let waitCount = 1;
+	let completeCount = 0;
+	function next()
+	{
+		completeCount++;
+		if(completeCount == waitCount)
+		{
+			_LoadNestedAssets(loader, actor, callback);
+		}
+	}
+
 	while ((block = _ReadNextBlock(reader, function (err) { actor.error = err; }, Block)) !== null)
 	{
 		switch (block.type)
@@ -720,24 +732,18 @@ function _ReadActor(loader, data, callback)
 				_ReadArtboardsBlock(actor, block.reader);
 				break;
 			case _BlockTypes.Atlases:
-
-				if (_ReadAtlasesBlock(actor, block.reader, function ()
+				waitCount++;
+				_ReadAtlasesBlock(actor, block.reader, function ()
 				{
-					_LoadNestedAssets(loader, actor, callback);
-				}))
-				{
-					waitForAtlas = true;
-				}
+					next();
+				});
 				break;
 			case _BlockTypes.NestedActorAssets:
 				_ReadNestedActorAssets(actor, block.reader);
 				break;
 		}
 	}
-	if (!waitForAtlas)
-	{
-		_LoadNestedAssets(loader, actor, callback);
-	}
+	next();
 }
 
 function _ReadActorArtboard(reader, artboard)
