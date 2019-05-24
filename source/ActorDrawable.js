@@ -7,48 +7,48 @@ export default class ActorDrawable extends ActorNode
 	{
 		super(actor);
 
-        this._DrawOrder = 0;
-        this._BlendMode = BlendMode.SrcOver;
-        this._IsHidden = false;
-    }
-    
-    get drawOrder()
-    {
-        return this._DrawOrder;
-    }
+		this._DrawOrder = 0;
+		this._BlendMode = BlendMode.SrcOver;
+		this._IsHidden = false;
+	}
 
-    get blendMode()
-    {
-        return this._BlendMode;
-    }
+	get drawOrder()
+	{
+		return this._DrawOrder;
+	}
 
-    get isHidden()
-    {
-        return this._IsHidden;
-    }
+	get blendMode()
+	{
+		return this._BlendMode;
+	}
 
-    set isHidden(value)
-    {
-        this._IsHidden = value;
-    }
+	get isHidden()
+	{
+		return this._IsHidden;
+	}
+
+	set isHidden(value)
+	{
+		this._IsHidden = value;
+	}
 
 	copy(node, resetActor)
 	{
 		super.copy(node, resetActor);
 
-        this._DrawOrder = node._DrawOrder;
-        this._BlendMode = node._BlendMode;
-        this._IsHidden = node._IsHidden;
-    }
+		this._DrawOrder = node._DrawOrder;
+		this._BlendMode = node._BlendMode;
+		this._IsHidden = node._IsHidden;
+	}
 
 	getClips()
 	{
 		// Find clips.
 		let clipSearch = this;
 		let clips = [];
-		while(clipSearch)
+		while (clipSearch)
 		{
-			if(clipSearch._Clips)
+			if (clipSearch._Clips)
 			{
 				clips.push(clipSearch._Clips);
 			}
@@ -57,37 +57,40 @@ export default class ActorDrawable extends ActorNode
 
 		return clips;
 	}
-	
+
 	clip(graphics)
 	{
 		// Find clips.
 		const clips = this.getClips();
 
-		if(clips.length)
+		if (clips.length)
 		{
-			for(const clipList of clips)
+			for (const clipList of clips)
 			{
 				const clipPath = graphics.makePath(true);
-				for(let clip of clipList)
+				for (let clip of clipList)
 				{
 					let shapes = new Set();
-					clip.all(function(node)
+					clip.all(function (node)
 					{
-						if(node.paths)
+						if (node.paths)
 						{
 							shapes.add(node);
 						}
 					});
-					for(let shape of shapes)
+					for (let shape of shapes)
 					{
 						const paths = shape.paths;
-						for(const path of paths)
+						for (const path of paths)
 						{
 							graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
 						}
 					}
 				}
-				graphics.clipPath(clipPath);
+				if (!clipPath.isEmpty())
+				{
+					graphics.clipPath(clipPath);
+				}
 			}
 		}
 	}

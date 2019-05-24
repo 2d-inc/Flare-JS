@@ -46,6 +46,11 @@ export default class ActorNode extends ActorComponent
 		this._Clips = null;
 	}
 
+	get renderCollapsed()
+	{
+		return this._RenderCollapsed;
+	}
+
 	get hasWorldTransform()
 	{
 		return true;
