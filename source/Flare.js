@@ -10,3 +10,4 @@ exports.ActorColliderTriangle = require("./ActorColliderTriangle.js").default;
 exports.ActorBone = require("./ActorBone.js").default;
 exports.ActorNode = require("./ActorNode.js").default;
 exports.ActorTargetNode = require("./ActorTargetNode.js").default;
+exports.ActorLayerNode = require("./ActorLayerNode.js").default;

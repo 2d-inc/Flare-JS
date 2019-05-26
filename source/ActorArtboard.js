@@ -1,4 +1,5 @@
 import ActorNode from "./ActorNode.js";
+import ActorLayerNode from "./ActorLayerNode.js";
 import ActorShape from "./ActorShape.js";
 import ActorImage from "./ActorImage.js";
 import NestedActorNode from "./NestedActorNode.js";
@@ -247,6 +248,7 @@ export default class ActorArtboard
 					case NestedActorNode:
 					case ActorImage:
 					case ActorShape:
+					case ActorLayerNode:
 						this._Drawables.push(component);
 						break;
 				}

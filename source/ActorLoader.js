@@ -6,6 +6,7 @@ import Actor from "./Actor.js";
 import ActorEvent from "./ActorEvent.js";
 import ActorNode from "./ActorNode.js";
 import ActorTargetNode from "./ActorTargetNode.js";
+import ActorLayerNode from "./ActorLayerNode.js";
 import ActorNodeSolo from "./ActorNodeSolo.js";
 import ActorBone from "./ActorBone.js";
 import ActorEllipse from "./ActorEllipse.js";
@@ -141,6 +142,9 @@ function _ReadComponentsBlock(artboard, reader)
 				break;
 			case _BlockTypes.ActorTargetNode:
 				component = _ReadActorNode(block.reader, new ActorTargetNode());
+				break;
+			case _BlockTypes.ActorLayerNode:
+				component = _ReadDrawable(block.reader, new ActorLayerNode());
 				break;
 			case _BlockTypes.ActorBone:
 				component = _ReadActorBone(block.reader, new ActorBone());
@@ -624,13 +628,13 @@ function _ReadAtlasesBlock(actor, reader, callback)
 	reader.openArray("data");
 	const numAtlases = reader.readUint16Length();
 
-	let waitCount = 1+numAtlases;
+	let waitCount = 1 + numAtlases;
 	let loadedCount = 0;
 
 	function next()
 	{
 		loadedCount++;
-		if(loadedCount == waitCount)
+		if (loadedCount == waitCount)
 		{
 			reader.closeArray();
 			callback();
@@ -718,7 +722,7 @@ function _ReadActor(loader, data, callback)
 	function next()
 	{
 		completeCount++;
-		if(completeCount == waitCount)
+		if (completeCount == waitCount)
 		{
 			_LoadNestedAssets(loader, actor, callback);
 		}
@@ -1238,6 +1242,8 @@ function _ReadDrawable(reader, component)
 	const blendID = reader.readUint8("blendMode");
 	component._BlendMode = BlendMode.fromID(blendID);
 	component._DrawOrder = reader.readUint16("drawOrder");
+
+	return component;
 }
 
 function _ReadSkinnable(reader, component)
