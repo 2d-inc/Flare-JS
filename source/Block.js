@@ -46,7 +46,10 @@ const Blocks =
 	Artboards: block(115, "artboards"),
 	ActorCacheNode: block(116, "cacheNode"),
 	ActorTargetNode: block(117, "targetNode"),
-	ActorLayerNode: block(118, "layerNode")
+	ActorLayerNode: block(118, "layerNode"),
+	FlareNode: block(24, "flareNode"),
+	EmbeddedAssets: block(25, "embeddedAssets"),
+	FlareAsset: block(26, "flareAsset")
 };
 
 const _Types = {};
