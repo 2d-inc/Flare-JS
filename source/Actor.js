@@ -7,7 +7,7 @@ export default class Actor extends Dispatcher
 		super();
 
 		this._Artboards = [];
-		this._NestedActorAssets = [];
+		this._EmbeddedAssets = [];
 		this._Atlases = [];
 	}
 
@@ -26,7 +26,7 @@ export default class Actor extends Dispatcher
 
 	initialize(graphics)
 	{
-		for(let nested of this._NestedActorAssets)
+		for(let nested of this._EmbeddedAssets)
 		{
 			if(nested.actor)
 			{

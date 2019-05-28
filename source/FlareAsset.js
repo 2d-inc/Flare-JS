@@ -1,8 +1,9 @@
-export default class NestedActorAsset
+export default class FlareAsset
 {
-	constructor(name, id)
+	constructor(name, owner, id)
 	{
 		this._Id = id;
+		this._Owner = owner;
 		this._Name = name;
 		this._Actor = null;
 	}
@@ -10,6 +11,11 @@ export default class NestedActorAsset
 	get id()
 	{
 		return this._Id;
+	}
+
+	get owner()
+	{
+		return this._Owner;
 	}
 
 	get name()

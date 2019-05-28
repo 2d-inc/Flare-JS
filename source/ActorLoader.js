@@ -28,7 +28,7 @@ import NestedActorNode from "./NestedActorNode.js";
 import CustomProperty from "./CustomProperty.js";
 import AnimatedComponent from "./AnimatedComponent.js";
 import AnimatedProperty from "./AnimatedProperty.js";
-import NestedActorAsset from "./NestedActorAsset.js";
+import FlareAsset from "./FlareAsset.js";
 import ActorIKConstraint from "./ActorIKConstraint.js";
 import ActorDistanceConstraint from "./ActorDistanceConstraint.js";
 import ActorTransformConstraint from "./ActorTransformConstraint.js";
@@ -110,6 +110,7 @@ function _ReadComponentsBlock(artboard, reader)
 	while ((block = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, Block)) !== null)
 	{
 		let component = null;
+
 		switch (block.type)
 		{
 			case _BlockTypes.CustomIntProperty:
@@ -167,9 +168,9 @@ function _ReadComponentsBlock(artboard, reader)
 			case _BlockTypes.ActorIKTarget:
 				component = _ReadActorIKTarget(artboard.actor.dataVersion, block.reader, new ActorIKTarget());
 				break;
-			case _BlockTypes.NestedActorNode:
-				component = _ReadNestedActor(block.reader, new NestedActorNode(), artboard._NestedActorAssets);
-				break;
+			// case _BlockTypes.NestedActorNode:
+			// 	component = _ReadNestedActor(block.reader, new NestedActorNode(), artboard._EmbeddedAssets);
+			// 	break;
 			case _BlockTypes.ActorNodeSolo:
 				component = _ReadActorNodeSolo(block.reader, new ActorNodeSolo());
 				break;
@@ -234,6 +235,7 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadActorComponent(block.reader, new ActorSkin());
 				break;
 		}
+		
 		if (component)
 		{
 			component._Idx = actorComponents.length;
@@ -523,22 +525,22 @@ function _ReadAnimationsBlock(artboard, reader)
 	}
 }
 
-function _ReadNestedActorAssetBlock(actor, reader)
+function _ReadFlareAsset(actor, reader)
 {
-	let asset = new NestedActorAsset(reader.readString(), reader.readString());
-	actor._NestedActorAssets.push(asset);
+	const asset = new FlareAsset(reader.readString(), reader.readString(), reader.readString());
+	actor._EmbeddedAssets.push(asset);
 }
 
-function _ReadNestedActorAssets(actor, reader)
+function _ReadEmbeddedAssets(actor, reader)
 {
-	let nestedActorCount = reader.readUint16();
+	const embeddedAssetCount = reader.readUint16();
 	let block = null;
 	while ((block = _ReadNextBlock(reader, function (err) { actor.error = err; })) !== null)
 	{
 		switch (block.type)
 		{
-			case _BlockTypes.NestedActorAsset:
-				_ReadNestedActorAssetBlock(actor, block.reader);
+			case _BlockTypes.FlareAsset:
+				_ReadFlareAsset(actor, block.reader);
 				break;
 		}
 	}
@@ -655,7 +657,7 @@ function _ReadAtlasesBlock(actor, reader, callback)
 
 function _LoadNestedAssets(loader, actor, callback)
 {
-	let loadCount = actor._NestedActorAssets.length;
+	let loadCount = actor._EmbeddedAssets.length;
 	let nestedLoad = loader.loadNestedActor;
 	if (loadCount == 0 || !nestedLoad)
 	{
@@ -663,7 +665,7 @@ function _LoadNestedAssets(loader, actor, callback)
 		return;
 	}
 
-	for (let asset of actor._NestedActorAssets)
+	for (let asset of actor._EmbeddedAssets)
 	{
 		nestedLoad(asset, function (nestedActor)
 		{
@@ -732,6 +734,10 @@ function _ReadActor(loader, data, callback)
 	{
 		switch (block.type)
 		{
+			case _BlockTypes.EmbeddedAssets:
+				_ReadEmbeddedAssets(actor, block.reader);
+				
+				break;
 			case _BlockTypes.Artboards:
 				_ReadArtboardsBlock(actor, block.reader);
 				break;
@@ -741,9 +747,6 @@ function _ReadActor(loader, data, callback)
 				{
 					next();
 				});
-				break;
-			case _BlockTypes.NestedActorAssets:
-				_ReadNestedActorAssets(actor, block.reader);
 				break;
 		}
 	}

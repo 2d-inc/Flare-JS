@@ -276,7 +276,7 @@ export default class ActorArtboard
 		const components = this._Components;
 		for(const component of components)
 		{
-			component.dispose(this, graphics);
+			component && component.dispose(this, graphics);
 		}
 		if(this._ClippingPath)
 		{
@@ -455,7 +455,7 @@ export default class ActorArtboard
 		const components = this._Components;
 		for(const component of components)
 		{
-			component.initialize(this, graphics);
+			component && component.initialize(this, graphics);
 		}
 
 		if(this._ClipContents)
