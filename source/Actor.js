@@ -52,4 +52,14 @@ export default class Actor extends Dispatcher
 	{
 		return (this._Artboards.length && this._Artboards[0]._Animations) || null;
 	}
+
+	get artboards()
+	{
+		return this._Artboards;
+	}
+
+	get embeddedAssets()
+	{
+		return this._EmbeddedAssets;
+	}
 }

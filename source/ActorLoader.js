@@ -24,7 +24,7 @@ import ActorColliderTriangle from "./ActorColliderTriangle.js";
 import ActorColliderCircle from "./ActorColliderCircle.js";
 import ActorColliderPolygon from "./ActorColliderPolygon.js";
 import ActorColliderLine from "./ActorColliderLine.js";
-import NestedActorNode from "./NestedActorNode.js";
+import FlareNode from "./FlareNode.js";
 import CustomProperty from "./CustomProperty.js";
 import AnimatedComponent from "./AnimatedComponent.js";
 import AnimatedProperty from "./AnimatedProperty.js";
@@ -168,9 +168,9 @@ function _ReadComponentsBlock(artboard, reader)
 			case _BlockTypes.ActorIKTarget:
 				component = _ReadActorIKTarget(artboard.actor.dataVersion, block.reader, new ActorIKTarget());
 				break;
-			// case _BlockTypes.NestedActorNode:
-			// 	component = _ReadNestedActor(block.reader, new NestedActorNode(), artboard._EmbeddedAssets);
-			// 	break;
+			case _BlockTypes.FlareNode:
+				component = _ReadFlareNode(block.reader, new FlareNode(), artboard.actor._EmbeddedAssets);
+				break;
 			case _BlockTypes.ActorNodeSolo:
 				component = _ReadActorNodeSolo(block.reader, new ActorNodeSolo());
 				break;
@@ -235,14 +235,13 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadActorComponent(block.reader, new ActorSkin());
 				break;
 		}
-		
+
 		if (component)
 		{
 			component._Idx = actorComponents.length;
 		}
 		actorComponents.push(component);
 	}
-	artboard.resolveHierarchy();
 }
 
 function _ReadAnimationBlock(artboard, reader)
@@ -546,82 +545,6 @@ function _ReadEmbeddedAssets(actor, reader)
 	}
 }
 
-// function _BuildJpegAtlas(atlas, img, imga, callback)
-// {
-// 	const canvas = document.createElement("canvas");
-// 	canvas.width = img.width;
-//     canvas.height = img.height;
-//     const ctx = canvas.getContext("2d");
-// 	ctx.drawImage(img, 0, 0, img.width, img.height);
-
-// 	if(imga)
-// 	{
-// 		const imageDataRGB = ctx.getImageData(0,0,canvas.width, canvas.height);
-// 		const dataRGB = imageDataRGB.data;
-// 		const canvasAlpha = document.createElement("canvas");
-
-// 		canvasAlpha.width = img.width;
-// 		canvasAlpha.height = img.height;
-// 		const actx = canvasAlpha.getContext("2d");
-// 		actx.drawImage(imga, 0, 0, imga.width, imga.height);
-
-// 		const imageDataAlpha = actx.getImageData(0,0,canvasAlpha.width, canvasAlpha.height);
-// 		const dataAlpha = imageDataAlpha.data;
-
-// 		const pixels = dataAlpha.length/4;
-// 		let widx = 3;
-
-// 		for(let j = 0; j < pixels; j++)
-// 		{
-// 			dataRGB[widx] = dataAlpha[widx-1];
-// 			widx+=4;
-// 		}
-// 		ctx.putImageData(imageDataRGB, 0, 0);
-// 	}
-
-
-// 	const atlasImage = new Image();
-// 	const enc = canvas.toDataURL();
-// 	atlasImage.src = enc;
-// 	atlasImage.onload = function()
-// 	{
-// 		atlas.img = this;
-// 		callback();
-// 	};
-// }
-
-// function _JpegAtlas(dataRGB, dataAlpha, callback)
-// {
-// 	const _This = this;
-// 	const img = document.createElement("img");
-// 	let imga;
-// 	let c = 0;
-// 	let target = 1;
-// 	img.onload = function()
-// 	{
-// 		c++;
-// 		if(c === target)
-// 		{
-// 			_BuildJpegAtlas(_This, img, imga, callback);
-// 		}
-// 	};
-
-// 	if(dataAlpha)
-// 	{
-// 		imga = document.createElement("img");
-// 		imga.onload = function()
-// 		{
-// 			c++;
-// 			if(c == target)
-// 			{
-// 				_BuildJpegAtlas(_This, img, imga, callback);
-// 			}
-// 		};
-// 		imga.src = URL.createObjectURL(dataAlpha);
-// 	}
-// 	img.src = URL.createObjectURL(dataRGB);
-// }
-
 
 function _ReadAtlasesBlock(actor, reader, callback)
 {
@@ -655,11 +578,10 @@ function _ReadAtlasesBlock(actor, reader, callback)
 	next();
 }
 
-function _LoadNestedAssets(loader, actor, callback)
+function _LoadEmbeddedAssets(loader, actor, callback)
 {
 	let loadCount = actor._EmbeddedAssets.length;
-	let nestedLoad = loader.loadNestedActor;
-	if (loadCount == 0 || !nestedLoad)
+	if (loadCount == 0)
 	{
 		callback(actor);
 		return;
@@ -667,8 +589,9 @@ function _LoadNestedAssets(loader, actor, callback)
 
 	for (let asset of actor._EmbeddedAssets)
 	{
-		nestedLoad(asset, function (nestedActor)
+		loader.loadEmbedded(asset, function (nestedActor)
 		{
+			console.log("NEST", nestedActor);
 			asset._Actor = nestedActor;
 			loadCount--;
 			if (loadCount <= 0)
@@ -726,7 +649,19 @@ function _ReadActor(loader, data, callback)
 		completeCount++;
 		if (completeCount == waitCount)
 		{
-			_LoadNestedAssets(loader, actor, callback);
+			_LoadEmbeddedAssets(loader, actor, function (actor)
+			{
+				// Finally resolve all hierarchies.
+				for(const artboard of actor.artboards)
+				{
+					artboard.resolveHierarchy();
+				}
+				for(const artboard of actor.artboards)
+				{
+					artboard.completeResolveHierarchy();
+				}
+				callback(actor);
+			});
 		}
 	}
 
@@ -736,7 +671,6 @@ function _ReadActor(loader, data, callback)
 		{
 			case _BlockTypes.EmbeddedAssets:
 				_ReadEmbeddedAssets(actor, block.reader);
-				
 				break;
 			case _BlockTypes.Artboards:
 				_ReadArtboardsBlock(actor, block.reader);
@@ -1260,11 +1194,13 @@ function _ReadSkinnable(reader, component)
 		{
 			reader.openObject("bone");
 			const bind = mat2d.create();
+			const rootIndex = reader.readUint16("root");
 			const componentIndex = reader.readId("component");
 			reader.readFloat32Array(bind, "bind");
 			reader.closeObject();
 
 			component._ConnectedBones.push({
+				rootIndex: rootIndex,
 				componentIndex: componentIndex,
 				bind: bind,
 				ibind: mat2d.invert(mat2d.create(), bind)
@@ -1422,20 +1358,14 @@ function _ReadActorImageSequence(reader, component)
 	return component;
 }
 
-function _ReadNestedActor(reader, component, nestedActorAssets)
+function _ReadFlareNode(reader, component, embeddedAssets)
 {
-	_ReadActorNode(reader, component);
-	let isVisible = reader.readUint8();
-	if (isVisible)
-	{
-		// Draw order
-		component._DrawOrder = reader.readUint16();
-		let assetIndex = reader.readUint16();
-		if (assetIndex < nestedActorAssets.length)
-		{
-			component._Asset = nestedActorAssets[assetIndex];
-		}
-	}
+	_ReadDrawable(reader, component);
+	component._EmbeddedAssetIndex = reader.readUint16();
+	// if (assetIndex < embeddedAssets.length)
+	// {
+	// 	component._Asset = embeddedAssets[assetIndex];
+	// }
 	return component;
 }
 
@@ -1469,5 +1399,36 @@ export default class ActorLoader
 			};
 			fileReader.readAsArrayBuffer(url);
 		}
+	}
+
+	computeEmbeddedAssetUrl(asset)
+	{
+		return `/api/files/${asset.owner}/${asset.id}/preview`;
+	}
+
+	loadEmbedded(asset, cb)
+	{
+		const req = new XMLHttpRequest();
+		req.open("GET", this.computeEmbeddedAssetUrl(asset), true);
+		req.onload = function ()
+		{
+			let obj;
+			try
+			{
+				obj = JSON.parse(this.responseText);
+			}
+			catch (er)
+			{
+				return;
+			}
+
+			if(this.status === 200 && obj && obj.resource)
+			{	
+				const loader = new ActorLoader();
+				loader.load(obj.resource, cb);
+			}
+		};
+		req.send();
+		
 	}
 }

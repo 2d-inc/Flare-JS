@@ -2,42 +2,42 @@ import ActorNode from "./ActorNode.js";
 import ActorLayerNode from "./ActorLayerNode.js";
 import ActorShape from "./ActorShape.js";
 import ActorImage from "./ActorImage.js";
-import NestedActorNode from "./NestedActorNode.js";
+import FlareNode from "./FlareNode.js";
 import AnimationInstance from "./AnimationInstance.js";
-import {mat2d, vec2, vec4} from "gl-matrix";
+import { mat2d, vec2, vec4 } from "gl-matrix";
 import Graphics from "./Graphics.js";
 
 export default class ActorArtboard
 {
-    constructor(actor)
-    {
-        this._Actor = actor;
-        this._Components = [];
-        this._Nodes = [];
-        this._RootNode = new ActorNode();
+	constructor(actor)
+	{
+		this._Actor = actor;
+		this._Components = [];
+		this._Nodes = [];
+		this._RootNode = new ActorNode();
 		this._RootNode._Name = "Root";
 		this._Components.push(this._RootNode);
-        this._Drawables = [];
-        this._Animations = [];
+		this._Drawables = [];
+		this._Animations = [];
 		this._IsImageSortDirty = false;
 		this._Order = null;
 		this._IsDirty = false;
 		this._DirtDepth = 0;
-        
-        this._Name = "Artboard";
-        this._Origin = vec2.create();
-        this._Translation = vec2.create();
-        this._Color = vec4.create();
-        this._ClipContents = true;
+
+		this._Name = "Artboard";
+		this._Origin = vec2.create();
+		this._Translation = vec2.create();
+		this._Color = vec4.create();
+		this._ClipContents = true;
 		this._Width = 0;
 		this._Height = 0;
 	}
 
-    get name()
-    {
-        return this._Name;
+	get name()
+	{
+		return this._Name;
 	}
-	
+
 	get width()
 	{
 		return this._Width;
@@ -48,50 +48,50 @@ export default class ActorArtboard
 		return this._Height;
 	}
 
-    get origin()
-    {
-        return this._Name;
-    }
-
-    get translation()
-    {
-        return this._Translation;
-    }
-
-    get color()
-    {
-        return this._Color;
+	get origin()
+	{
+		return this._Name;
 	}
-	
+
+	get translation()
+	{
+		return this._Translation;
+	}
+
+	get color()
+	{
+		return this._Color;
+	}
+
 	get color8()
 	{
-		return this._Color.map(c => Math.round(c*255));
+		return this._Color.map(c => Math.round(c * 255));
 	}
 
-    get clipContents()
-    {
-        return this._ClipContents;
-    }
+	get clipContents()
+	{
+		return this._ClipContents;
+	}
 
-    get root()
-    {
-        return this._RootNode;
-    }
+	get root()
+	{
+		return this._RootNode;
+	}
 
-    get actor()
-    {
-        return this._Actor;
-    }
+	get actor()
+	{
+		return this._Actor;
+	}
 
-    addDependency(a, b)
+	addDependency(a, b)
 	{
 		// "a" depends on "b"
 		let dependents = b._Dependents;
-		if(!dependents)
+		if (!dependents)
 		{
 			dependents = b._Dependents = [];
 		}
-		if(dependents.indexOf(a) !== -1)
+		if (dependents.indexOf(a) !== -1)
 		{
 			return false;
 		}
@@ -108,24 +108,24 @@ export default class ActorArtboard
 
 		function visit(n)
 		{
-			if(perm.has(n))
+			if (perm.has(n))
 			{
 				return true;
 			}
-			if(temp.has(n))
+			if (temp.has(n))
 			{
 				console.warn("Dependency cycle!", n);
 				return false;
 			}
-			
+
 			temp.add(n);
 
 			let dependents = n._Dependents;
-			if(dependents)
+			if (dependents)
 			{
-				for(let d of dependents)
+				for (let d of dependents)
 				{
-					if(!visit(d))
+					if (!visit(d))
 					{
 						return false;
 					}
@@ -133,17 +133,17 @@ export default class ActorArtboard
 			}
 			perm.add(n);
 			order.unshift(n);
-			
+
 			return true;
 		}
 
-		if(!visit(this._RootNode))
+		if (!visit(this._RootNode))
 		{
 			// We have cyclic dependencies.
 			return false;
 		}
 
-		for(let i = 0; i < order.length; i++)
+		for (let i = 0; i < order.length; i++)
 		{
 			let component = order[i];
 			component._GraphOrder = i;
@@ -155,7 +155,7 @@ export default class ActorArtboard
 
 	addDirt(component, value, recurse)
 	{
-		if((component._DirtMask & value) === value)
+		if ((component._DirtMask & value) === value)
 		{
 			// Already marked.
 			return false;
@@ -171,55 +171,55 @@ export default class ActorArtboard
 
 		// If the order of this component is less than the current dirt depth, update the dirt depth
 		// so that the update loop can break out early and re-run (something up the tree is dirty).
-		if(component._GraphOrder < this._DirtDepth)
+		if (component._GraphOrder < this._DirtDepth)
 		{
-			this._DirtDepth = component._GraphOrder;	
+			this._DirtDepth = component._GraphOrder;
 		}
-		if(!recurse)
+		if (!recurse)
 		{
 			return true;
 		}
 		let dependents = component._Dependents;
-		if(dependents)
+		if (dependents)
 		{
-			for(let d of dependents)
+			for (let d of dependents)
 			{
 				this.addDirt(d, value, recurse);
 			}
 		}
 
 		return true;
-    }
-    
-    update()
+	}
+
+	update()
 	{
-		if(!this._IsDirty)
+		if (!this._IsDirty)
 		{
 			return false;
 		}
-		
+
 		let order = this._Order;
 		let end = order.length;
 
 		const maxSteps = 100;
 		let step = 0;
-		while(this._IsDirty && step < maxSteps)
+		while (this._IsDirty && step < maxSteps)
 		{
 			this._IsDirty = false;
 			// Track dirt depth here so that if something else marks dirty, we restart.
-			for(let i = 0; i < end; i++)
+			for (let i = 0; i < end; i++)
 			{
 				let component = order[i];
 				this._DirtDepth = i;
 				let d = component._DirtMask;
-				if(d === 0)
+				if (d === 0)
 				{
 					continue;
 				}
 				component._DirtMask = 0;
 				component.update(d);
 
-				if(this._DirtDepth < i)
+				if (this._DirtDepth < i)
 				{
 					break;
 				}
@@ -229,23 +229,23 @@ export default class ActorArtboard
 
 		return true;
 	}
-    
-    resolveHierarchy()
+
+	resolveHierarchy()
 	{
-		let components = this._Components;
-		for(let component of components)
+		const { _Components: components } = this;
+		for (const component of components)
 		{
-			if(component != null)
+			if (component != null)
 			{
 				component._Actor = this;
 				component.resolveComponentIndices(components);
-				if(component.isNode)
+				if (component.isNode)
 				{
 					this._Nodes.push(component);
 				}
-				switch(component.constructor)
+				switch (component.constructor)
 				{
-					case NestedActorNode:
+					case FlareNode:
 					case ActorImage:
 					case ActorShape:
 					case ActorLayerNode:
@@ -254,10 +254,14 @@ export default class ActorArtboard
 				}
 			}
 		}
+	}
 
-		for(let component of components)
+	completeResolveHierarchy()
+	{
+		const { _Components: components } = this;
+		for (let component of components)
 		{
-			if(component != null)
+			if (component != null)
 			{
 				component.completeResolve();
 			}
@@ -265,7 +269,7 @@ export default class ActorArtboard
 
 		this.sortDependencies();
 
-		this._Drawables.sort(function(a,b)
+		this._Drawables.sort(function (a, b)
 		{
 			return a._DrawOrder - b._DrawOrder;
 		});
@@ -274,17 +278,17 @@ export default class ActorArtboard
 	dispose(graphics)
 	{
 		const components = this._Components;
-		for(const component of components)
+		for (const component of components)
 		{
 			component && component.dispose(this, graphics);
 		}
-		if(this._ClippingPath)
+		if (this._ClippingPath)
 		{
 			Graphics.destroyPath(this._ClippingPath);
 			this._ClippingPath = null;
 		}
-    }
-    
+	}
+
 
 	advance(seconds)
 	{
@@ -292,17 +296,17 @@ export default class ActorArtboard
 
 		let components = this._Components;
 		// Advance last (update graphics buffers and such).
-		for(let component of components)
+		for (let component of components)
 		{
-			if(component)
+			if (component)
 			{
 				component.advance(seconds);
 			}
 		}
 
-		if(this._IsImageSortDirty)
+		if (this._IsImageSortDirty)
 		{
-			this._Drawables.sort(function(a,b)
+			this._Drawables.sort(function (a, b)
 			{
 				return a._DrawOrder - b._DrawOrder;
 			});
@@ -313,12 +317,12 @@ export default class ActorArtboard
 	draw(graphics)
 	{
 		graphics.save();
-		if(this._ClippingPath)
+		if (this._ClippingPath)
 		{
 			graphics.clipPath(this._ClippingPath);
 		}
 		let drawables = this._Drawables;
-		for(let drawable of drawables)
+		for (let drawable of drawables)
 		{
 			drawable.draw(graphics);
 		}
@@ -328,9 +332,9 @@ export default class ActorArtboard
 	getNode(name)
 	{
 		let nodes = this._Nodes;
-		for(let node of nodes)
+		for (let node of nodes)
 		{
-			if(node._Name === name)
+			if (node._Name === name)
 			{
 				return node;
 			}
@@ -346,9 +350,9 @@ export default class ActorArtboard
 	getAnimation(name)
 	{
 		let animations = this._Animations;
-		for(let animation of animations)
+		for (let animation of animations)
 		{
-			if(animation._Name === name)
+			if (animation._Name === name)
 			{
 				return animation;
 			}
@@ -359,7 +363,7 @@ export default class ActorArtboard
 	getAnimationInstance(name)
 	{
 		let animation = this.getAnimation(name);
-		if(!animation)
+		if (!animation)
 		{
 			return null;
 		}
@@ -375,7 +379,7 @@ export default class ActorArtboard
 
 	artboardAABB()
 	{
-		const {_Width:width, _Height:height} = this;
+		const { _Width: width, _Height: height } = this;
 		const min_x = -this._Origin[0] * width;
 		const min_y = -this._Origin[1] * height;
 		return new Float32Array([min_x, min_y, min_x + width, min_y + height]);
@@ -388,30 +392,30 @@ export default class ActorArtboard
 		let max_x = -Number.MAX_VALUE;
 		let max_y = -Number.MAX_VALUE;
 
-		for(const drawable of this._Drawables)
+		for (const drawable of this._Drawables)
 		{
-			if(drawable.opacity < 0.01)
+			if (drawable.opacity < 0.01)
 			{
 				continue;
 			}
 			const aabb = drawable.computeAABB();
-			if(!aabb)
+			if (!aabb)
 			{
 				continue;
 			}
-			if(aabb[0] < min_x)
+			if (aabb[0] < min_x)
 			{
 				min_x = aabb[0];
 			}
-			if(aabb[1] < min_y)
+			if (aabb[1] < min_y)
 			{
 				min_y = aabb[1];
 			}
-			if(aabb[2] > max_x)
+			if (aabb[2] > max_x)
 			{
 				max_x = aabb[2];
 			}
-			if(aabb[3] > max_y)
+			if (aabb[3] > max_y)
 			{
 				max_y = aabb[3];
 			}
@@ -422,11 +426,11 @@ export default class ActorArtboard
 
 	copy(artboard)
 	{
-        this._Name = artboard._Name;
-        this._Origin = vec2.clone(artboard._Origin);
-        this._Translation = vec2.clone(artboard._Translation);
-        this._Color = vec4.clone(artboard._Color);
-        this._ClipContents = artboard._ClipContents;
+		this._Name = artboard._Name;
+		this._Origin = vec2.clone(artboard._Origin);
+		this._Translation = vec2.clone(artboard._Translation);
+		this._Color = vec4.clone(artboard._Color);
+		this._ClipContents = artboard._ClipContents;
 		this._Width = artboard._Width;
 		this._Height = artboard._Height;
 
@@ -436,9 +440,9 @@ export default class ActorArtboard
 		this._Nodes.length = 0;
 		this._Drawables.length = 0;
 
-		for(let component of components)
+		for (let component of components)
 		{
-			if(!component)
+			if (!component)
 			{
 				this._Components.push(null);
 				continue;
@@ -448,22 +452,23 @@ export default class ActorArtboard
 		this._RootNode = this._Components[0];
 
 		this.resolveHierarchy();
+		this.completeResolveHierarchy();
 	}
 
 	initialize(graphics)
 	{
 		const components = this._Components;
-		for(const component of components)
+		for (const component of components)
 		{
 			component && component.initialize(this, graphics);
 		}
 
-		if(this._ClipContents)
+		if (this._ClipContents)
 		{
 			this._ClippingPath = graphics.makePath();
 			const x = -this._Origin[0] * this._Width;
 			const y = -this._Origin[1] * this._Height;
-			this._ClippingPath.addRect(x, y, x+this._Width, y+this._Height);
+			this._ClippingPath.addRect(x, y, x + this._Width, y + this._Height);
 		}
 	}
 }
