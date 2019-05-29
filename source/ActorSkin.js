@@ -17,7 +17,6 @@ export default class ActorSkin extends ActorComponent
 	update(dirt)
 	{
 		const parent = this._Parent;
-		
 		if(parent && parent._ConnectedBones)
 		{
 			const connectedBones = parent._ConnectedBones;
@@ -53,7 +52,6 @@ export default class ActorSkin extends ActorComponent
 				}
 
 				const wt = mat2d.mul(mat, cb.node._WorldTransform, cb.ibind);
-
 				bt[bidx++] = wt[0];
 				bt[bidx++] = wt[1];
 				bt[bidx++] = wt[2];
@@ -86,20 +84,37 @@ export default class ActorSkin extends ActorComponent
 			const connectedBones = parent.connectedBones;
 			if(connectedBones && connectedBones.length)
 			{
-				for(const {node} of connectedBones)
+				const flareNodes = new Set();
+				for(const {flareNode, node} of connectedBones)
 				{
-					graph.addDependency(this, node);
-					const constraints = node.allConstraints;
-								
-					if(constraints)
+					if(flareNode)
 					{
-						for(const constraint of constraints)
-						{
-							graph.addDependency(this, constraint);
-						}
+						flareNodes.add(flareNode);
+					}
+					else
+					{
+						dependOn(graph, this, node);
 					}
 				}
+				for(const flareNode of flareNodes)
+				{
+					dependOn(graph, this, flareNode);
+				}
 			}
+		}
+	}
+}
+
+function dependOn(graph, skin, component)
+{
+	graph.addDependency(skin, component);
+	const constraints = component.allConstraints;
+				
+	if(constraints)
+	{
+		for(const constraint of constraints)
+		{
+			graph.addDependency(skin, constraint);
 		}
 	}
 }

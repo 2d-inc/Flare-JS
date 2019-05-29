@@ -2,17 +2,18 @@ export default class Dispatcher
 {
 	constructor()
 	{
-		this.events = {};
+		this.events = new Map();
+		this.removeLater = [];
 	}
 
 	addEventListener(event, callback)
 	{
-		let evt = this.events[event];
-		if(!evt)
+		let evt = this.events.get(event);
+		if (!evt)
 		{
-			this.events[event] = evt = [];
+			this.events.set(event, (evt = []));
 		}
-		if(evt.indexOf(callback) !== -1)
+		if (evt.indexOf(callback) !== -1)
 		{
 			return;
 		}
@@ -21,30 +22,43 @@ export default class Dispatcher
 
 	removeEventListener(event, callback)
 	{
-		let evt = this.events[event];
-		if(!evt)
+		if (this.dispatchGuard)
+		{
+			this.removeLater.push({ event, callback });
+			return;
+		}
+		const evt = this.events.get(event);
+		if (!evt)
 		{
 			return true;
 		}
-		for(let i = 0; i < evt.length; i++)
+		const index = evt.indexOf(callback);
+		if (index !== -1)
 		{
-			if(evt[i] === callback)
-			{
-				evt.splice(i, 1);
-				return true;
-			}
+			evt.splice(index, 1);
+			return true;
 		}
 		return false;
 	}
 
 	dispatch(event, data, extraContext)
 	{
-		let evt = this.events[event];
-		if(evt)
+		const evt = this.events.get(event);
+		if (evt)
 		{
-			for(let i = 0; i < evt.length; i++)
+			this.dispatchGuard = true;
+			for (const e of evt)
 			{
-				evt[i].call(this, data, extraContext);
+				e.call(this, data, extraContext);
+			}
+			this.dispatchGuard = false;
+			if (this.removeLater.length)
+			{
+				for (const { event, callback } of this.removeLater)
+				{
+					this.removeEventListener(event, callback);
+				}
+				this.removeLater.length = 0;
 			}
 		}
 	}

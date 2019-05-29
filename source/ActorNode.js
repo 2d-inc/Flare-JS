@@ -139,7 +139,7 @@ export default class ActorNode extends ActorComponent
 
 	markTransformDirty()
 	{
-		let actor = this._Actor;
+		const {_Actor:actor} = this;
 		if(!actor)
 		{
 			// Still loading?

@@ -344,7 +344,7 @@ export default class ActorPath extends ActorSkinnable(ActorNode)
 		{
 			return _RenderPath;
 		}
-
+		this._IsRenderPathDirty = false;
 		_RenderPath.rewind();
 		
 		const {deformedPoints, isClosed} = this;

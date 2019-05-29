@@ -49,6 +49,7 @@ export default class ActorAxisConstraint extends ActorTargetedConstraint
 
 	onDirty(dirt)
 	{
+		super.onDirty(dirt);
 		this.markDirty();
 	}
 }

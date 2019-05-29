@@ -591,7 +591,6 @@ function _LoadEmbeddedAssets(loader, actor, callback)
 	{
 		loader.loadEmbedded(asset, function (nestedActor)
 		{
-			console.log("NEST", nestedActor);
 			asset._Actor = nestedActor;
 			loadCount--;
 			if (loadCount <= 0)
@@ -1194,13 +1193,18 @@ function _ReadSkinnable(reader, component)
 		{
 			reader.openObject("bone");
 			const bind = mat2d.create();
-			const rootIndex = reader.readUint16("root");
+			const isEmbedded = reader.readBool("isEmbedded");
+			let embeddedName = null;
+			if(isEmbedded)
+			{
+				embeddedName = reader.readString("name");
+			}
 			const componentIndex = reader.readId("component");
 			reader.readFloat32Array(bind, "bind");
 			reader.closeObject();
 
 			component._ConnectedBones.push({
-				rootIndex: rootIndex,
+				ename: embeddedName,
 				componentIndex: componentIndex,
 				bind: bind,
 				ibind: mat2d.invert(mat2d.create(), bind)

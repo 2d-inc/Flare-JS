@@ -26,6 +26,7 @@ export default class ActorConstraint extends ActorComponent
 
 	onDirty(dirt)
 	{
+		super.onDirty(dirt);
 		this.markDirty();
 	}
 

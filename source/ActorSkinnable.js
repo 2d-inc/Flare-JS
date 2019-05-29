@@ -26,16 +26,26 @@ const ActorSkinnable = (ActorSkinnable) => class extends ActorSkinnable
 	{
 		return this._ConnectedBones && this._ConnectedBones.length > 0;
 	}
-	
+
 	resolveComponentIndices(components)
 	{
 		super.resolveComponentIndices(components);
-		if(this._ConnectedBones)
+		const { _ConnectedBones: connectedBones } = this;
+		if (connectedBones)
 		{
-			for(let j = 0; j < this._ConnectedBones.length; j++)
+			for (const cb of connectedBones)
 			{
-				const cb = this._ConnectedBones[j];
-				cb.node = components[cb.componentIndex];
+				const { componentIndex, ename } = cb;
+				if (ename)
+				{
+					const flareNode = components[componentIndex];
+					cb.node = flareNode.getEmbeddedComponent(ename, true);
+					cb.flareNode = flareNode;
+				}
+				else
+				{
+					cb.node = components[componentIndex];
+				}
 			}
 		}
 	}
@@ -44,17 +54,18 @@ const ActorSkinnable = (ActorSkinnable) => class extends ActorSkinnable
 	{
 		super.copy(node, resetActor);
 
-		if(node._ConnectedBones)
+		if (node._ConnectedBones)
 		{
 			this._ConnectedBones = [];
-			for(const cb of node._ConnectedBones)
+			for (const cb of node._ConnectedBones)
 			{
 				// Copy all props except for the actual node reference which will update in our resolve.
 				this._ConnectedBones.push({
-						componentIndex:cb.componentIndex,
-						bind:cb.bind,
-						ibind:cb.ibind
-					});
+					ename: cb.ename,
+					componentIndex: cb.componentIndex,
+					bind: cb.bind,
+					ibind: cb.ibind
+				});
 			}
 		}
 	}

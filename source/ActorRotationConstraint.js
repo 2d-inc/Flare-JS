@@ -31,6 +31,7 @@ export default class ActorRotationConstraint extends ActorTargetedConstraint
 
 	onDirty(dirt)
 	{
+		super.onDirty(dirt);
 		this.markDirty();
 	}
 

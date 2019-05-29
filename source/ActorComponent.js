@@ -10,6 +10,7 @@ export default class ActorComponent
 		this._Dependents = null;
 		this._Actor = null;
 		this._ParentIdx = -1;
+		this._DirtListeners = new Set();
 	}
 
 	get parent()
@@ -19,7 +20,25 @@ export default class ActorComponent
 
 	onDirty(dirt)
 	{
+		for(const listener of this._DirtListeners)
+		{
+			listener(this, dirt);
+		}
+	}
 
+	addDirtyListener(cb)
+	{
+		this._DirtListeners.add(cb);
+	}
+
+	removeDirtyListener(cb)
+	{
+		this._DirtListeners.remove(cb);
+	}
+
+	removeDirtyListeners()
+	{
+		this._DirtListeners.clear();
 	}
 
 	initialize(actor, graphics)
