@@ -18,6 +18,7 @@ export default class ActorArtboard
 		this._RootNode._Name = "Root";
 		this._Components.push(this._RootNode);
 		this._Drawables = [];
+		this._Layers = [];
 		this._Animations = [];
 		this._IsImageSortDirty = false;
 		this._Order = null;
@@ -248,7 +249,16 @@ export default class ActorArtboard
 					case FlareNode:
 					case ActorImage:
 					case ActorShape:
+						if (!component.layer)
+						{
+							this._Drawables.push(component);
+						}
+						break;
 					case ActorLayerNode:
+						if (!component.layer)
+						{
+							this._Layers.push(component);
+						}
 						this._Drawables.push(component);
 						break;
 				}
@@ -289,12 +299,32 @@ export default class ActorArtboard
 		}
 	}
 
-
 	advance(seconds)
 	{
 		this.update();
-
 		let components = this._Components;
+		// if(components)
+		// {
+		// 	for (const component of components)
+		// 	{
+		// 		if (component instanceof FlareNode && component.instance)
+		// 		{
+		// 			const { instance } = component;
+		// 			const idle = instance.getAnimation("idle");
+		// 			if(!idle)
+		// 			{
+		// 				continue;
+		// 			}
+		// 			if(!this.idleTime)
+		// 			{
+		// 				this.idleTime = 0.0;
+		// 			}
+		// 			this.idleTime += seconds;
+		// 			idle.apply(this.idleTime % idle.duration, instance, 1.0);
+		// 			instance.advance(seconds);
+		// 		}
+		// 	}
+		// }
 		// Advance last (update graphics buffers and such).
 		for (let component of components)
 		{
@@ -310,6 +340,11 @@ export default class ActorArtboard
 			{
 				return a._DrawOrder - b._DrawOrder;
 			});
+
+			for(const layer of this._Layers)
+			{
+				layer.sortDrawables();
+			}
 			this._IsImageSortDirty = false;
 		}
 	}

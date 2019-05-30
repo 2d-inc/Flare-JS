@@ -1179,6 +1179,22 @@ function _ReadDrawable(reader, component)
 	component._BlendMode = BlendMode.fromID(blendID);
 	component._DrawOrder = reader.readUint16("drawOrder");
 
+	reader.openObject("layer");
+	const layerType = reader.readUint8("type");
+	switch(layerType)
+	{
+		case 1:
+			component._LayerId = reader.readId("component");
+			break;
+		case 2:
+			component._LayerId = reader.readId("component");
+			component._LayerName = reader.readString("name");
+			break;
+		default:
+			break;
+	}
+	reader.closeObject();
+
 	return component;
 }
 

@@ -10,6 +10,31 @@ export default class ActorDrawable extends ActorNode
 		this._DrawOrder = 0;
 		this._BlendMode = BlendMode.SrcOver;
 		this._IsHidden = false;
+		this._Layer = null;
+		this._LayerId = null;
+		this._LayerName = null;
+	}
+
+	get layer()
+	{
+		return this._Layer;
+	}
+
+	set layer(value)
+	{
+		if(this._Layer === value)
+		{
+			return;
+		}
+		if(this._Layer)
+		{
+			this._Layer.removeDrawable(this);
+		}
+		this._Layer = value;
+		if(value)
+		{
+			value.addDrawable(this);
+		}
 	}
 
 	get drawOrder()
@@ -39,6 +64,8 @@ export default class ActorDrawable extends ActorNode
 		this._DrawOrder = node._DrawOrder;
 		this._BlendMode = node._BlendMode;
 		this._IsHidden = node._IsHidden;
+		this._LayerId = node._LayerId;
+		this._LayerName = node._LayerName;
 	}
 
 	getClips()
@@ -92,6 +119,26 @@ export default class ActorDrawable extends ActorNode
 					graphics.clipPath(clipPath);
 				}
 			}
+		}
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+
+		const {_LayerId:layerId, _LayerName:ename} = this;
+		if(!layerId)
+		{
+			return;
+		}
+		const layer = components[layerId];
+		if(ename)
+		{
+			this.layer = layer.getEmbeddedComponent(ename, );
+		}
+		else
+		{
+			this.layer = layer;
 		}
 	}
 }
