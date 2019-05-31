@@ -10,6 +10,7 @@ export default class FlareNode extends ActorDrawable
 		this._EmbeddedAssetIndex = -1;
 		this._Asset = null;
 		this._Instance = null;
+		this._UsingExistingInstance = false;
 		this.propagateDirt = this.propagateDirt.bind(this);
 	}
 
@@ -22,8 +23,8 @@ export default class FlareNode extends ActorDrawable
 	{
 		const node = new FlareNode();
 		node.copy(this, resetActor);
-
-		if (this._Asset.actor)
+		const { actor } = this._Asset;
+		if (actor)
 		{
 			if (node._Instance)
 			{
@@ -33,7 +34,10 @@ export default class FlareNode extends ActorDrawable
 					component.removeDirtyListeners();
 				}
 			}
-			node._Instance = this._Asset.actor.makeInstance();
+			// If the asset has been set to an instance, make sure to use that and presume the user knows what they are doing.
+			// This is really for cases when you want to mount an embedding item to an already loaded item.
+			node._UsingExistingInstance = actor.isInstance;
+			node._Instance = actor.isInstance ? actor : actor.makeInstance();
 		}
 		return node;
 	}
@@ -76,7 +80,7 @@ export default class FlareNode extends ActorDrawable
 
 	initialize(actor, graphics)
 	{
-		if (this._Instance)
+		if (!this._UsingExistingInstance && this._Instance)
 		{
 			this._Instance.initialize(graphics);
 			this._Instance.advance(0);
@@ -86,7 +90,7 @@ export default class FlareNode extends ActorDrawable
 	updateWorldTransform()
 	{
 		super.updateWorldTransform();
-		if (this._Instance && !mat2d.exactEquals(this._Instance.root.worldTransform, this._WorldTransform))
+		if (!this._UsingExistingInstance && this._Instance && !mat2d.exactEquals(this._Instance.root.worldTransform, this._WorldTransform))
 		{
 			this._Instance.root.overrideWorldTransform(this._WorldTransform);
 			this._Instance.advance(0);
@@ -104,7 +108,7 @@ export default class FlareNode extends ActorDrawable
 
 	draw(graphics)
 	{
-		if (this._Instance)
+		if (!this._UsingExistingInstance && this._Instance)
 		{
 			this._Instance.draw(graphics);
 		}
@@ -121,7 +125,10 @@ export default class FlareNode extends ActorDrawable
 			if (asset)
 			{
 				this._Asset = asset;
-				this._Instance = asset.actor.makeInstance();
+				// - If the asset has been set to an instance, make sure to use that and presume the user knows what they are doing.
+				// This is really for cases when you want to mount an embedding item to an already loaded item.
+				// - No instance here to prevent adding double items to layers when instance is already made.
+				//this._Instance = asset.actor.isInstance ? asset.actor : asset.actor.makeInstance();
 			}
 		}
 	}

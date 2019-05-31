@@ -9,7 +9,7 @@ import Graphics from "./Graphics.js";
 
 export default class ActorArtboard
 {
-	constructor(actor)
+	constructor(actor, isInstance)
 	{
 		this._Actor = actor;
 		this._Components = [];
@@ -32,6 +32,12 @@ export default class ActorArtboard
 		this._ClipContents = true;
 		this._Width = 0;
 		this._Height = 0;
+		this._IsInstance = isInstance ? true : false;
+	}
+
+	get isInstance()
+	{
+		return this._IsInstance;
 	}
 
 	get name()
@@ -407,7 +413,7 @@ export default class ActorArtboard
 
 	makeInstance()
 	{
-		const actorInstance = new ActorArtboard(this._Actor);
+		const actorInstance = new ActorArtboard(this._Actor, true);
 		actorInstance.copy(this);
 		return actorInstance;
 	}
