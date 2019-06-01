@@ -11,7 +11,6 @@ export default class FlareNode extends ActorDrawable
 		this._Asset = null;
 		this._Instance = null;
 		this._UsingExistingInstance = false;
-		this.propagateDirt = this.propagateDirt.bind(this);
 	}
 
 	get instance()
@@ -42,32 +41,14 @@ export default class FlareNode extends ActorDrawable
 		return node;
 	}
 
-	propagateDirt(node, dirt)
-	{
-		const { _Actor: actor } = this;
-		if (!actor)
-		{
-			return;
-		}
-		if (!actor.addDirt(this, dirt, true))
-		{
-			return;
-		}
-	}
-
-	getEmbeddedComponent(name, propagateDirt)
+	getEmbeddedComponent(name)
 	{
 		const { _Instance: instance } = this;
 		if (!instance)
 		{
 			return null;
 		}
-		const node = instance.getNode(name);
-		if (propagateDirt)
-		{
-			node.addDirtyListener(this.propagateDirt);
-		}
-		return node;
+		return instance.getNode(name);
 	}
 
 	copy(node, resetActor)

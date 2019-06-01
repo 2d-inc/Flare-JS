@@ -134,7 +134,7 @@ export default class ActorDrawable extends ActorNode
 		const layer = components[layerId];
 		if(ename)
 		{
-			this.layer = layer.getEmbeddedComponent(ename, );
+			this.layer = layer.getEmbeddedComponent(ename);
 		}
 		else
 		{

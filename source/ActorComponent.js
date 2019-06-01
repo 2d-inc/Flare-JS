@@ -8,9 +8,41 @@ export default class ActorComponent
 		this._DirtMask = 0;
 		this._GraphOrder = -1;
 		this._Dependents = null;
+		this._ExtDependents = null;
 		this._Actor = null;
 		this._ParentIdx = -1;
 		this._DirtListeners = new Set();
+	}
+
+	addExternalDirt(dirt, recurse)
+	{
+		const {_Actor:actor} = this;
+		if(!actor)
+		{
+			return;
+		}
+		actor.addDirt(this, dirt, recurse);
+	}
+
+	addExternalDependency(a)
+	{
+		let dependents = this._ExtDependents;
+		if (!dependents)
+		{
+			dependents = this._ExtDependents = new Set();
+		}
+		dependents.add(a);
+		return true;
+	}
+
+	removeExternalDependency(d)
+	{
+		const {_ExtDependents:dependencies} = this;
+		if(!dependencies)
+		{
+			return;
+		}
+		dependencies.delete(d);
 	}
 
 	get parent()

@@ -108,10 +108,10 @@ export default class ActorArtboard
 
 	sortDependencies()
 	{
-		let perm = new Set();
-		let temp = new Set();
+		const perm = new Set();
+		const temp = new Set();
 
-		let order = [];
+		const order = [];
 
 		function visit(n)
 		{
@@ -127,10 +127,10 @@ export default class ActorArtboard
 
 			temp.add(n);
 
-			let dependents = n._Dependents;
+			const dependents = n._Dependents;
 			if (dependents)
 			{
-				for (let d of dependents)
+				for (const d of dependents)
 				{
 					if (!visit(d))
 					{
@@ -152,7 +152,7 @@ export default class ActorArtboard
 
 		for (let i = 0; i < order.length; i++)
 		{
-			let component = order[i];
+			const component = order[i];
 			component._GraphOrder = i;
 			component._DirtMask = 255;
 		}
@@ -186,12 +186,20 @@ export default class ActorArtboard
 		{
 			return true;
 		}
-		let dependents = component._Dependents;
+		const dependents = component._Dependents;
 		if (dependents)
 		{
-			for (let d of dependents)
+			for (const d of dependents)
 			{
 				this.addDirt(d, value, recurse);
+			}
+		}
+		const extDependents = component._ExtDependents;
+		if (extDependents)
+		{
+			for (const d of extDependents)
+			{
+				d.addExternalDirt(value, recurse);
 			}
 		}
 

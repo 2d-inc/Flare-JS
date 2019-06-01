@@ -917,7 +917,13 @@ function _ReadActorTargetedConstraint(reader, component)
 {
 	_ReadActorConstraint(reader, component);
 
+
+	const isEmbedded = reader.readBool("isEmbedded");
 	component._TargetIdx = reader.readId("target");
+	if(isEmbedded)
+	{
+		component._TargetName = reader.readString("name");
+	}
 }
 
 function _ReadActorIKConstraint(reader, component)

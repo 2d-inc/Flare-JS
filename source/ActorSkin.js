@@ -84,21 +84,16 @@ export default class ActorSkin extends ActorComponent
 			const connectedBones = parent.connectedBones;
 			if(connectedBones && connectedBones.length)
 			{
-				const flareNodes = new Set();
 				for(const {flareNode, node} of connectedBones)
 				{
 					if(flareNode)
 					{
-						flareNodes.add(flareNode);
+						node && node.addExternalDependency(this);
 					}
 					else
 					{
 						dependOn(graph, this, node);
 					}
-				}
-				for(const flareNode of flareNodes)
-				{
-					dependOn(graph, this, flareNode);
 				}
 			}
 		}
