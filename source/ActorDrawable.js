@@ -87,8 +87,8 @@ export default class ActorDrawable extends ActorNode
 						}
 					}
 				}
-				if (!clipPath.isEmpty())
-				{
+                if (!clipPath.isEmpty())
+                {
 					graphics.clipPath(clipPath);
 				}
 			}
