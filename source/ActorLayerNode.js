@@ -47,10 +47,15 @@ export default class ActorLayerNode extends ActorDrawable
 
 	draw(graphics)
 	{
+		if(this._RenderCollapsed)
+		{
+			return false;
+		}
 		for (const drawable of this._Drawables)
 		{
 			drawable.draw(graphics);
 		}
+		return true;
 	}
 
 	completeResolve()
