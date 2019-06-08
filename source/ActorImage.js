@@ -227,6 +227,7 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 		}
 
 		const {_skUV, _skPos, _Triangles, isConnectedToBones} = this;
+
 		if(!_skUV || !_skPos || !_Triangles)
 		{
 			return null;
@@ -245,6 +246,7 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 		}
 
 		const vertices = this.getVertices(graphics);
+
 		if(!vertices)
 		{
 			return;

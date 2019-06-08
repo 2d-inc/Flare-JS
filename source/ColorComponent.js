@@ -120,6 +120,7 @@ export class ColorFill extends ActorColor
 	fill(graphics, path)
 	{
 		const {_Paint:paint, runtimeColor} = this;
+
 		graphics.setPaintColor(paint, runtimeColor);
 		graphics.setPathFillType(path, this._FillRule);
 		graphics.drawPath(path, paint);

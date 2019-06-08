@@ -39,7 +39,7 @@ const ActorSkinnable = (ActorSkinnable) => class extends ActorSkinnable
 				if (ename)
 				{
 					const flareNode = components[componentIndex];
-					cb.node = flareNode.getEmbeddedComponent(ename, false);
+					cb.node = flareNode.getEmbeddedComponent(ename);
 					cb.flareNode = flareNode;
 				}
 				else

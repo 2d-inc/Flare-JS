@@ -28,7 +28,8 @@ export default class Actor extends Dispatcher
 	{
 		for(let nested of this._EmbeddedAssets)
 		{
-			if(nested.actor)
+			// Check if the actor is an instance, if so, presume the user has already initialized.
+			if(nested.actor && !nested.actor.isInstance)
 			{
 				nested.actor.initialize(graphics);
 			}
