@@ -73,7 +73,7 @@ export default class ActorDrawable extends ActorNode
 					let shapes = new Set();
 					clip.all(function (node)
 					{
-						if (node.paths)
+						if (node.paths && !node.renderCollapsed)
 						{
 							shapes.add(node);
 						}
@@ -87,8 +87,8 @@ export default class ActorDrawable extends ActorNode
 						}
 					}
 				}
-                if (!clipPath.isEmpty())
-                {
+				if (!clipPath.isEmpty())
+				{
 					graphics.clipPath(clipPath);
 				}
 			}
