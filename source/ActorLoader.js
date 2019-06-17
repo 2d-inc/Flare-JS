@@ -1387,7 +1387,7 @@ function _ReadActorImageSequence(reader, component)
 function _ReadFlareNode(reader, component, embeddedAssets)
 {
 	_ReadDrawable(reader, component);
-	component._EmbeddedAssetIndex = reader.readUint16();
+	component._EmbeddedAssetIndex = reader.readUint16("assetIndex");
 	// if (assetIndex < embeddedAssets.length)
 	// {
 	// 	component._Asset = embeddedAssets[assetIndex];
