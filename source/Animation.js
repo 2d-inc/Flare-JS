@@ -219,7 +219,7 @@ export default class Animation
 						}
 						else
 						{
-							component._Scale[0] = value * imix + value * mix;
+							component._Scale[0] = component._Scale[0] * imix + value * mix;
 						}
 						markDirty = true;
 						break;
@@ -230,7 +230,7 @@ export default class Animation
 						}
 						else
 						{
-							component._Scale[1] = value * imix + value * mix;
+							component._Scale[1] = component._Scale[1] * imix + value * mix;
 						}
 						markDirty = true;
 						break;
