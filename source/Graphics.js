@@ -9,7 +9,7 @@ import CanvasKitInit from '../canvaskit/canvaskit.js';
 import CanvasKitModule from '../canvaskit/canvaskit.wasm';
 /// #endif
 let CanvasKit = null;
-
+let loadQueue = null;
 export default class Graphics
 {
 	constructor(canvasOrGraphics)
@@ -43,6 +43,12 @@ export default class Graphics
 	{
 		if (CanvasKit === null)
 		{
+			if(loadQueue)
+			{
+				loadQueue.push({graphics:this, cb});
+				return;
+			}
+			loadQueue = [{graphics:this, cb}];
 			CanvasKitInit(
 				{
 				/// #if CanvasKitLocation == "embedded"
@@ -61,8 +67,11 @@ export default class Graphics
 					setTimeout(() => 
 					{
 						CanvasKit = CK;
-						this.init();
-						cb();
+						for(const q of loadQueue)
+						{
+							q.graphics.init();
+							q.cb();
+						}
 					}, 0);
 				});
 		}
