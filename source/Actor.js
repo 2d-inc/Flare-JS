@@ -9,6 +9,17 @@ export default class Actor extends Dispatcher
 		this._Artboards = [];
 		this._EmbeddedAssets = [];
 		this._Atlases = [];
+		this._Fonts = new Map();
+	}
+
+	addFont(font)
+	{
+		this._Fonts.set(font.id, font);
+	}
+
+	getFont(id)
+	{
+		return this._Fonts.get(id);
 	}
 
 	getArtboard(name)
@@ -18,7 +29,7 @@ export default class Actor extends Dispatcher
 
 	dispose(graphics)
 	{
-		for(const artboard of this._Artboards)
+		for (const artboard of this._Artboards)
 		{
 			artboard.dispose(graphics);
 		}
@@ -26,19 +37,19 @@ export default class Actor extends Dispatcher
 
 	initialize(graphics)
 	{
-		for(let nested of this._EmbeddedAssets)
+		for (let nested of this._EmbeddedAssets)
 		{
 			// Check if the actor is an instance, if so, presume the user has already initialized.
-			if(nested.actor && !nested.actor.isInstance)
+			if (nested.actor && !nested.actor.isInstance)
 			{
 				nested.actor.initialize(graphics);
 			}
 		}
-		for(const atlas of this._Atlases)
+		for (const atlas of this._Atlases)
 		{
 			atlas.initialize(graphics);
 		}
-		for(const artboard of this._Artboards)
+		for (const artboard of this._Artboards)
 		{
 			artboard.initialize(graphics);
 		}

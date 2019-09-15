@@ -4,49 +4,13 @@ import ActorProceduralPath from "./ActorProceduralPath.js";
 import DirtyFlags from "./DirtyFlags.js";
 import {vec2} from "gl-matrix";
 const {WorldTransformDirty} = DirtyFlags;
+import ActorPaintable from "./ActorPaintable.js";
 
-export default class ActorShape extends ActorDrawable
+export default class ActorShape extends ActorPaintable(ActorDrawable)
 {
 	constructor(actor)
 	{
 		super(actor);
-
-		this._Paths = null;
-		this._Fills = null;
-		this._Strokes = null;
-	}
-
-	get paths()
-	{
-		return this._Paths;
-	}
-
-	addFill(fill)
-	{
-		if(!this._Fills)
-		{
-			this._Fills = [];
-		}
-		this._Fills.push(fill);
-	}
-
-	addStroke(stroke)
-	{
-		if(!this._Strokes)
-		{
-			this._Strokes = [];
-		}
-		this._Strokes.push(stroke);
-	}
-
-	get stroke()
-	{
-		return this._Strokes && this._Strokes.length && this._Strokes[0];
-	}
-
-	initialize(actor, graphics)
-	{
-		
 	}
 
 	computeAABB()
@@ -186,6 +150,12 @@ export default class ActorShape extends ActorDrawable
 		return new Float32Array([min_x, min_y, max_x, max_y]);
 	}
 
+
+	initialize(actor, graphics)
+	{
+		
+	}
+
 	dispose(actor, graphics)
 	{
 
@@ -201,26 +171,8 @@ export default class ActorShape extends ActorDrawable
 		graphics.save();
 		this.clip(graphics);
 		const shapePath = this.getShapePath(graphics);
-
-		const {_Fills:fills, _Strokes:strokes} = this;
 		
-		if(fills)
-		{
-			for(const fill of fills)
-			{
-				fill.fill(graphics, shapePath);
-			}
-		}
-		if(strokes)
-		{
-			for(const stroke of strokes)
-			{
-				if(stroke._Width > 0)
-				{
-					stroke.stroke(graphics, shapePath);
-				}
-			}
-		}
+		this.paint(graphics, shapePath);
 		
 		graphics.restore();
 	}

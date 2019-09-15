@@ -49,7 +49,11 @@ const Blocks =
 	ActorLayerNode: block(118, "layerNode"),
 	FlareNode: block(24, "flareNode"),
 	EmbeddedAssets: block(25, "embeddedAssets"),
-	FlareAsset: block(26, "flareAsset")
+	FlareAsset: block(26, "flareAsset"),
+	ActorText: block(119, "text"),
+	ActorTextStyle: block(120, "textStyle"),
+	Fonts: block(121, "fonts"),
+	Font: block(122, "font")
 };
 
 const _Types = {};

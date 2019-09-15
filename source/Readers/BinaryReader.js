@@ -1,5 +1,8 @@
 import StreamReader from "./StreamReader.js";
 
+const MSB = 0x80;
+const REST = 0x7f;
+
 export default class BinaryReader extends StreamReader
 {
 	constructor(uint8Array)
@@ -28,7 +31,7 @@ export default class BinaryReader extends StreamReader
 
 	readFloat32ArrayOffset(ar, length, offset)
 	{
-		if(!offset)
+		if (!offset)
 		{
 			offset = 0;
 		}
@@ -45,7 +48,7 @@ export default class BinaryReader extends StreamReader
 		return ar;
 	}
 
-		
+
 	readFloat32Array(ar)
 	{
 		for (let i = 0; i < ar.length; i++)
@@ -89,7 +92,7 @@ export default class BinaryReader extends StreamReader
 
 	readUint16Array(ar)
 	{
-		const {length} = ar;
+		const { length } = ar;
 		for (let i = 0; i < length; i++)
 		{
 			ar[i] = this.dataView.getUint16(this.readIndex, !this.isBigEndian);
@@ -182,14 +185,14 @@ export default class BinaryReader extends StreamReader
 		return this.readUint8() === 1;
 	}
 
-	readBlockType() 
+	readBlockType()
 	{
 		return this.readUint8();
 	}
 
 	readImage(isOOB, cb)
 	{
-		if(isOOB)
+		if (isOOB)
 		{
 			const image = this.readString();
 			const req = new XMLHttpRequest();
@@ -211,13 +214,13 @@ export default class BinaryReader extends StreamReader
 			cb(atlasData);
 		}
 	}
-	
+
 	readId(label)
 	{
 		return this.readUint16();
 	}
-	
-	readUint8Length() 
+
+	readUint8Length()
 	{
 		return this.readUint8();
 	}
@@ -232,7 +235,42 @@ export default class BinaryReader extends StreamReader
 		return this.readUint32();
 	}
 
+	decodeNumber()
+	{
+		let { raw, readIndex } = this;
+
+		let res = 0,
+			shift = 0,
+			b, l = raw.length;
+
+		do {
+			if (readIndex >= l)
+			{
+				throw new RangeError('Could not decode varint')
+			}
+			b = raw[readIndex++]
+			res += shift < 28 ?
+				(b & REST) << shift :
+				(b & REST) * Math.pow(2, shift)
+			shift += 7;
+		} while (b >= MSB)
+
+		//read.bytes = readIndex - offset;
+		this.readIndex = readIndex;
+
+		let whole = res & 0xffff;
+		let zagged = (whole >>> 1) ^ -(whole & 1);
+		let frac = res >> 16;
+		//console.log("ZA", zagged, frac, numDigits(frac), zagged + frac / Math.pow(10, numDigits(frac)));
+		return zagged + frac / Math.pow(10, numDigits(frac));
+	}
+
 	get containerType() { return "bin"; }
 }
 
 BinaryReader.alignment = 1024;
+
+function numDigits(x)
+{
+	return (Math.log10((x ^ (x >> 31)) - (x >> 31)) | 0) + 1;
+}
