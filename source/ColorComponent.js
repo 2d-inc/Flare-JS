@@ -42,7 +42,7 @@ class ActorPaint extends ActorComponent
 		this._RenderOpacity = this._Opacity * this._Parent._RenderOpacity;
 		if(this._Paint)
 		{
-			Graphics.setPaintBlendMode(this._Paint, this._Parent._BlendMode);
+			Graphics.setPaintBlendMode(this._Paint, this._Parent.blendMode);
 		}
 	}
 
@@ -51,7 +51,7 @@ class ActorPaint extends ActorComponent
 		this._Paint = graphics.makePaint();
 		if(this._Parent)
 		{
-			Graphics.setPaintBlendMode(this._Paint, this._Parent._BlendMode);
+			Graphics.setPaintBlendMode(this._Paint, this._Parent.blendMode);
 		}
 	}
 

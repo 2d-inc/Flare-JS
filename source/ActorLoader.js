@@ -244,7 +244,7 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadActorTextStyle(block.reader, new ActorTextStyle(), artboard);
 				break;
 			case _BlockTypes.ActorText:
-				component = new ActorText();
+				component = _ReadActorText(block.reader, new ActorText(), artboard);
 				break;
 		}
 
@@ -759,6 +759,23 @@ function _ReadActorComponent(reader, component)
 	return component;
 }
 
+function _ReadActorText(reader, component, artboard)
+{
+	_ReadDrawable(reader, component);
+	component._Name = reader.readString("text");
+	component._Align = reader.readUint8("align");
+	component._Overflow = reader.readUint8("overflow");
+	component._MaxSize = reader.readFloat32("maxSize");
+	component._MaxLines = reader.readUint16("maxLines");
+	component._LineHeight = reader.readFloat32("lineHeight");
+	component._NoOrphans = reader.readBool("noOrphans");
+
+	const stylingLength = reader.readUint32Length()
+	const styling = new Uint16Array(stylingLength);
+	component._Styling = reader.readUint16Array(styling);
+	return component;
+}
+
 function _ReadActorTextStyle(reader, component, artboard)
 {
 	const { actor } = artboard;
@@ -773,6 +790,8 @@ function _ReadActorTextStyle(reader, component, artboard)
 
 	component._Font = font;
 	component._FontSize = reader.readFloat32();
+
+	return component;
 }
 
 function _ReadActorPaint(reader, component)

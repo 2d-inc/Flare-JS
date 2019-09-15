@@ -15,6 +15,11 @@ export default class ActorDrawable extends ActorNode
 		this._LayerName = null;
 	}
 
+	get blendMode()
+	{
+		return this._BlendMode;
+	}
+
 	get layer()
 	{
 		return this._Layer;

@@ -8,7 +8,13 @@ export default class ActorTextStyle extends ActorPaintable(ActorComponent)
 		super(actor);
 		this._Font = null;
 		this._FontSize = 12;
-	}
+    }
+    
+    // Used by contained stroke/fills.
+    get blendMode()
+    {
+        return this._Parent.blendMode;
+    }
 
 	makeInstance(resetActor)
 	{
@@ -23,5 +29,15 @@ export default class ActorTextStyle extends ActorPaintable(ActorComponent)
 
 		this._Font = node._Font;
 		this._FontSize = node._FontSize;
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		if(this._Parent)
+		{
+            console.log(this._Parent);
+			this._Parent.addStyle(this);
+		}
 	}
 }
