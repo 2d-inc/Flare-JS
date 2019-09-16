@@ -1,6 +1,7 @@
 import ActorNode from "./ActorNode.js";
 import ActorLayerNode from "./ActorLayerNode.js";
 import ActorShape from "./ActorShape.js";
+import ActorText from "./ActorText.js";
 import ActorImage from "./ActorImage.js";
 import FlareNode from "./FlareNode.js";
 import AnimationInstance from "./AnimationInstance.js";
@@ -263,6 +264,7 @@ export default class ActorArtboard
 					case FlareNode:
 					case ActorImage:
 					case ActorShape:
+					case ActorText:
 						if (!component.layer)
 						{
 							this._Drawables.push(component);

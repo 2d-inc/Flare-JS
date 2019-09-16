@@ -60,4 +60,5 @@ const ActorPaintable = (base) => class extends base
 	}
 }
 
+let printed = false;
 export default ActorPaintable;

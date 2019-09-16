@@ -762,13 +762,13 @@ function _ReadActorComponent(reader, component)
 function _ReadActorText(reader, component, artboard)
 {
 	_ReadDrawable(reader, component);
-	component._Name = reader.readString("text");
-	component._Align = reader.readUint8("align");
-	component._Overflow = reader.readUint8("overflow");
-	component._MaxSize = reader.readFloat32("maxSize");
-	component._MaxLines = reader.readUint16("maxLines");
-	component._LineHeight = reader.readFloat32("lineHeight");
-	component._NoOrphans = reader.readBool("noOrphans");
+	component._Text = reader.readString("text");
+	component.align = reader.readUint8("align");
+	component.overflow = reader.readUint8("overflow");
+	component.maxSize = reader.readFloat32("maxSize");
+	component.maxLines = reader.readUint16("maxLines");
+	component.lineHeight = reader.readFloat32("lineHeight");
+	component.noOrphans = reader.readBool("noOrphans");
 
 	const stylingLength = reader.readUint32Length()
 	const styling = new Uint16Array(stylingLength);

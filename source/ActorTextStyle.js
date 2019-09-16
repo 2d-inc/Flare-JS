@@ -8,13 +8,22 @@ export default class ActorTextStyle extends ActorPaintable(ActorComponent)
 		super(actor);
 		this._Font = null;
 		this._FontSize = 12;
-    }
-    
-    // Used by contained stroke/fills.
-    get blendMode()
-    {
-        return this._Parent.blendMode;
-    }
+		this.renderPath = null;
+	}
+
+	get renderOpacity()
+	{
+		return this._Parent.renderOpacity;
+	}
+
+	get font() { return this._Font; }
+	get fontSize() { return this._FontSize; }
+
+	// Used by contained stroke/fills.
+	get blendMode()
+	{
+		return this._Parent.blendMode;
+	}
 
 	makeInstance(resetActor)
 	{
@@ -34,10 +43,22 @@ export default class ActorTextStyle extends ActorPaintable(ActorComponent)
 	resolveComponentIndices(components)
 	{
 		super.resolveComponentIndices(components);
-		if(this._Parent)
+		if (this._Parent)
 		{
-            console.log(this._Parent);
 			this._Parent.addStyle(this);
 		}
+	}
+
+	draw(graphics)
+	{
+		const { renderPath } = this;
+		if (!renderPath) { return; }
+
+		// const paint = graphics.makePaint(true);
+		// graphics.setPaintFill(paint);
+		// graphics.setPaintColor(paint, [1, 0, 0, 1]);
+		// //graphics.drawRect(0, 0, 100, 100, paint);
+		// graphics.drawPath(renderPath, paint);
+		this.paint(graphics, renderPath);
 	}
 }

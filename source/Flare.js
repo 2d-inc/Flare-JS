@@ -12,3 +12,4 @@ exports.ActorJellyBone = require("./ActorJellyBone.js").default;
 exports.ActorNode = require("./ActorNode.js").default;
 exports.ActorTargetNode = require("./ActorTargetNode.js").default;
 exports.ActorLayerNode = require("./ActorLayerNode.js").default;
+exports.TextShaper = require("./TextShaper.js").default;

@@ -39,7 +39,7 @@ class ActorPaint extends ActorComponent
 	update(dirt)
 	{
 		super.update(dirt);
-		this._RenderOpacity = this._Opacity * this._Parent._RenderOpacity;
+		this._RenderOpacity = this._Opacity * this._Parent.renderOpacity;
 		if(this._Paint)
 		{
 			Graphics.setPaintBlendMode(this._Paint, this._Parent.blendMode);
