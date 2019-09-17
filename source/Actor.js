@@ -70,6 +70,11 @@ export default class Actor extends Dispatcher
 		return this._Artboards;
 	}
 
+	get artboard()
+	{
+		return this._Artboards.length && this._Artboards[0];
+	}
+
 	get embeddedAssets()
 	{
 		return this._EmbeddedAssets;

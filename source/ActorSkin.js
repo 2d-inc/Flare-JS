@@ -1,5 +1,5 @@
 import ActorComponent from "./ActorComponent.js";
-import {mat2d} from "gl-matrix";
+import { mat2d } from "gl-matrix";
 
 export default class ActorSkin extends ActorComponent
 {
@@ -17,12 +17,12 @@ export default class ActorSkin extends ActorComponent
 	update(dirt)
 	{
 		const parent = this._Parent;
-		if(parent && parent._ConnectedBones)
+		if (parent && parent._ConnectedBones)
 		{
 			const connectedBones = parent._ConnectedBones;
-			const length = (connectedBones.length+1) * 6;
+			const length = (connectedBones.length + 1) * 6;
 			let bt = this._BoneMatrices;
-			if(!bt || bt.length !== length)
+			if (!bt || bt.length !== length)
 			{
 				this._BoneMatrices = bt = new Float32Array(length);
 				// First bone transform is always identity.
@@ -38,9 +38,9 @@ export default class ActorSkin extends ActorComponent
 
 			const mat = mat2d.create();
 
-			for(const cb of connectedBones)
+			for (const cb of connectedBones)
 			{
-				if(!cb.node)
+				if (!cb.node)
 				{
 					bt[bidx++] = 1;
 					bt[bidx++] = 0;
@@ -69,7 +69,7 @@ export default class ActorSkin extends ActorComponent
 	{
 		const node = new ActorSkin();
 		node.copy(this, resetActor);
-		return node;	
+		return node;
 	}
 
 	completeResolve()
@@ -77,16 +77,16 @@ export default class ActorSkin extends ActorComponent
 		super.completeResolve();
 		const graph = this._Actor;
 		let parent = this._Parent;
-		if(parent)
+		if (parent)
 		{
 			parent.setSkin(this);
 			graph.addDependency(this, parent);
 			const connectedBones = parent.connectedBones;
-			if(connectedBones && connectedBones.length)
+			if (connectedBones && connectedBones.length)
 			{
-				for(const {flareNode, node} of connectedBones)
+				for (const { flareNode, node } of connectedBones)
 				{
-					if(flareNode)
+					if (flareNode)
 					{
 						node && node.addExternalDependency(this);
 					}
@@ -98,16 +98,39 @@ export default class ActorSkin extends ActorComponent
 			}
 		}
 	}
+
+	// Disconnect skin from embedded references.
+	dislodge()
+	{
+		// remove external dependencies
+		const { _Parent: skinnable } = this;
+		if (!skinnable)
+		{
+			return;
+		}
+
+		if (skinnable.isConnectedToBones)
+		{
+			const { connectedBones } = skinnable;
+			for (const skinnedBone of connectedBones)
+			{
+				if (skinnedBone.flareNode)
+				{
+					skinnedBone.node.removeExternalDependency(this);
+				}
+			}
+		}
+	}
 }
 
 function dependOn(graph, skin, component)
 {
 	graph.addDependency(skin, component);
 	const constraints = component.allConstraints;
-				
-	if(constraints)
+
+	if (constraints)
 	{
-		for(const constraint of constraints)
+		for (const constraint of constraints)
 		{
 			graph.addDependency(skin, constraint);
 		}

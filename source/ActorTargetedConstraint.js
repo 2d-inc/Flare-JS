@@ -1,4 +1,5 @@
 import ActorConstraint from "./ActorConstraint.js";
+import FlareNode from "./FlareNode.js";
 
 export default class ActorTargetedConstraint extends ActorConstraint
 {
@@ -15,7 +16,7 @@ export default class ActorTargetedConstraint extends ActorConstraint
 	{
 		const node = new ActorTargetedConstraint();
 		node.copy(this, resetActor);
-		return node;	
+		return node;
 	}
 
 	copy(node, resetActor)
@@ -28,16 +29,16 @@ export default class ActorTargetedConstraint extends ActorConstraint
 	resolveComponentIndices(components)
 	{
 		super.resolveComponentIndices(components);
-		const {_TargetIdx:targetIdx, _TargetName:targetName} = this;
-		if(targetIdx !== 0)
+		const { _TargetIdx: targetIdx, _TargetName: targetName } = this;
+		if (targetIdx !== 0)
 		{
 			const target = components[targetIdx];
-			if(target)
+			if (target)
 			{
-				if(targetName)
+				if (targetName)
 				{
 					this._Target = target.getEmbeddedComponent(targetName);
-					if(this._Target)
+					if (this._Target)
 					{
 						this._Target.addExternalDependency(this._Parent);
 					}
@@ -48,9 +49,21 @@ export default class ActorTargetedConstraint extends ActorConstraint
 					// Add dependency on target.
 					this._Actor.addDependency(this._Parent, target);
 				}
-				
 			}
 		}
+	}
 
+	dislodge()
+	{
+		const { _Actor: artboard, _TargetIdx: targetIdx, _TargetName: targetName } = this;
+		const { components } = artboard;
+		if (targetIdx)
+		{
+			const target = components[targetIdx];
+			if (target && targetName && target instanceof FlareNode)
+			{
+				target.removeExternalDependency(this._Parent);
+			}
+		}
 	}
 }

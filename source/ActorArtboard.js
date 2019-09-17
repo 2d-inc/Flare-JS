@@ -7,6 +7,9 @@ import FlareNode from "./FlareNode.js";
 import AnimationInstance from "./AnimationInstance.js";
 import { mat2d, vec2, vec4 } from "gl-matrix";
 import Graphics from "./Graphics.js";
+import ActorDrawable from "./ActorDrawable.js"
+import ActorSkin from "./ActorSkin.js"
+import ActorTargetedConstraint from "./ActorTargetedConstraint.js"
 
 export default class ActorArtboard
 {
@@ -91,6 +94,11 @@ export default class ActorArtboard
 		return this._Actor;
 	}
 
+	get components()
+	{
+		return this._Components;
+	}
+	
 	addDependency(a, b)
 	{
 		// "a" depends on "b"
@@ -295,7 +303,7 @@ export default class ActorArtboard
 
 		this.sortDependencies();
 
-		this._Drawables.sort(function (a, b)
+		this._Drawables.sort(function(a, b)
 		{
 			return a._DrawOrder - b._DrawOrder;
 		});
@@ -352,12 +360,12 @@ export default class ActorArtboard
 
 		if (this._IsImageSortDirty)
 		{
-			this._Drawables.sort(function (a, b)
+			this._Drawables.sort(function(a, b)
 			{
 				return a._DrawOrder - b._DrawOrder;
 			});
 
-			for(const layer of this._Layers)
+			for (const layer of this._Layers)
 			{
 				layer.sortDrawables();
 			}
@@ -520,6 +528,27 @@ export default class ActorArtboard
 			const x = -this._Origin[0] * this._Width;
 			const y = -this._Origin[1] * this._Height;
 			this._ClippingPath.addRect(x, y, x + this._Width, y + this._Height);
+		}
+	}
+
+	dislodge()
+	{
+		const { _Components: components } = this;
+		// remove from whatever we're bound to on embedded files.
+		for (const component of components)
+		{
+			if (component instanceof ActorDrawable)
+			{
+				component.layer && component.layer.removeDrawable(component);
+			}
+			else if (component instanceof ActorSkin)
+			{
+				component.dislodge();
+			}
+			else if (component instanceof ActorTargetedConstraint)
+			{
+				component.dislodge();
+			}
 		}
 	}
 }
