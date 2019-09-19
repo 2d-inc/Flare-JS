@@ -1475,7 +1475,7 @@ export default class ActorLoader
 	load(url, callback)
 	{
 		let loader = this;
-		if (url.constructor === ArrayBuffer || url.construcotr === Uint8Array) {
+		if (url.constructor === ArrayBuffer || url.constructor === Uint8Array) {
 			_ReadActor(loader, url, callback);
 		} else if (url.constructor === String) {
 			let req = new XMLHttpRequest();
