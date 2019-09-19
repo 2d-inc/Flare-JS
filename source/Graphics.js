@@ -14,7 +14,9 @@ export default class Graphics
 {
 	constructor(canvasOrGraphics)
 	{
-		if(canvasOrGraphics instanceof HTMLCanvasElement)
+		this._Width = 200;
+		this._Height = 300;
+		if (!canvasOrGraphics || canvasOrGraphics instanceof HTMLCanvasElement)
 		{
 			this._Canvas = canvasOrGraphics;
 			this._Cleanup = [];
@@ -44,27 +46,27 @@ export default class Graphics
 		if (CanvasKit === null)
 		{
 			CanvasKitInit(
-				{
+			{
 				/// #if CanvasKitLocation == "embedded"
-					wasmBinary: CanvasKitModule,
+				wasmBinary: CanvasKitModule,
 				/// #else
-					locateFile: (file) => staticPath + file,
+				locateFile: (file) => staticPath + file,
 				/// #endif 
-				}).ready().then((CK) => 
+			}).ready().then((CK) =>
+			{
+				// when debugging, it can be handy to not run directly in the then, because if there
+				// is a failure (for example, miscalling an API), the WASM loader tries to re-load
+				// the web assembly in the (much slower) ArrayBuffer version. This will also fail
+				// and thus there is a lot of extra log spew.
+				// Thus, the setTimeout to run on the next microtask avoids this second loading
+				// and the log spew.
+				setTimeout(() =>
 				{
-					// when debugging, it can be handy to not run directly in the then, because if there
-					// is a failure (for example, miscalling an API), the WASM loader tries to re-load
-					// the web assembly in the (much slower) ArrayBuffer version. This will also fail
-					// and thus there is a lot of extra log spew.
-					// Thus, the setTimeout to run on the next microtask avoids this second loading
-					// and the log spew.
-					setTimeout(() => 
-					{
-						CanvasKit = CK;
-						this.init();
-						cb();
-					}, 0);
-				});
+					CanvasKit = CK;
+					this.init();
+					cb();
+				}, 0);
+			});
 		}
 		else
 		{
@@ -75,10 +77,13 @@ export default class Graphics
 
 	init()
 	{
-		this._GLContext = CanvasKit.GetWebGLContext(this._Canvas, { antialias: true, depth: false, enableExtensionsByDefault: false });
-		this._SkContext = CanvasKit.MakeGrContext(this._GLContext);
-		// Set limit to 250 MB by default.
-		this._SkContext.setResourceCacheLimitBytes(262144000);
+		if (this._Canvas)
+		{
+			this._GLContext = CanvasKit.GetWebGLContext(this._Canvas, { antialias: true, depth: false, enableExtensionsByDefault: false });
+			this._SkContext = CanvasKit.MakeGrContext(this._GLContext);
+			// Set limit to 250 MB by default.
+			this._SkContext.setResourceCacheLimitBytes(262144000);
+		}
 		this.updateBackendSurface();
 
 		const clearPaint = new CanvasKit.SkPaint();
@@ -98,10 +103,18 @@ export default class Graphics
 		{
 			this._SkSurface.delete();
 		}
-		CanvasKit.setCurrentContext(this._GLContext);
+		if (this._GLContext)
+		{
+			CanvasKit.setCurrentContext(this._GLContext);
 
-		this._SkSurface = CanvasKit.MakeOnScreenGLSurface(this._SkContext, this.width, this.height);
-		this._SkCanvas = this._SkSurface.getCanvas();
+			this._SkSurface = CanvasKit.MakeOnScreenGLSurface(this._SkContext, this.width, this.height);
+			this._SkCanvas = this._SkSurface.getCanvas();
+		}
+		else
+		{
+			this._SkSurface = CanvasKit.MakeSurface(this.width, this.height);
+			this._SkCanvas = this._SkSurface.getCanvas();
+		}
 	}
 
 	save()
@@ -118,8 +131,9 @@ export default class Graphics
 	{
 		this._SkCanvas.concat(
 			[matrix[0], matrix[2], matrix[4],
-			matrix[1], matrix[3], matrix[5],
-				0, 0, 1]);
+				matrix[1], matrix[3], matrix[5],
+				0, 0, 1
+			]);
 	}
 
 	get canvas()
@@ -134,7 +148,7 @@ export default class Graphics
 
 	dispose()
 	{
-		if(this._proxy)
+		if (this._proxy)
 		{
 			this._proxy.removeEventListener("surfaceUpdate", this._onSurfaceUpdated);
 		}
@@ -142,18 +156,21 @@ export default class Graphics
 
 	get width()
 	{
-		return this._Canvas.width;
+		return this._Width;
 	}
 
 	get height()
 	{
-		return this._Canvas.height;
+		return this._Height;
 	}
 
 	clear(color)
 	{
 		const { _GLContext: ctx, _ClearPaint: clearPaint, _SkCanvas: skCanvas, width, height } = this;
-		CanvasKit.setCurrentContext(ctx);
+		if (ctx)
+		{
+			CanvasKit.setCurrentContext(ctx);
+		}
 		if (color)
 		{
 			clearPaint.setColor(CanvasKit.Color(Math.round(color[0] * 255), Math.round(color[1] * 255), Math.round(color[2] * 255), color[3]));
@@ -182,15 +199,17 @@ export default class Graphics
 	{
 		this._SkCanvas.concat(
 			[matrix[0], matrix[2], matrix[4],
-			matrix[1], matrix[3], matrix[5],
-				0, 0, 1]);
+				matrix[1], matrix[3], matrix[5],
+				0, 0, 1
+			]);
 	}
 
 	addPath(path, addition, matrix)
 	{
 		path.addPath(addition, [matrix[0], matrix[2], matrix[4],
-		matrix[1], matrix[3], matrix[5],
-			0, 0, 1]);
+			matrix[1], matrix[3], matrix[5],
+			0, 0, 1
+		]);
 	}
 
 	makeImage(bytes)
@@ -388,6 +407,38 @@ export default class Graphics
 		this._Cleanup.length = 0;
 	}
 
+	screenshot(codec, quality, base64)
+	{
+		const img = this._SkSurface.makeImageSnapshot();
+		if (!img)
+		{
+			console.warn("Make image snapshot failed.");
+			return null;
+		}
+		if (!codec) { codec = "image/png"; }
+		const format = CanvasKit.ImageFormat.PNG;
+		if (codec === "image/jpeg")
+		{
+			format = CanvasKit.ImageFormat.JPEG;
+		}
+		if (!quality)
+		{
+			quality = 0.92;
+		}
+		const encodedImage = img.encodeToData(format, quality);
+		if (!encodedImage)
+		{
+			console.warn("Encoding screenshot failed.");
+			return null;
+		}
+		const imgBytes = CanvasKit.getSkDataBytes(encodedImage);
+		if (base64)
+		{
+			return "data:" + codec + ";base64," + toBase64String(imgBytes);
+		}
+		return imgBytes;
+	}
+
 	get viewportWidth()
 	{
 		return this._Canvas.width;
@@ -402,8 +453,13 @@ export default class Graphics
 	{
 		if (this.width !== width || this.height !== height)
 		{
-			this._Canvas.width = width;
-			this._Canvas.height = height;
+			this._Width = width;
+			this._Height = height;
+			if (this._Canvas)
+			{
+				this._Canvas.width = width;
+				this._Canvas.height = height;
+			}
 			this.updateBackendSurface();
 			return true;
 		}
@@ -420,7 +476,8 @@ export default class Graphics
 			{
 				let point = points[i];
 				let nextPoint = points[(i + 1) % pl];
-				let cin = nextPoint.pointType === PointType.Straight ? null : nextPoint.in, cout = point.pointType === PointType.Straight ? null : point.out;
+				let cin = nextPoint.pointType === PointType.Straight ? null : nextPoint.in,
+					cout = point.pointType === PointType.Straight ? null : point.out;
 				if (cin === null && cout === null)
 				{
 					path.lineTo(nextPoint.translation[0], nextPoint.translation[1]);
@@ -459,8 +516,7 @@ export default class Graphics
 		let totalLength = 0.0;
 		{
 			const measure = new CanvasKit.SkPathMeasure(path, false, 1.0);
-			do
-			{
+			do {
 				totalLength += measure.getLength();
 			} while (measure.nextContour());
 			measure.delete();
@@ -471,20 +527,20 @@ export default class Graphics
 		let trimStop = totalLength * stopT;
 		let offset = 0.0;
 
-		if (complement) 
+		if (complement)
 		{
-			if (trimStart > 0.0) 
+			if (trimStart > 0.0)
 			{
 				offset = appendPathSegment(measure, result, offset, 0.0, trimStart);
 			}
-			if (trimStop < totalLength) 
+			if (trimStop < totalLength)
 			{
 				offset = appendPathSegment(measure, result, offset, trimStop, totalLength);
 			}
 		}
-		else 
+		else
 		{
-			if (trimStart < trimStop) 
+			if (trimStart < trimStop)
 			{
 				offset = appendPathSegment(measure, result, offset, trimStart, trimStop);
 			}
@@ -500,27 +556,26 @@ export default class Graphics
 
 		// Reset measure from the start.
 		const measure = new CanvasKit.SkPathMeasure(path, false, 1.0);
-		do
-		{
+		do {
 			const length = measure.getLength();
 			let trimStart = length * startT;
 			let trimStop = length * stopT;
 			let offset = 0.0;
 
-			if (complement) 
+			if (complement)
 			{
-				if (trimStart > 0.0) 
+				if (trimStart > 0.0)
 				{
 					appendPathSegmentSync(measure, result, offset, 0.0, trimStart);
 				}
-				if (trimStop < length) 
+				if (trimStop < length)
 				{
 					appendPathSegmentSync(measure, result, offset, trimStop, length);
 				}
 			}
-			else 
+			else
 			{
-				if (trimStart < trimStop) 
+				if (trimStart < trimStop)
 				{
 					appendPathSegmentSync(measure, result, offset, trimStart, trimStop);
 				}
@@ -532,7 +587,7 @@ export default class Graphics
 	}
 }
 
-function radiansToDegrees(rad) 
+function radiansToDegrees(rad)
 {
 	return (rad / Math.PI) * 180;
 }
@@ -542,11 +597,10 @@ const Identity = [
 	0, 1, 0
 ];
 
-function appendPathSegment(measure, to, offset, start, stop) 
+function appendPathSegment(measure, to, offset, start, stop)
 {
 	let nextOffset = offset;
-	do
-	{
+	do {
 		nextOffset = offset + measure.getLength();
 		if (start < nextOffset)
 		{
@@ -566,7 +620,7 @@ function appendPathSegment(measure, to, offset, start, stop)
 	return offset;
 }
 
-function appendPathSegmentSync(measure, to, offset, start, stop) 
+function appendPathSegmentSync(measure, to, offset, start, stop)
 {
 	let nextOffset = offset + measure.getLength();
 	if (start < nextOffset)
@@ -577,5 +631,32 @@ function appendPathSegmentSync(measure, to, offset, start, stop)
 			to.addPath(extracted, Identity);
 			extracted.delete();
 		}
+	}
+}
+
+function toBase64String(bytes)
+{
+	if (typeof Buffer !== "undefined")
+	{
+		return Buffer.from(bytes).toString('base64');
+	}
+	else
+	{
+		// From https://stackoverflow.com/a/25644409
+		// because the naive solution of
+		//     btoa(String.fromCharCode.apply(null, bytes));
+		// would occasionally throw "Maximum call stack size exceeded"
+		const CHUNK_SIZE = 0x8000; //arbitrary number
+		let index = 0;
+		const length = bytes.length;
+		let result = '';
+		let slice;
+		while (index < length)
+		{
+			slice = bytes.slice(index, Math.min(index + CHUNK_SIZE, length));
+			result += String.fromCharCode.apply(null, slice);
+			index += CHUNK_SIZE;
+		}
+		return btoa(result);
 	}
 }
