@@ -1475,8 +1475,9 @@ export default class ActorLoader
 	load(url, callback)
 	{
 		let loader = this;
-		if (url.constructor === String)
-		{
+		if (url.constructor === ArrayBuffer) {
+			_ReadActor(loader, url, callback);
+		} else if (url.constructor === String) {
 			let req = new XMLHttpRequest();
 			req.open("GET", url, true);
 			req.responseType = "blob";
