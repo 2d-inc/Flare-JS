@@ -51,7 +51,7 @@ export default class Graphics
 				wasmBinary: CanvasKitModule,
 				/// #else
 				locateFile: (file) => staticPath + file,
-				/// #endif 
+				/// #endif
 			}).ready().then((CK) =>
 			{
 				// when debugging, it can be handy to not run directly in the then, because if there
@@ -436,6 +436,7 @@ export default class Graphics
 		{
 			return "data:" + codec + ";base64," + toBase64String(imgBytes);
 		}
+		img.delete();
 		return imgBytes;
 	}
 
