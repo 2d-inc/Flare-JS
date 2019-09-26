@@ -2,8 +2,8 @@ import ActorPath from "./ActorPath.js";
 import ActorDrawable from "./ActorDrawable.js";
 import ActorProceduralPath from "./ActorProceduralPath.js";
 import DirtyFlags from "./DirtyFlags.js";
-import {vec2} from "gl-matrix";
-const {WorldTransformDirty} = DirtyFlags;
+import { vec2, mat2d } from "gl-matrix";
+const { WorldTransformDirty } = DirtyFlags;
 
 export default class ActorShape extends ActorDrawable
 {
@@ -14,6 +14,12 @@ export default class ActorShape extends ActorDrawable
 		this._Paths = null;
 		this._Fills = null;
 		this._Strokes = null;
+		this._TransformAffectsStroke = false;
+	}
+
+	get transformAffectsStroke()
+	{
+		return this._TransformAffectsStroke;
 	}
 
 	get paths()
@@ -23,7 +29,7 @@ export default class ActorShape extends ActorDrawable
 
 	addFill(fill)
 	{
-		if(!this._Fills)
+		if (!this._Fills)
 		{
 			this._Fills = [];
 		}
@@ -32,7 +38,7 @@ export default class ActorShape extends ActorDrawable
 
 	addStroke(stroke)
 	{
-		if(!this._Strokes)
+		if (!this._Strokes)
 		{
 			this._Strokes = [];
 		}
@@ -46,43 +52,43 @@ export default class ActorShape extends ActorDrawable
 
 	initialize(actor, graphics)
 	{
-		
+
 	}
 
 	computeAABB()
 	{
 		const clips = this.getClips();
-		if(clips.length)
+		if (clips.length)
 		{
 			let aabb = null;
-			for(const clipList of clips)
+			for (const clipList of clips)
 			{
-				for(const clip of clipList)
+				for (const clip of clipList)
 				{
 					clip.all(function(node)
 					{
-						if(node.constructor === ActorShape)
+						if (node.constructor === ActorShape)
 						{
 							let bounds = node.computeAABB();
-							if(!aabb)
+							if (!aabb)
 							{
 								aabb = bounds;
 							}
 							else
 							{
-								if(bounds[0] < aabb[0])
+								if (bounds[0] < aabb[0])
 								{
 									aabb[0] = bounds[0];
 								}
-								if(bounds[1] < aabb[1])
+								if (bounds[1] < aabb[1])
 								{
 									aabb[1] = bounds[1];
 								}
-								if(bounds[2] > aabb[2])
+								if (bounds[2] > aabb[2])
 								{
 									aabb[2] = bounds[2];
 								}
-								if(bounds[3] > aabb[3])
+								if (bounds[3] > aabb[3])
 								{
 									aabb[3] = bounds[3];
 								}
@@ -96,24 +102,24 @@ export default class ActorShape extends ActorDrawable
 
 		let aabb = null;
 		let maxStroke = 0.0;
-		if(this._Strokes)
+		if (this._Strokes)
 		{
-			for(const stroke of this._Strokes)
+			for (const stroke of this._Strokes)
 			{
-				if(stroke.width > maxStroke)
+				if (stroke.width > maxStroke)
 				{
 					maxStroke = stroke.width;
 				}
 			}
 		}
-		for(const path of this._Children)
+		for (const path of this._Children)
 		{
 			if (path.constructor !== ActorPath && !(path instanceof ActorProceduralPath))
 			{
 				continue;
 			}
 
-			if(path.numPoints < 2)
+			if (path.numPoints < 2)
 			{
 				continue;
 			}
@@ -121,7 +127,7 @@ export default class ActorShape extends ActorDrawable
 			// This is the axis aligned bounding box in the space of the parent (this case our shape).
 			const pathAABB = path.getPathAABB();
 
-			if(!aabb)
+			if (!aabb)
 			{
 				aabb = pathAABB;
 			}
@@ -136,7 +142,7 @@ export default class ActorShape extends ActorDrawable
 			}
 		}
 
-		const padStroke = maxStroke/2.0;
+		const padStroke = maxStroke / 2.0;
 		aabb[0] -= padStroke;
 		aabb[1] -= padStroke;
 		aabb[2] += padStroke;
@@ -147,7 +153,7 @@ export default class ActorShape extends ActorDrawable
 		let max_x = -Number.MAX_VALUE;
 		let max_y = -Number.MAX_VALUE;
 
-		if(!aabb)
+		if (!aabb)
 		{
 			return null;
 		}
@@ -160,24 +166,24 @@ export default class ActorShape extends ActorDrawable
 			vec2.set(vec2.create(), aabb[2], aabb[3]),
 			vec2.set(vec2.create(), aabb[0], aabb[3])
 		];
-		for(let i = 0; i < points.length; i++)
+		for (let i = 0; i < points.length; i++)
 		{
 			const pt = points[i];
 			const wp = vec2.transformMat2d(pt, pt, world);
-			if(wp[0] < min_x)
+			if (wp[0] < min_x)
 			{
 				min_x = wp[0];
 			}
-			if(wp[1] < min_y)
+			if (wp[1] < min_y)
 			{
 				min_y = wp[1];
 			}
 
-			if(wp[0] > max_x)
+			if (wp[0] > max_x)
 			{
 				max_x = wp[0];
 			}
-			if(wp[1] > max_y)
+			if (wp[1] > max_y)
 			{
 				max_y = wp[1];
 			}
@@ -193,42 +199,46 @@ export default class ActorShape extends ActorDrawable
 
 	draw(graphics)
 	{
-		if(this._RenderCollapsed || this._IsHidden)
+		if (this._RenderCollapsed || this._IsHidden)
 		{
 			return;
 		}
 
 		graphics.save();
 		this.clip(graphics);
-		const shapePath = this.getShapePath(graphics);
-
-		const {_Fills:fills, _Strokes:strokes} = this;
-		
-		if(fills)
+		const { _TransformAffectsStroke, worldTransform } = this;
+		const shapePath = _TransformAffectsStroke ? this.getShapePathLocal(graphics) : this.getShapePath(graphics);
+		if (_TransformAffectsStroke)
 		{
-			for(const fill of fills)
+			graphics.transform(worldTransform);
+		}
+		const { _Fills: fills, _Strokes: strokes } = this;
+
+		if (fills)
+		{
+			for (const fill of fills)
 			{
 				fill.fill(graphics, shapePath);
 			}
 		}
-		if(strokes)
+		if (strokes)
 		{
-			for(const stroke of strokes)
+			for (const stroke of strokes)
 			{
-				if(stroke._Width > 0)
+				if (stroke._Width > 0)
 				{
 					stroke.stroke(graphics, shapePath);
 				}
 			}
 		}
-		
+
 		graphics.restore();
 	}
 
 	invalidatePath()
 	{
-		const {stroke} = this;
-		if(stroke)
+		const { stroke } = this;
+		if (stroke)
 		{
 			stroke.markPathEffectsDirty();
 		}
@@ -238,9 +248,9 @@ export default class ActorShape extends ActorDrawable
 	{
 		const paths = this._Paths;
 		const shapePath = graphics.makePath(true);
-		for(const path of paths)
+		for (const path of paths)
 		{
-			if(path.isHidden)
+			if (path.isHidden)
 			{
 				continue;
 			}
@@ -250,10 +260,33 @@ export default class ActorShape extends ActorDrawable
 		return shapePath;
 	}
 
+	getShapePathLocal(graphics)
+	{
+		const paths = this._Paths;
+		const shapePath = graphics.makePath(true);
+		const { worldTransform } = this;
+		const inverse = mat2d.create();
+		if (!mat2d.invert(inverse, worldTransform))
+		{
+			return shapePath;
+		}
+		for (const path of paths)
+		{
+			if (path.isHidden)
+			{
+				continue;
+			}
+			const t = mat2d.mul(mat2d.create(), inverse, path.getPathTransform());
+			graphics.addPath(shapePath, path.getPath(graphics), t);
+		}
+
+		return shapePath;
+	}
+
 	update(dirt)
 	{
 		super.update(dirt);
-		if((dirt & WorldTransformDirty) === WorldTransformDirty)
+		if ((dirt & WorldTransformDirty) === WorldTransformDirty)
 		{
 			this.invalidatePath();
 		}
@@ -263,13 +296,19 @@ export default class ActorShape extends ActorDrawable
 	{
 		super.completeResolve();
 		this._Paths = this._Children.filter(child => child.constructor === ActorPath || (child instanceof ActorProceduralPath));
-	}	
+	}
 
 	makeInstance(resetActor)
 	{
 		const node = new ActorShape();
 		node._IsInstance = true;
 		node.copy(this, resetActor);
-		return node;	
+		return node;
+	}
+
+	copy(from, resetActor)
+	{
+		super.copy(from, resetActor);
+		this._TransformAffectsStroke = from._TransformAffectsStroke;
 	}
 }

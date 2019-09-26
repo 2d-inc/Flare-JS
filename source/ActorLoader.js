@@ -54,12 +54,14 @@ const { Off: TrimPathOff } = TrimPath;
 const _AnimatedPropertyTypes = AnimatedProperty.Types;
 
 const _Readers = {
-	"bin": {
+	"bin":
+	{
 		stream: BinaryReader,
 		container: Uint8Array,
 		extension: ".nma"
 	},
-	"json": {
+	"json":
+	{
 		stream: JSONReader,
 		container: Object,
 		extension: "nmj"
@@ -72,7 +74,8 @@ function _ReadNextBlock(reader, error, block)
 	{
 		return null;
 	}
-	let blockType = 0, container = 0;
+	let blockType = 0,
+		container = 0;
 	const cType = reader.containerType; // 'bin' || 'json'
 	const streamReader = _Readers[cType];
 	try
@@ -107,7 +110,7 @@ function _ReadComponentsBlock(artboard, reader)
 
 	// Guaranteed from the exporter to be in index order.
 	let block = null;
-	while ((block = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function(err) { artboard.actor.error = err; }, Block)) !== null)
 	{
 		let component = null;
 		switch (block.type)
@@ -192,7 +195,7 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadRotationConstraint(block.reader, new ActorRotationConstraint());
 				break;
 			case _BlockTypes.ActorShape:
-				component = _ReadActorShape(block.reader, new ActorShape());
+				component = _ReadActorShape(artboard.actor.dataVersion, block.reader, new ActorShape());
 				break;
 			case _BlockTypes.ActorPath:
 				component = _ReadActorPath(block.reader, new ActorPath());
@@ -271,7 +274,7 @@ function _ReadAnimationBlock(artboard, reader)
 				const props = reader.readUint16();
 				for (let j = 0; j < props; j++)
 				{
-					let propertyBlock = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; });
+					let propertyBlock = _ReadNextBlock(reader, function(err) { artboard.actor.error = err; });
 				}
 			}
 			else
@@ -290,7 +293,7 @@ function _ReadAnimationBlock(artboard, reader)
 				const props = reader.readUint16Length();
 				for (let j = 0; j < props; j++)
 				{
-					let propertyBlock = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, AnimatedProperty);
+					let propertyBlock = _ReadNextBlock(reader, function(err) { artboard.actor.error = err; }, AnimatedProperty);
 					const propertyReader = propertyBlock.reader;
 					const propertyType = propertyBlock.type;
 
@@ -367,27 +370,27 @@ function _ReadAnimationBlock(artboard, reader)
 								keyFrame._Interpolator = Hold.instance;
 								break;
 							default:
+							{
+								const type = propertyReader.readUint8("interpolatorType");
+								switch (type)
 								{
-									const type = propertyReader.readUint8("interpolatorType");
-									switch (type)
-									{
-										case 0:
-											keyFrame._Interpolator = Hold.instance;
-											break;
-										case 1:
-											keyFrame._Interpolator = Linear.instance;
-											break;
-										case 2:
-											keyFrame._Interpolator = new Cubic(
-												propertyReader.readFloat32("cubicX1"),
-												propertyReader.readFloat32("cubicY1"),
-												propertyReader.readFloat32("cubicX2"),
-												propertyReader.readFloat32("cubicY2")
-											);
-											break;
-									}
-									break;
+									case 0:
+										keyFrame._Interpolator = Hold.instance;
+										break;
+									case 1:
+										keyFrame._Interpolator = Linear.instance;
+										break;
+									case 2:
+										keyFrame._Interpolator = new Cubic(
+											propertyReader.readFloat32("cubicX1"),
+											propertyReader.readFloat32("cubicY1"),
+											propertyReader.readFloat32("cubicX2"),
+											propertyReader.readFloat32("cubicY2")
+										);
+										break;
 								}
+								break;
+							}
 						}
 						if (propertyType === _AnimatedPropertyTypes.PathVertices)
 						{
@@ -459,7 +462,8 @@ function _ReadAnimationBlock(artboard, reader)
 								const idx = propertyReader.readId("component");
 								const order = propertyReader.readUint16("order");
 								propertyReader.closeObject();
-								orderValue.push({
+								orderValue.push(
+								{
 									componentIdx: idx,
 									value: order
 								});
@@ -512,7 +516,7 @@ function _ReadAnimationsBlock(artboard, reader)
 	const animationsCount = reader.readUint16Length(); // Keep the reader aligned when using BinaryReader.
 	let block = null;
 	// The animations block only contains a list of animations, so we don't need to track how many we've read in.
-	while ((block = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function(err) { artboard.actor.error = err; }, Block)) !== null)
 	{
 		switch (block.type)
 		{
@@ -533,7 +537,7 @@ function _ReadNestedActorAssets(actor, reader)
 {
 	let nestedActorCount = reader.readUint16();
 	let block = null;
-	while ((block = _ReadNextBlock(reader, function (err) { actor.error = err; })) !== null)
+	while ((block = _ReadNextBlock(reader, function(err) { actor.error = err; })) !== null)
 	{
 		switch (block.type)
 		{
@@ -665,7 +669,7 @@ function _LoadNestedAssets(loader, actor, callback)
 
 	for (let asset of actor._NestedActorAssets)
 	{
-		nestedLoad(asset, function (nestedActor)
+		nestedLoad(asset, function(nestedActor)
 		{
 			asset._Actor = nestedActor;
 			loadCount--;
@@ -684,19 +688,19 @@ function _ReadArtboardsBlock(actor, reader)
 
 	// Guaranteed from the exporter to be in index order.
 	let block = null;
-	while ((block = _ReadNextBlock(reader, function (err) { actor.error = err; }, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function(err) { actor.error = err; }, Block)) !== null)
 	{
 		switch (block.type)
 		{
 			case _BlockTypes.ActorArtboard:
+			{
+				const artboard = _ReadActorArtboard(block.reader, new ActorArtboard(actor), block.type);
+				if (artboard)
 				{
-					const artboard = _ReadActorArtboard(block.reader, new ActorArtboard(actor), block.type);
-					if (artboard)
-					{
-						actorArtboards.push(artboard);
-					}
-					break;
+					actorArtboards.push(artboard);
 				}
+				break;
+			}
 		}
 	}
 }
@@ -719,6 +723,7 @@ function _ReadActor(loader, data, callback)
 
 	let waitCount = 1;
 	let completeCount = 0;
+
 	function next()
 	{
 		completeCount++;
@@ -728,7 +733,7 @@ function _ReadActor(loader, data, callback)
 		}
 	}
 
-	while ((block = _ReadNextBlock(reader, function (err) { actor.error = err; }, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function(err) { actor.error = err; }, Block)) !== null)
 	{
 		switch (block.type)
 		{
@@ -737,7 +742,7 @@ function _ReadActor(loader, data, callback)
 				break;
 			case _BlockTypes.Atlases:
 				waitCount++;
-				_ReadAtlasesBlock(actor, block.reader, function ()
+				_ReadAtlasesBlock(actor, block.reader, function()
 				{
 					next();
 				});
@@ -761,7 +766,7 @@ function _ReadActorArtboard(reader, artboard)
 	reader.readFloat32Array(artboard._Color, "color");
 
 	let block = null;
-	while ((block = _ReadNextBlock(reader, function (err) { artboard.actor.error = err; }, Block)) !== null)
+	while ((block = _ReadNextBlock(reader, function(err) { artboard.actor.error = err; }, Block)) !== null)
 	{
 		switch (block.type)
 		{
@@ -998,7 +1003,7 @@ function _ReadActorIKConstraint(reader, component)
 
 		for (let i = 0; i < numInfluencedBones; i++)
 		{
-			component._InfluencedBones.push(reader.readId(""));// No need for a label here, since we're just clearing elements from the array.
+			component._InfluencedBones.push(reader.readId("")); // No need for a label here, since we're just clearing elements from the array.
 		}
 	}
 	reader.closeArray();
@@ -1089,10 +1094,13 @@ function _ReadAxisConstraint(reader, component)
 	return component;
 }
 
-function _ReadActorShape(reader, component)
+function _ReadActorShape(version, reader, component)
 {
 	_ReadDrawable(reader, component);
-
+	if (version >= 22)
+	{
+		component._TransformAffectsStroke = reader.readBool("transformAffectsStroke");
+	}
 	return component;
 }
 
@@ -1261,7 +1269,8 @@ function _ReadSkinnable(reader, component)
 			reader.readFloat32Array(bind, "bind");
 			reader.closeObject();
 
-			component._ConnectedBones.push({
+			component._ConnectedBones.push(
+			{
 				componentIndex: componentIndex,
 				bind: bind,
 				ibind: mat2d.invert(mat2d.create(), bind)
@@ -1303,28 +1312,28 @@ function _ReadActorPath(reader, component)
 		switch (type)
 		{
 			case PointType.Straight:
+			{
+				point = new StraightPathPoint();
+				reader.readFloat32Array(point._Translation, "translation");
+				point._Radius = reader.readFloat32("radius");
+				if (isConnectedToBones)
 				{
-					point = new StraightPathPoint();
-					reader.readFloat32Array(point._Translation, "translation");
-					point._Radius = reader.readFloat32("radius");
-					if (isConnectedToBones)
-					{
-						point._Weights = new Float32Array(8);
-					}
-					break;
+					point._Weights = new Float32Array(8);
 				}
+				break;
+			}
 			default:
+			{
+				point = new CubicPathPoint();
+				reader.readFloat32Array(point._Translation, "translation");
+				reader.readFloat32Array(point._In, "in");
+				reader.readFloat32Array(point._Out, "out");
+				if (isConnectedToBones)
 				{
-					point = new CubicPathPoint();
-					reader.readFloat32Array(point._Translation, "translation");
-					reader.readFloat32Array(point._In, "in");
-					reader.readFloat32Array(point._Out, "out");
-					if (isConnectedToBones)
-					{
-						point._Weights = new Float32Array(24);
-					}
-					break;
+					point._Weights = new Float32Array(24);
 				}
+				break;
+			}
 		}
 		if (point._Weights)
 		{
@@ -1446,10 +1455,10 @@ export default class ActorLoader
 			let req = new XMLHttpRequest();
 			req.open("GET", url, true);
 			req.responseType = "blob";
-			req.onload = function ()
+			req.onload = function()
 			{
 				let fileReader = new FileReader();
-				fileReader.onload = function () 
+				fileReader.onload = function()
 				{
 					_ReadActor(loader, this.result, callback);
 				};
@@ -1460,7 +1469,7 @@ export default class ActorLoader
 		else
 		{
 			let fileReader = new FileReader();
-			fileReader.onload = function () 
+			fileReader.onload = function()
 			{
 				_ReadActor(loader, this.result, callback);
 			};

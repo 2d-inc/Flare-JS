@@ -1,5 +1,5 @@
 import ActorComponent from "./ActorComponent.js";
-import {vec2, vec4, mat2d} from "gl-matrix";
+import { vec2, vec4, mat2d } from "gl-matrix";
 import FillRule from "./FillRule.js";
 import StrokeCap from "./StrokeCap.js";
 import StrokeJoin from "./StrokeJoin.js";
@@ -7,9 +7,9 @@ import Graphics from "./Graphics.js";
 import DirtyFlags from "./DirtyFlags.js";
 import TrimPath from "./TrimPath.js";
 
-const {Off:TrimPathOff, Sequential:TrimPathSequential, Synced:TrimPathSynced} = TrimPath;
-const {PaintDirty} = DirtyFlags;
-const {trimPath, trimPathSync} = Graphics;
+const { Off: TrimPathOff, Sequential: TrimPathSequential, Synced: TrimPathSynced } = TrimPath;
+const { PaintDirty } = DirtyFlags;
+const { trimPath, trimPathSync } = Graphics;
 
 class ActorPaint extends ActorComponent
 {
@@ -19,7 +19,7 @@ class ActorPaint extends ActorComponent
 		this._RenderOpacity = 1.0;
 		this._Opacity = 1.0;
 	}
-	
+
 	markDirty()
 	{
 		this._Actor.addDirt(this, PaintDirty, true);
@@ -28,7 +28,7 @@ class ActorPaint extends ActorComponent
 	copy(node, resetActor)
 	{
 		super.copy(node, resetActor);
-		this._Opacity = node._Opacity;	
+		this._Opacity = node._Opacity;
 	}
 
 	get opacity()
@@ -40,7 +40,7 @@ class ActorPaint extends ActorComponent
 	{
 		super.update(dirt);
 		this._RenderOpacity = this._Opacity * this._Parent._RenderOpacity;
-		if(this._Paint)
+		if (this._Paint)
 		{
 			Graphics.setPaintBlendMode(this._Paint, this._Parent._BlendMode);
 		}
@@ -49,7 +49,7 @@ class ActorPaint extends ActorComponent
 	initialize(actor, graphics)
 	{
 		this._Paint = graphics.makePaint();
-		if(this._Parent)
+		if (this._Parent)
 		{
 			Graphics.setPaintBlendMode(this._Paint, this._Parent._BlendMode);
 		}
@@ -78,14 +78,14 @@ export class ActorColor extends ActorPaint
 
 	get runtimeColor()
 	{
-		const {_Color:color} = this;
-		return [color[0], color[1], color[2], color[3]*this._RenderOpacity];
+		const { _Color: color } = this;
+		return [color[0], color[1], color[2], color[3] * this._RenderOpacity];
 	}
 
 	get cssColor()
 	{
 		const c = this._Color;
-		return "rgba(" + Math.round(c[0]*255) + ", " + Math.round(c[1]*255) + ", " + Math.round(c[2]*255) + ", " + (c[3]*this._Opacity) + ")";
+		return "rgba(" + Math.round(c[0] * 255) + ", " + Math.round(c[1] * 255) + ", " + Math.round(c[2] * 255) + ", " + (c[3] * this._Opacity) + ")";
 	}
 }
 
@@ -101,7 +101,7 @@ export class ColorFill extends ActorColor
 	{
 		const node = new ColorFill();
 		ColorFill.prototype.copy.call(node, this, resetActor);
-		return node;	
+		return node;
 	}
 
 	copy(node, resetActor)
@@ -119,7 +119,7 @@ export class ColorFill extends ActorColor
 
 	fill(graphics, path)
 	{
-		const {_Paint:paint, runtimeColor} = this;
+		const { _Paint: paint, runtimeColor } = this;
 		graphics.setPaintColor(paint, runtimeColor);
 		graphics.setPathFillType(path, this._FillRule);
 		graphics.drawPath(path, paint);
@@ -128,7 +128,7 @@ export class ColorFill extends ActorColor
 	resolveComponentIndices(components)
 	{
 		super.resolveComponentIndices(components);
-		if(this._Parent)
+		if (this._Parent)
 		{
 			this._Parent.addFill(this);
 		}
@@ -153,7 +153,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 	initialize(actor, graphics)
 	{
 		super.initialize(actor, graphics);
-		const {_Paint, _Cap, _Join} = this;
+		const { _Paint, _Cap, _Join } = this;
 		Graphics.setPaintStroke(_Paint);
 		Graphics.setPaintStrokeCap(_Paint, _Cap);
 		Graphics.setPaintStrokeJoin(_Paint, _Join);
@@ -164,30 +164,30 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 		const { _Paint, _Trim, width } = this;
 		_Paint.setStrokeWidth(width);
 
-		if(_Trim !== TrimPathOff)
+		if (_Trim !== TrimPathOff)
 		{
 			const trimCall = _Trim === TrimPathSequential ? trimPath : trimPathSync;
-			const {trimStart, trimEnd, trimOffset, _EffectPath} = this;
-			if(_EffectPath)
+			const { trimStart, trimEnd, trimOffset, _EffectPath } = this;
+			if (_EffectPath)
 			{
 				return _EffectPath;
 			}
-			
-			let effectPath = null;
-			if(Math.abs(trimStart-trimEnd) !== 1.0)
-			{
-				let start = (trimStart + trimOffset)%1;
-				let end = (trimEnd + trimOffset)%1;
 
-				if(start < 0) {start += 1.0;}
-				if(end < 0) {end += 1.0;}
-				if(trimStart > trimEnd)
+			let effectPath = null;
+			if (Math.abs(trimStart - trimEnd) !== 1.0)
+			{
+				let start = (trimStart + trimOffset) % 1;
+				let end = (trimEnd + trimOffset) % 1;
+
+				if (start < 0) { start += 1.0; }
+				if (end < 0) { end += 1.0; }
+				if (trimStart > trimEnd)
 				{
 					const swap = end;
 					end = start;
 					start = swap;
 				}
-				if(end >= start)
+				if (end >= start)
 				{
 					effectPath = trimCall(path, start, end, false);
 				}
@@ -196,12 +196,12 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 					effectPath = trimCall(path, end, start, true);
 				}
 			}
-			if(!effectPath)
+			if (!effectPath)
 			{
 				effectPath = path.copy();
 			}
 			this._EffectPath = effectPath;
-			
+
 			return effectPath;
 		}
 		return path;
@@ -209,8 +209,8 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 
 	markPathEffectsDirty()
 	{
-		const {_EffectPath} = this;
-		if(!_EffectPath)
+		const { _EffectPath } = this;
+		if (!_EffectPath)
 		{
 			return;
 		}
@@ -223,14 +223,14 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 		return this._Width;
 	}
 
-    set width(value)
-    {
-        if(this._Width === value)
-        {
-            return;
-        }
-        this._Width = value;
-    }
+	set width(value)
+	{
+		if (this._Width === value)
+		{
+			return;
+		}
+		this._Width = value;
+	}
 
 	get trimStart()
 	{
@@ -239,7 +239,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 
 	set trimStart(value)
 	{
-		if(this._TrimStart === value)
+		if (this._TrimStart === value)
 		{
 			return;
 		}
@@ -254,7 +254,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 
 	set trimEnd(value)
 	{
-		if(this._TrimEnd === value)
+		if (this._TrimEnd === value)
 		{
 			return;
 		}
@@ -269,7 +269,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 
 	set trimOffset(value)
 	{
-		if(this._TrimOffset === value)
+		if (this._TrimOffset === value)
 		{
 			return;
 		}
@@ -303,7 +303,7 @@ const ActorStroke = (ActorStroke) => class extends ActorStroke
 	resolveComponentIndices(components)
 	{
 		super.resolveComponentIndices(components);
-		if(this._Parent)
+		if (this._Parent)
 		{
 			this._Parent.addStroke(this);
 		}
@@ -321,12 +321,12 @@ export class ColorStroke extends ActorStroke(ActorColor)
 	{
 		const node = new ColorStroke();
 		node.copy(this, resetActor);
-		return node;	
+		return node;
 	}
 
 	stroke(graphics, path)
 	{
-		const {_Paint:paint, runtimeColor} = this;
+		const { _Paint: paint, runtimeColor } = this;
 
 		path = this.prepStroke(graphics, path);
 		graphics.setPaintColor(paint, runtimeColor);
@@ -370,9 +370,19 @@ export class GradientColor extends ActorPaint
 	{
 		super.update(dirt);
 		const shape = this._Parent;
-		const world = shape.worldTransform;
-		vec2.transformMat2d(this._RenderStart, this._Start, world);
-		vec2.transformMat2d(this._RenderEnd, this._End, world);
+
+		const { transformAffectsStroke } = shape;
+		if (transformAffectsStroke)
+		{
+			vec2.copy(this._RenderStart, this._Start);
+			vec2.copy(this._RenderEnd, this._End);
+		}
+		else
+		{
+			const world = shape.worldTransform;
+			vec2.transformMat2d(this._RenderStart, this._Start, world);
+			vec2.transformMat2d(this._RenderEnd, this._End, world);
+		}
 		this._GradientDirty = true;
 	}
 }
@@ -389,7 +399,7 @@ export class GradientFill extends GradientColor
 	{
 		const node = new GradientFill();
 		GradientFill.prototype.copy.call(node, this, resetActor);
-		return node;	
+		return node;
 	}
 
 	copy(node, resetActor)
@@ -402,7 +412,7 @@ export class GradientFill extends GradientColor
 	dispose(actor, graphics)
 	{
 		super.dispose(actor, graphics);
-		if(this._Gradient)
+		if (this._Gradient)
 		{
 			graphics.destroyLinearGradient(this._Gradient);
 		}
@@ -410,24 +420,24 @@ export class GradientFill extends GradientColor
 
 	fill(graphics, path)
 	{
-		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _Paint:paint} = this;
+		const { _RenderStart: start, _RenderEnd: end, _ColorStops: stops, _Paint: paint } = this;
 
-		if(this._GradientDirty)
+		if (this._GradientDirty)
 		{
-			if(this._Gradient)
+			if (this._Gradient)
 			{
 				graphics.destroyLinearGradient(this._Gradient);
 			}
 			this._GradientDirty = false;
 
 			const opacity = this._RenderOpacity;
-			const numStops = stops.length/5;
+			const numStops = stops.length / 5;
 			let idx = 0;
 			const colors = [];
 			const offsets = [];
-			for(let i = 0; i < numStops; i++)
+			for (let i = 0; i < numStops; i++)
 			{
-				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++]*opacity]);
+				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++] * opacity]);
 				offsets.push(stops[idx++]);
 			}
 			const gradient = graphics.makeLinearGradient(start, end, colors, offsets);
@@ -441,7 +451,7 @@ export class GradientFill extends GradientColor
 	resolveComponentIndices(components)
 	{
 		super.resolveComponentIndices(components);
-		if(this._Parent)
+		if (this._Parent)
 		{
 			this._Parent.addFill(this);
 		}
@@ -459,30 +469,30 @@ export class GradientStroke extends ActorStroke(GradientColor)
 	{
 		const node = new GradientStroke();
 		node.copy(this, resetActor);
-		return node;	
+		return node;
 	}
 
 	stroke(graphics, path)
 	{
-		const {_RenderStart:start, _RenderEnd:end, _ColorStops:stops, _Paint:paint} = this;
+		const { _RenderStart: start, _RenderEnd: end, _ColorStops: stops, _Paint: paint } = this;
 
 		path = this.prepStroke(graphics, path);
-		if(this._GradientDirty)
+		if (this._GradientDirty)
 		{
-			if(this._Gradient)
+			if (this._Gradient)
 			{
 				graphics.destroyLinearGradient(this._Gradient);
 			}
 			this._GradientDirty = false;
 
 			const opacity = this._RenderOpacity;
-			const numStops = stops.length/5;
+			const numStops = stops.length / 5;
 			let idx = 0;
 			const colors = [];
 			const offsets = [];
-			for(let i = 0; i < numStops; i++)
+			for (let i = 0; i < numStops; i++)
 			{
-				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++]*opacity]);
+				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++] * opacity]);
 				offsets.push(stops[idx++]);
 			}
 			const gradient = graphics.makeLinearGradient(start, end, colors, offsets);
@@ -521,7 +531,7 @@ export class RadialGradientFill extends RadialGradientColor
 	{
 		const node = new RadialGradientFill();
 		RadialGradientFill.prototype.copy.call(node, this, resetActor);
-		return node;	
+		return node;
 	}
 
 	copy(node, resetActor)
@@ -533,24 +543,24 @@ export class RadialGradientFill extends RadialGradientColor
 
 	fill(graphics, path)
 	{
-		const {_Paint:paint, _RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
-		
-		if(this._GradientDirty)
+		const { _Paint: paint, _RenderStart: start, _RenderEnd: end, _ColorStops: stops, _SecondaryRadiusScale: secondaryRadiusScale } = this;
+
+		if (this._GradientDirty)
 		{
-			if(this._Gradient)
+			if (this._Gradient)
 			{
 				graphics.destroyRadialGradient(this._Gradient);
 			}
 			this._GradientDirty = false;
 
 			const opacity = this._RenderOpacity;
-			const numStops = stops.length/5;
+			const numStops = stops.length / 5;
 			let idx = 0;
 			const colors = [];
 			const offsets = [];
-			for(let i = 0; i < numStops; i++)
+			for (let i = 0; i < numStops; i++)
 			{
-				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++]*opacity]);
+				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++] * opacity]);
 				offsets.push(stops[idx++]);
 			}
 			const gradient = graphics.makeRadialGradient(start, vec2.distance(start, end), colors, offsets);
@@ -564,7 +574,7 @@ export class RadialGradientFill extends RadialGradientColor
 	resolveComponentIndices(components)
 	{
 		super.resolveComponentIndices(components);
-		if(this._Parent)
+		if (this._Parent)
 		{
 			this._Parent.addFill(this);
 		}
@@ -581,32 +591,32 @@ export class RadialGradientStroke extends ActorStroke(RadialGradientColor)
 	makeInstance(resetActor)
 	{
 		const node = new RadialGradientStroke();
-		node.copy( this, resetActor);
-		return node;	
+		node.copy(this, resetActor);
+		return node;
 	}
 
 	stroke(graphics, path)
 	{
-		const {_Paint:paint, _RenderStart:start, _RenderEnd:end, _ColorStops:stops, _SecondaryRadiusScale:secondaryRadiusScale} = this;
-		
+		const { _Paint: paint, _RenderStart: start, _RenderEnd: end, _ColorStops: stops, _SecondaryRadiusScale: secondaryRadiusScale } = this;
+
 		path = this.prepStroke(graphics, path);
-		
-		if(this._GradientDirty)
+
+		if (this._GradientDirty)
 		{
-			if(this._Gradient)
+			if (this._Gradient)
 			{
 				graphics.destroyRadialGradient(this._Gradient);
 			}
 			this._GradientDirty = false;
 
 			const opacity = this._RenderOpacity;
-			const numStops = stops.length/5;
+			const numStops = stops.length / 5;
 			let idx = 0;
 			const colors = [];
 			const offsets = [];
-			for(let i = 0; i < numStops; i++)
+			for (let i = 0; i < numStops; i++)
 			{
-				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++]*opacity]);
+				colors.push([stops[idx++], stops[idx++], stops[idx++], stops[idx++] * opacity]);
 				offsets.push(stops[idx++]);
 			}
 			const gradient = graphics.makeRadialGradient(start, vec2.distance(start, end), colors, offsets);
