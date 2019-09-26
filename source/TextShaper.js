@@ -43,9 +43,9 @@ export default class TextShaper
 	{
 		if (value !== this._Align)
 		{
-            this._Align = value;
-            this._IsPathDirty = true;
-            
+			this._Align = value;
+			this._IsPathDirty = true;
+
 			//this._IsLayoutDirty = true;
 		}
 	}
@@ -65,7 +65,7 @@ export default class TextShaper
 	{
 		if (value !== this._MaxSize)
 		{
-            this._MaxSize = value;
+			this._MaxSize = value;
 			this._IsLayoutDirty = true;
 		}
 	}
@@ -80,6 +80,8 @@ export default class TextShaper
 		}
 	}
 
+	get lines() { return this._Lines; }
+	get lineSizes() { return this._LinesSizes; }
 	get lineHeight() { return this._LineHeight; }
 	set lineHeight(value)
 	{
@@ -125,7 +127,7 @@ export default class TextShaper
 
 		const { _Overflow: overflow, _MaxSize: maxSize, _NoOrphans: noOrphans, _MaxLines } = this;
 
-        const maxWidth = maxSize ? maxSize : Number.MAX_VALUE;
+		const maxWidth = maxSize ? maxSize : Number.MAX_VALUE;
 		const useEllipsis = overflow === TextOverflow.Ellipsis;
 		const maxLines = _MaxLines || Number.MAX_SAFE_INTEGER;
 		this._IsEllipsisVisible = false;
@@ -137,7 +139,7 @@ export default class TextShaper
 		// Defaults
 		let currentStyle = styles[0];
 		let font = currentStyle.font;
-        let scale = font.scale(currentStyle.fontSize);
+		let scale = font.scale(currentStyle.fontSize);
 		let lastFont = null;
 		let lastScale = scale;
 		const stylingLength = styling.length;
@@ -466,8 +468,8 @@ export default class TextShaper
 
 		this.measure(text, styles, styling);
 		this._Size = this.computeSize(styles);
-        this._IsPathDirty = true;
-        
+		this._IsPathDirty = true;
+
 		return true;
 	}
 
@@ -544,9 +546,9 @@ export default class TextShaper
 		}
 
 		this._LineSizes = new Float32Array(sizes);
-    }
-    
-    getRenderLineHeight(styles)
+	}
+
+	getRenderLineHeight(styles)
 	{
 		const { _LineHeight } = this;
 		if (!_LineHeight)
@@ -571,8 +573,8 @@ export default class TextShaper
 			}
 		}
 
-        const { _Lines, _LineSizes, _MaxSize: maxSize } = this;
-        const renderLineHeight = this.getRenderLineHeight(styles);
+		const { _Lines, _LineSizes, _MaxSize: maxSize } = this;
+		const renderLineHeight = this.getRenderLineHeight(styles);
 
 		// compute max width from line linesSizes
 		const maxWidth = Math.min(maxSize ? maxSize : Number.MAX_VALUE,
@@ -590,7 +592,7 @@ export default class TextShaper
 		if (!this._IsPathDirty)
 		{
 			return false;
-        }
+		}
 
 		// Make sure all styles are ready, and rewind individual paths.
 		for (const style of styles)
@@ -603,10 +605,10 @@ export default class TextShaper
 			{
 				style.renderPath.rewind();
 			}
-        }
-        
-        const { _IsEllipsisVisible, _Lines, _LineSizes, _Align } = this;
-        const renderLineHeight = this.getRenderLineHeight(styles);
+		}
+
+		const { _IsEllipsisVisible, _Lines, _LineSizes, _Align } = this;
+		const renderLineHeight = this.getRenderLineHeight(styles);
 		let x = 0,
 			y = 0;
 		let stylingIndex = 1;
@@ -667,7 +669,7 @@ export default class TextShaper
 						nextStyleChangeIndex = Number.MAX_SAFE_INTEGER;
 					}
 					stylingIndex += 2;
-                }
+				}
 				const code = text.codePointAt(c);
 				const glyph = font.getGraphicsGlyph(graphics, code);
 				if (!glyph)
@@ -680,8 +682,8 @@ export default class TextShaper
 				if (path)
 				{
 					transform[2] = x;
-                    transform[5] = y;
-                    renderPath.addPath(path, transform);
+					transform[5] = y;
+					renderPath.addPath(path, transform);
 				}
 
 				x += advanceX * scale;
@@ -699,7 +701,7 @@ export default class TextShaper
 					for (let i = 0; i < 3; i++)
 					{
 						transform[2] = x;
-                        transform[5] = y;
+						transform[5] = y;
 						renderPath.addPath(path, transform);
 
 						x += advanceX * scale;
@@ -721,64 +723,65 @@ export default class TextShaper
 
 		this._IsPathDirty = false;
 		return true;
-    }
-    
-    getOBB(transform, styles, renderLineHeight)
-    {
-        let min_x = Number.MAX_VALUE;
-        let min_y = Number.MAX_VALUE;
-        let max_x = -Number.MAX_VALUE;
-        let max_y = -Number.MAX_VALUE;
+	}
 
-        function addPoint(pt)
-        {
-            if (transform)
-            {
-                pt = vec2.transformMat2d(vec2.create(), pt, transform);
-            }
-            if (pt[0] < min_x)
-            {
-                min_x = pt[0];
-            }
-            if (pt[1] < min_y)
-            {
-                min_y = pt[1];
-            }
-            if (pt[0] > max_x)
-            {
-                max_x = pt[0];
-            }
-            if (pt[1] > max_y)
-            {
-                max_y = pt[1];
-            }
-        }
+	getOBB(transform, styles, renderLineHeight)
+	{
+		let min_x = Number.MAX_VALUE;
+		let min_y = Number.MAX_VALUE;
+		let max_x = -Number.MAX_VALUE;
+		let max_y = -Number.MAX_VALUE;
 
-        if(!renderLineHeight)
-        {
-            renderLineHeight = this.getRenderLineHeight(styles);
-        }
-        const { _Size, _Align } = this;
-        let x0 = 0, x1 = 0;
-        switch (_Align)
-        {
-            case TextAlign.Right:
-                x0 = -_Size[0];
-                x1 = 0;
-                break;
+		function addPoint(pt)
+		{
+			if (transform)
+			{
+				pt = vec2.transformMat2d(vec2.create(), pt, transform);
+			}
+			if (pt[0] < min_x)
+			{
+				min_x = pt[0];
+			}
+			if (pt[1] < min_y)
+			{
+				min_y = pt[1];
+			}
+			if (pt[0] > max_x)
+			{
+				max_x = pt[0];
+			}
+			if (pt[1] > max_y)
+			{
+				max_y = pt[1];
+			}
+		}
 
-            case TextAlign.Center:
-                x0 = -_Size[0] / 2;
-                x1 = _Size[0] / 2;
-                break;
-            default:
-                x1 = _Size[0];
-                break;
-        }
-        addPoint([x0, -renderLineHeight]);
-        addPoint([x1, -renderLineHeight]);
-        addPoint([x1, -renderLineHeight + _Size[1]]);
-        addPoint([x0, -renderLineHeight + _Size[1]]);
-        return [vec2.fromValues(min_x, min_y), vec2.fromValues(max_x, max_y)];
-    }
+		if (!renderLineHeight)
+		{
+			renderLineHeight = this.getRenderLineHeight(styles);
+		}
+		const { _Size, _Align } = this;
+		let x0 = 0,
+			x1 = 0;
+		switch (_Align)
+		{
+			case TextAlign.Right:
+				x0 = -_Size[0];
+				x1 = 0;
+				break;
+
+			case TextAlign.Center:
+				x0 = -_Size[0] / 2;
+				x1 = _Size[0] / 2;
+				break;
+			default:
+				x1 = _Size[0];
+				break;
+		}
+		addPoint([x0, -renderLineHeight]);
+		addPoint([x1, -renderLineHeight]);
+		addPoint([x1, -renderLineHeight + _Size[1]]);
+		addPoint([x0, -renderLineHeight + _Size[1]]);
+		return [vec2.fromValues(min_x, min_y), vec2.fromValues(max_x, max_y)];
+	}
 }
