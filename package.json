@@ -18,15 +18,18 @@
 	},
 	"homepage": "https://github.com/2d-inc/Flare-JS#readme",
 	"devDependencies": {
-		"@babel/core": "^7.6.0",
-		"@babel/preset-env": "^7.6.0",
-		"babel-loader": "^8.0.6",
-		"ifdef-loader": "^2.1.1",
 		"arraybuffer-loader": "^1.0.7",
-		"webpack": "^4.39.3",
-		"webpack-cli": "^3.3.8",
-		"gl-matrix": "^3.1.0",
-		"bezier-easing": "^2.1.0"
+		"babel-core": "^6.26.3",
+		"babel-eslint": "^6.1.2",
+		"babel-loader": "^7.1.5",
+		"babel-preset-es2016": "^6.24.1",
+		"bezier-easing": "^2.1.0",
+		"eslint": "^3.19.0",
+		"eslint-loader": "^1.7.1",
+		"gl-matrix": "^2.8.1",
+		"ifdef-loader": "^2.1.1",
+		"webpack": "^4.17.1",
+		"webpack-cli": "^3.2.3"
 	},
 	"dependencies": {
 		"npm": "^5.10.0"

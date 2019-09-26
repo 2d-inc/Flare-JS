@@ -416,7 +416,7 @@ export default class Graphics
 			return null;
 		}
 		if (!codec) { codec = "image/png"; }
-		const format = CanvasKit.ImageFormat.PNG;
+		let format = CanvasKit.ImageFormat.PNG;
 		if (codec === "image/jpeg")
 		{
 			format = CanvasKit.ImageFormat.JPEG;
