@@ -2,7 +2,7 @@
 	"name": "flarejs",
 	"version": "1.0.0",
 	"description": "",
-	"main": "build/Flare.min.js",
+	"main": "source/Flare.js",
 	"scripts": {
 		"dev": "npx webpack --w",
 		"start": "webpack"
