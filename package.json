@@ -24,7 +24,7 @@
 		"babel-loader": "^7.1.5",
 		"babel-preset-es2016": "^6.24.1",
 		"bezier-easing": "^2.1.0",
-		"eslint": "^3.19.0",
+		"eslint": "^4.18.2",
 		"eslint-loader": "^1.7.1",
 		"gl-matrix": "^2.8.1",
 		"ifdef-loader": "^2.1.1",
