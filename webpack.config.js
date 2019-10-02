@@ -6,13 +6,13 @@ const APP_DIR = path.resolve(__dirname, "source/");
 const config =
 {
 	mode: "development",
-	target: "web",
+	target: "node",
 	devtool: "source-map",
 	node:
 	{
 		fs: "empty"
 	},
-	entry: 
+	entry:
 	{
 		Flare: APP_DIR + "/Flare.js"
 	},
@@ -33,11 +33,11 @@ const config =
 					{ loader: "babel-loader"},
 					{
 						loader: "ifdef-loader",
-						options: 
+						options:
 						{
 							CanvasKitLocation: "embedded",
 							"ifdef-verbose": true,       // add this for verbose output
-							"ifdef-triple-slash": true 
+							"ifdef-triple-slash": true
 						}
 					}
 				]
