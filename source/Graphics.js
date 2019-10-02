@@ -409,13 +409,24 @@ export default class Graphics
 
 	screenshot(codec, quality, base64)
 	{
+		if (!codec)
+		{
+			const { _SkCanvas, width, height } = this;
+			const pixels = _SkCanvas.readPixels(0, 0, width, height);
+			if (!pixels)
+			{
+				return null;
+			}
+			return new ImageData(
+				new Uint8ClampedArray(pixels.buffer),
+				width, height);
+		}
 		const img = this._SkSurface.makeImageSnapshot();
 		if (!img)
 		{
 			console.warn("Make image snapshot failed.");
 			return null;
 		}
-		if (!codec) { codec = "image/png"; }
 		const format = CanvasKit.ImageFormat.PNG;
 		if (codec === "image/jpeg")
 		{
