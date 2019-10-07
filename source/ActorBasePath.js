@@ -146,8 +146,11 @@ export const ActorBasePath = (ActorBasePath) => class extends ActorBasePath
 		else if (!isRootPath)
 		{
 			// Path isn't root, so get transform in shape space.
-			let invert = mat2d.invert(mat2d.create(), this.shape._WorldTransform);
-			transform = mat2d.multiply(mat2d.create(), invert, this._WorldTransform);
+			let invert = mat2d.create();
+			if (mat2d.invert(invert, this.shape._WorldTransform))
+			{
+				transform = mat2d.multiply(mat2d.create(), invert, this._WorldTransform);
+			}
 		}
 
 		for (let i = 0; i < points.length; i++)
