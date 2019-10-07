@@ -1,6 +1,4 @@
-import ActorPath from "./ActorPath.js";
 import ActorDrawable from "./ActorDrawable.js";
-import ActorProceduralPath from "./ActorProceduralPath.js";
 import DirtyFlags from "./DirtyFlags.js";
 import { vec2, mat2d } from "gl-matrix";
 const { WorldTransformDirty } = DirtyFlags;
@@ -11,7 +9,7 @@ export default class ActorShape extends ActorDrawable
 	{
 		super(actor);
 
-		this._Paths = null;
+		this._Paths = [];
 		this._Fills = null;
 		this._Strokes = null;
 		this._TransformAffectsStroke = false;
@@ -112,13 +110,8 @@ export default class ActorShape extends ActorDrawable
 				}
 			}
 		}
-		for (const path of this._Children)
+		for (const path of this._Paths)
 		{
-			if (path.constructor !== ActorPath && !(path instanceof ActorProceduralPath))
-			{
-				continue;
-			}
-
 			if (path.numPoints < 2)
 			{
 				continue;
@@ -292,10 +285,28 @@ export default class ActorShape extends ActorDrawable
 		}
 	}
 
-	completeResolve()
+	addPath(path)
 	{
-		super.completeResolve();
-		this._Paths = this._Children.filter(child => child.constructor === ActorPath || (child instanceof ActorProceduralPath));
+		const { _Paths } = this;
+		const idx = _Paths.indexOf(path);
+		if (idx !== -1)
+		{
+			return false;
+		}
+		_Paths.push(path);
+		return true;
+	}
+
+	removePath(path)
+	{
+		const { _Paths } = this;
+		const idx = _Paths.indexOf(path);
+		if (idx !== -1)
+		{
+			_Paths.splice(idx, 1);
+			return true;
+		}
+		return false;
 	}
 
 	makeInstance(resetActor)

@@ -1,4 +1,5 @@
 import ActorSkinnable from "./ActorSkinnable.js";
+import ActorBasePath from "./ActorBasePath.js";
 import ActorNode from "./ActorNode.js";
 import {vec2, mat2d} from "gl-matrix";
 import {PathPoint, PointType} from "./PathPoint.js";
@@ -8,7 +9,7 @@ const CircleConstant = 0.552284749831;
 const InverseCircleConstant = 1.0-CircleConstant;
 const Identity = mat2d.create();
 
-export default class ActorPath extends ActorSkinnable(ActorNode)
+export default class ActorPath extends ActorBasePath(ActorSkinnable(ActorNode))
 {
 	constructor()
 	{
@@ -334,7 +335,7 @@ export default class ActorPath extends ActorSkinnable(ActorNode)
 	{
 		this._IsRenderPathDirty = true;
 		this._RenderPath.setIsVolatile(true);
-		this.parent.invalidatePath();
+		this.shape.invalidatePath();
 	}
 
 	getPath(graphics)

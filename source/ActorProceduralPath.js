@@ -1,9 +1,10 @@
 import ActorNode from "./ActorNode.js";
+import ActorBasePath from "./ActorBasePath.js";
 import {vec2} from "gl-matrix";
 import Graphics from "./Graphics.js";
 import ActorPath from "./ActorPath.js";
 
-export default class ActorProceduralPath extends ActorNode
+export default class ActorProceduralPath extends ActorBasePath(ActorNode)
 {
     constructor(actor)
     {
@@ -23,7 +24,7 @@ export default class ActorProceduralPath extends ActorNode
 	{
 		this._IsRenderPathDirty = true;
 		this._RenderPath.setIsVolatile(true);
-		this.parent.invalidatePath();
+		this.shape.invalidatePath();
 	}
     
     get width()
