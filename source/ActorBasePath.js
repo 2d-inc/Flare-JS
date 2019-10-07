@@ -2,6 +2,9 @@ import ActorShape from "./ActorShape.js";
 import { PointType } from "./PathPoint.js";
 import { vec2, mat2d } from "gl-matrix";
 
+const CircleConstant = 0.552284749831;
+const InverseCircleConstant = 1.0 - CircleConstant;
+
 export const ActorBasePath = (ActorBasePath) => class extends ActorBasePath
 {
 	constructor(actor)
