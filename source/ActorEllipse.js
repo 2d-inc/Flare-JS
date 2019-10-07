@@ -8,11 +8,6 @@ export default class ActorEllipse extends ActorProceduralPath
     {
         super(actor);
     }
-
-    resolveComponentIndices(components)
-	{
-        ActorProceduralPath.prototype.resolveComponentIndices.call(this, components);
-    }
     
     makeInstance(resetActor)
 	{
