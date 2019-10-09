@@ -9,7 +9,7 @@ const CircleConstant = 0.552284749831;
 const InverseCircleConstant = 1.0 - CircleConstant;
 const Identity = mat2d.create();
 
-export default class ActorPath extends ActorBasePath(ActorSkinnable(ActorNode))
+export default class ActorPath extends ActorSkinnable(ActorBasePath(ActorNode))
 {
 	constructor()
 	{
