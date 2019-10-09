@@ -108,6 +108,8 @@ function _ReadComponentsBlock(artboard, reader)
 	let componentCount = reader.readUint16Length();
 	let actorComponents = artboard._Components;
 
+	const version = artboard.actor.dataVersion;
+
 	// Guaranteed from the exporter to be in index order.
 	let block = null;
 	while ((block = _ReadNextBlock(reader, function(err) { artboard.actor.error = err; }, Block)) !== null)
@@ -122,35 +124,35 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadCustomProperty(block.reader, new CustomProperty(), block.type);
 				break;
 			case _BlockTypes.ColliderRectangle:
-				component = _ReadRectangleCollider(block.reader, new ActorColliderRectangle());
+				component = _ReadRectangleCollider(version, block.reader, new ActorColliderRectangle());
 				break;
 			case _BlockTypes.ColliderTriangle:
-				component = _ReadTriangleCollider(block.reader, new ActorColliderTriangle());
+				component = _ReadTriangleCollider(version, block.reader, new ActorColliderTriangle());
 				break;
 			case _BlockTypes.ColliderCircle:
-				component = _ReadCircleCollider(block.reader, new ActorColliderCircle());
+				component = _ReadCircleCollider(version, block.reader, new ActorColliderCircle());
 				break;
 			case _BlockTypes.ColliderPolygon:
-				component = _ReadPolygonCollider(block.reader, new ActorColliderPolygon());
+				component = _ReadPolygonCollider(version, block.reader, new ActorColliderPolygon());
 				break;
 			case _BlockTypes.ColliderLine:
-				component = _ReadLineCollider(block.reader, new ActorColliderLine());
+				component = _ReadLineCollider(version, block.reader, new ActorColliderLine());
 				break;
 			case _BlockTypes.ActorEvent:
 				component = _ReadActorEvent(block.reader, new ActorEvent());
 				break;
 			case _BlockTypes.ActorNode:
 			case _BlockTypes.ActorCacheNode:
-				component = _ReadActorNode(block.reader, new ActorNode());
+				component = _ReadActorNode(version, block.reader, new ActorNode());
 				break;
 			case _BlockTypes.ActorTargetNode:
-				component = _ReadActorNode(block.reader, new ActorTargetNode());
+				component = _ReadActorNode(version, block.reader, new ActorTargetNode());
 				break;
 			case _BlockTypes.ActorLayerNode:
-				component = _ReadDrawable(block.reader, new ActorLayerNode());
+				component = _ReadDrawable(version, block.reader, new ActorLayerNode());
 				break;
 			case _BlockTypes.ActorBone:
-				component = _ReadActorBone(block.reader, new ActorBone());
+				component = _ReadActorBone(version, block.reader, new ActorBone());
 				break;
 			case _BlockTypes.ActorJellyBone:
 				component = _ReadActorJellyBone(block.reader, new ActorJellyBone());
@@ -159,22 +161,22 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadJellyComponent(block.reader, new JellyComponent());
 				break;
 			case _BlockTypes.ActorRootBone:
-				component = _ReadActorRootBone(block.reader, new ActorRootBone());
+				component = _ReadActorRootBone(version, block.reader, new ActorRootBone());
 				break;
 			case _BlockTypes.ActorImage:
-				component = _ReadActorImage(block.reader, new ActorImage());
+				component = _ReadActorImage(version, block.reader, new ActorImage());
 				break;
 			case _BlockTypes.ActorImageSequence:
-				component = _ReadActorImageSequence(block.reader, new ActorImage());
+				component = _ReadActorImageSequence(version, block.reader, new ActorImage());
 				break;
 			case _BlockTypes.ActorIKTarget:
-				component = _ReadActorIKTarget(artboard.actor.dataVersion, block.reader, new ActorIKTarget());
+				component = _ReadActorIKTarget(version, block.reader, new ActorIKTarget());
 				break;
 			case _BlockTypes.NestedActorNode:
-				component = _ReadNestedActor(block.reader, new NestedActorNode(), artboard._NestedActorAssets);
+				component = _ReadNestedActor(version, block.reader, new NestedActorNode(), artboard._NestedActorAssets);
 				break;
 			case _BlockTypes.ActorNodeSolo:
-				component = _ReadActorNodeSolo(block.reader, new ActorNodeSolo());
+				component = _ReadActorNodeSolo(version, block.reader, new ActorNodeSolo());
 				break;
 			case _BlockTypes.ActorIKConstraint:
 				component = _ReadActorIKConstraint(block.reader, new ActorIKConstraint());
@@ -195,10 +197,10 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadRotationConstraint(block.reader, new ActorRotationConstraint());
 				break;
 			case _BlockTypes.ActorShape:
-				component = _ReadActorShape(artboard.actor.dataVersion, block.reader, new ActorShape());
+				component = _ReadActorShape(version, block.reader, new ActorShape());
 				break;
 			case _BlockTypes.ActorPath:
-				component = _ReadActorPath(block.reader, new ActorPath());
+				component = _ReadActorPath(version, block.reader, new ActorPath());
 				break;
 			case _BlockTypes.ColorFill:
 				component = _ReadColorFill(block.reader, new ColorFill());
@@ -219,19 +221,19 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadRadialGradientStroke(block.reader, new RadialGradientStroke());
 				break;
 			case _BlockTypes.ActorEllipse:
-				component = _ReadActorEllipse(block.reader, new ActorEllipse());
+				component = _ReadActorEllipse(version, block.reader, new ActorEllipse());
 				break;
 			case _BlockTypes.ActorRectangle:
-				component = _ReadActorRectangle(block.reader, new ActorRectangle());
+				component = _ReadActorRectangle(version, block.reader, new ActorRectangle());
 				break;
 			case _BlockTypes.ActorTriangle:
-				component = _ReadActorTriangle(block.reader, new ActorTriangle());
+				component = _ReadActorTriangle(version, block.reader, new ActorTriangle());
 				break;
 			case _BlockTypes.ActorStar:
-				component = _ReadActorStar(block.reader, new ActorStar());
+				component = _ReadActorStar(version, block.reader, new ActorStar());
 				break;
 			case _BlockTypes.ActorPolygon:
-				component = _ReadActorPolygon(block.reader, new ActorPolygon());
+				component = _ReadActorPolygon(version, block.reader, new ActorPolygon());
 				break;
 			case _BlockTypes.ActorSkin:
 				component = _ReadActorComponent(block.reader, new ActorSkin());
@@ -823,16 +825,16 @@ function _ReadCustomProperty(reader, component, type)
 	return component;
 }
 
-function _ReadCollider(reader, component)
+function _ReadCollider(version, reader, component)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 	component._IsCollisionEnabled = reader.readBool("isCollisionEnabled");
 	return component;
 }
 
-function _ReadRectangleCollider(reader, component)
+function _ReadRectangleCollider(version, reader, component)
 {
-	_ReadCollider(reader, component);
+	_ReadCollider(version, reader, component);
 
 	component._Width = reader.readFloat32("width");
 	component._Height = reader.readFloat32("height");
@@ -840,9 +842,9 @@ function _ReadRectangleCollider(reader, component)
 	return component;
 }
 
-function _ReadTriangleCollider(reader, component)
+function _ReadTriangleCollider(version, reader, component)
 {
-	_ReadCollider(reader, component);
+	_ReadCollider(version, reader, component);
 
 	component._Width = reader.readFloat32("width");
 	component._Height = reader.readFloat32("height");
@@ -850,18 +852,18 @@ function _ReadTriangleCollider(reader, component)
 	return component;
 }
 
-function _ReadCircleCollider(reader, component)
+function _ReadCircleCollider(version, reader, component)
 {
-	_ReadCollider(reader, component);
+	_ReadCollider(version, reader, component);
 
 	component._Radius = reader.readFloat32("radius");
 
 	return component;
 }
 
-function _ReadPolygonCollider(reader, component)
+function _ReadPolygonCollider(version, reader, component)
 {
-	_ReadCollider(reader, component);
+	_ReadCollider(version, reader, component);
 
 	const numVertices = reader.readUint32("cc");
 	component._ContourVertices = new Float32Array(numVertices * 2);
@@ -870,9 +872,9 @@ function _ReadPolygonCollider(reader, component)
 	return component;
 }
 
-function _ReadLineCollider(reader, component)
+function _ReadLineCollider(version, reader, component)
 {
-	_ReadCollider(reader, component);
+	_ReadCollider(version, reader, component);
 
 	const numVertices = reader.readUint32("lineDataLength");
 	component._Vertices = new Float32Array(numVertices * 2);
@@ -887,7 +889,7 @@ function _ReadActorEvent(reader, component)
 	return component;
 }
 
-function _ReadActorNode(reader, component)
+function _ReadActorNode(version, reader, component)
 {
 	_ReadActorComponent(reader, component);
 
@@ -904,23 +906,28 @@ function _ReadActorNode(reader, component)
 		component._Clips = [];
 		for (let i = 0; i < clipCount; i++)
 		{
-			component._Clips.push(reader.readId("clip"));
+			const clip = { idx: reader.readId("clip"), intersect: true };
+			if (version >= 23)
+			{
+				clip.intersect = reader.readBool("intersect");
+			}
+			component._Clips.push(clip);
 		}
 	}
 	reader.closeArray();
 	return component;
 }
 
-function _ReadActorNodeSolo(reader, component)
+function _ReadActorNodeSolo(version, reader, component)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 	component._ActiveChildIndex = reader.readUint32("activeChild");
 	return component;
 }
 
-function _ReadActorBone(reader, component)
+function _ReadActorBone(version, reader, component)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 	component._Length = reader.readFloat32("length");
 	return component;
 }
@@ -947,16 +954,16 @@ function _ReadJellyComponent(reader, component)
 	return component;
 }
 
-function _ReadActorRootBone(reader, component)
+function _ReadActorRootBone(version, reader, component)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 
 	return component;
 }
 
 function _ReadActorIKTarget(version, reader, component)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 
 	component._Strength = reader.readFloat32();
 	component._InvertDirection = reader.readUint8() === 1;
@@ -1096,7 +1103,7 @@ function _ReadAxisConstraint(reader, component)
 
 function _ReadActorShape(version, reader, component)
 {
-	_ReadDrawable(reader, component);
+	_ReadDrawable(version, reader, component);
 	if (version >= 22)
 	{
 		component._TransformAffectsStroke = reader.readBool("transformAffectsStroke");
@@ -1104,47 +1111,47 @@ function _ReadActorShape(version, reader, component)
 	return component;
 }
 
-function _ReadProceduralPath(reader, component)
+function _ReadProceduralPath(version, reader, component)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 	component._Width = reader.readFloat32("width");
 	component._Height = reader.readFloat32("height");
 	return component;
 }
 
-function _ReadActorStar(reader, component)
+function _ReadActorStar(version, reader, component)
 {
-	_ReadProceduralPath(reader, component);
+	_ReadProceduralPath(version, reader, component);
 	component._Points = reader.readUint32("points");
 	component._InnerRadius = reader.readFloat32("innerRadius");
 
 	return component;
 }
 
-function _ReadActorRectangle(reader, component)
+function _ReadActorRectangle(version, reader, component)
 {
-	_ReadProceduralPath(reader, component);
+	_ReadProceduralPath(version, reader, component);
 	component._CornerRadius = reader.readFloat32("cornerRadius");
 	return component;
 }
 
-function _ReadActorPolygon(reader, component)
+function _ReadActorPolygon(version, reader, component)
 {
-	_ReadProceduralPath(reader, component);
+	_ReadProceduralPath(version, reader, component);
 	component._Sides = reader.readUint32("sides");
 	return component;
 }
 
-function _ReadActorTriangle(reader, component)
+function _ReadActorTriangle(version, reader, component)
 {
-	_ReadProceduralPath(reader, component);
+	_ReadProceduralPath(version, reader, component);
 
 	return component;
 }
 
-function _ReadActorEllipse(reader, component)
+function _ReadActorEllipse(version, reader, component)
 {
-	_ReadProceduralPath(reader, component);
+	_ReadProceduralPath(version, reader, component);
 	return component;
 }
 
@@ -1242,9 +1249,9 @@ function _ReadRadialGradientStroke(reader, component)
 	return component;
 }
 
-function _ReadDrawable(reader, component)
+function _ReadDrawable(version, reader, component)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 
 	component._IsHidden = !reader.readBool("isVisible");
 	const blendID = reader.readUint8("blendMode");
@@ -1291,9 +1298,9 @@ function _ReadSkinnable(reader, component)
 	}
 }
 
-function _ReadActorPath(reader, component)
+function _ReadActorPath(version, reader, component)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 	_ReadSkinnable(reader, component);
 
 	component._IsHidden = !reader.readBool("isVisible");
@@ -1353,9 +1360,9 @@ function _ReadActorPath(reader, component)
 	return component;
 }
 
-function _ReadActorImage(reader, component)
+function _ReadActorImage(version, reader, component)
 {
-	_ReadDrawable(reader, component);
+	_ReadDrawable(version, reader, component);
 	_ReadSkinnable(reader, component);
 
 	if (!component.isHidden)
@@ -1378,9 +1385,9 @@ function _ReadActorImage(reader, component)
 	return component;
 }
 
-function _ReadActorImageSequence(reader, component)
+function _ReadActorImageSequence(version, reader, component)
 {
-	_ReadActorImage(reader, component);
+	_ReadActorImage(version, reader, component);
 
 	// See if it was visible to begin with.
 	if (component._AtlasIndex != -1)
@@ -1428,9 +1435,9 @@ function _ReadActorImageSequence(reader, component)
 	return component;
 }
 
-function _ReadNestedActor(reader, component, nestedActorAssets)
+function _ReadNestedActor(version, reader, component, nestedActorAssets)
 {
-	_ReadActorNode(reader, component);
+	_ReadActorNode(version, reader, component);
 	let isVisible = reader.readUint8();
 	if (isVisible)
 	{

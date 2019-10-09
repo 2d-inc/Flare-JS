@@ -1,5 +1,6 @@
 import ActorNode from "./ActorNode.js";
 import BlendMode from "./BlendMode.js";
+import FillRule from "./FillRule.js";
 
 export default class ActorDrawable extends ActorNode
 {
@@ -60,6 +61,7 @@ export default class ActorDrawable extends ActorNode
 
 	clip(graphics)
 	{
+		const artboard = this._Actor;
 		// Find clips.
 		const clips = this.getClips();
 
@@ -67,29 +69,54 @@ export default class ActorDrawable extends ActorNode
 		{
 			for (const clipList of clips)
 			{
-				const clipPath = graphics.makePath(true);
-				for (let clip of clipList)
+				for (const clip of clipList)
 				{
-					let shapes = new Set();
-					clip.all(function (node)
+					const shapes = new Set();
+					const { node, intersect } = clip;
+					if (!node)
+					{
+						continue;
+					}
+					node.all(function (node)
 					{
 						if (node.paths && !node.renderCollapsed)
 						{
 							shapes.add(node);
 						}
 					});
-					for (let shape of shapes)
-					{
-						const paths = shape.paths;
-						for (const path of paths)
-						{
-							graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
-						}
-					}
-				}
-				if (!clipPath.isEmpty())
-				{
-					graphics.clipPath(clipPath);
+					if (intersect)
+                    {
+                        const clipPath = graphics.makePath(true);
+
+                        for (const shape of shapes)
+                        {
+                            for (const path of shape.paths)
+                            {
+								graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
+                                //path.addPath(node.getPath(graphics), node.getPathTransform());
+                            }
+                        }
+                        if (!clipPath.isEmpty())
+                        {
+							graphics.clipPath(clipPath);
+                            // skCanvas.clipPath(path, CanvasKit.ClipOp.Intersect, true);
+                        }
+                    }
+                    else
+                    {
+                        for (const shape of shapes)
+                        {
+                            for (const path of shape.paths)
+                            {
+                                const clipPath = graphics.makePath(true);
+                                const { originWorld } = artboard;
+								clipPath.addRect(originWorld[0], originWorld[1], originWorld[0] + artboard.width, originWorld[1] + artboard.height);
+								graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
+								graphics.setPathFillType(clipPath, FillRule.EvenOdd);
+								graphics.clipPath(clipPath);
+                            }
+                        }
+                    }
 				}
 			}
 		}

@@ -1,8 +1,8 @@
 import ActorComponent from "./ActorComponent.js";
-import {vec2, mat2d} from "gl-matrix";
+import { vec2, mat2d } from "gl-matrix";
 import DirtyFlags from "./DirtyFlags.js";
 
-const {WorldTransformDirty, TransformDirty} = DirtyFlags;
+const { WorldTransformDirty, TransformDirty } = DirtyFlags;
 
 function _UpdateTransform(node)
 {
@@ -64,14 +64,14 @@ export default class ActorNode extends ActorComponent
 	eachChildRecursive(cb)
 	{
 		const children = this._Children;
-		for(let child of children)
+		for (let child of children)
 		{
-			if(cb(child) === false)
+			if (cb(child) === false)
 			{
 				continue;
 			}
 
-			if(child.eachChildRecursive)
+			if (child.eachChildRecursive)
 			{
 				child.eachChildRecursive(cb);
 			}
@@ -80,19 +80,19 @@ export default class ActorNode extends ActorComponent
 
 	all(cb)
 	{
-		if(cb(this) === false)
+		if (cb(this) === false)
 		{
 			return false;
 		}
 		const children = this._Children;
-		for(let child of children)
+		for (let child of children)
 		{
-			if(cb(child) === false)
+			if (cb(child) === false)
 			{
 				continue;
 			}
 
-			if(child.eachChildRecursive)
+			if (child.eachChildRecursive)
 			{
 				child.eachChildRecursive(cb);
 			}
@@ -114,11 +114,11 @@ export default class ActorNode extends ActorComponent
 	addConstraint(constraint)
 	{
 		let constraints = this._Constraints;
-		if(!constraints)
+		if (!constraints)
 		{
 			this._Constraints = constraints = [];
 		}
-		if(constraints.indexOf(constraint) !== -1)
+		if (constraints.indexOf(constraint) !== -1)
 		{
 			return false;
 		}
@@ -130,7 +130,7 @@ export default class ActorNode extends ActorComponent
 
 	addPeerConstraint(constraint)
 	{
-		if(!this._PeerConstraints)
+		if (!this._PeerConstraints)
 		{
 			this._PeerConstraints = [];
 		}
@@ -140,12 +140,12 @@ export default class ActorNode extends ActorComponent
 	markTransformDirty()
 	{
 		let actor = this._Actor;
-		if(!actor)
+		if (!actor)
 		{
 			// Still loading?
 			return;
 		}
-		if(!actor.addDirt(this, TransformDirty))
+		if (!actor.addDirt(this, TransformDirty))
 		{
 			return;
 		}
@@ -157,12 +157,12 @@ export default class ActorNode extends ActorComponent
 		const parent = this._Parent;
 
 		this._RenderOpacity = this._Opacity;
-		
-		if(parent)
+
+		if (parent)
 		{
 			this._RenderCollapsed = this._IsCollapsedVisibility || parent._RenderCollapsed;
 			this._RenderOpacity *= parent._RenderOpacity;
-			if(!this._OverrideWorldTransform)
+			if (!this._OverrideWorldTransform)
 			{
 				mat2d.mul(this._WorldTransform, parent._WorldTransform, this._Transform);
 			}
@@ -172,7 +172,7 @@ export default class ActorNode extends ActorComponent
 			mat2d.copy(this._WorldTransform, this._Transform);
 		}
 	}
-	
+
 	get isNode()
 	{
 		return true;
@@ -185,7 +185,7 @@ export default class ActorNode extends ActorComponent
 
 	set translation(t)
 	{
-		if(vec2.exactEquals(this._Translation, t))
+		if (vec2.exactEquals(this._Translation, t))
 		{
 			return;
 		}
@@ -201,7 +201,7 @@ export default class ActorNode extends ActorComponent
 
 	set scale(t)
 	{
-		if(vec2.exactEquals(this._Scale, t))
+		if (vec2.exactEquals(this._Scale, t))
 		{
 			return;
 		}
@@ -217,7 +217,7 @@ export default class ActorNode extends ActorComponent
 
 	set x(value)
 	{
-		if(this._Translation[0] != value)
+		if (this._Translation[0] != value)
 		{
 			this._Translation[0] = value;
 			this.markTransformDirty();
@@ -231,7 +231,7 @@ export default class ActorNode extends ActorComponent
 
 	set y(value)
 	{
-		if(this._Translation[1] != value)
+		if (this._Translation[1] != value)
 		{
 			this._Translation[1] = value;
 			this.markTransformDirty();
@@ -245,7 +245,7 @@ export default class ActorNode extends ActorComponent
 
 	set scaleX(value)
 	{
-		if(this._Scale[0] != value)
+		if (this._Scale[0] != value)
 		{
 			this._Scale[0] = value;
 			this.markTransformDirty();
@@ -259,7 +259,7 @@ export default class ActorNode extends ActorComponent
 
 	set scaleY(value)
 	{
-		if(this._Scale[1] != value)
+		if (this._Scale[1] != value)
 		{
 			this._Scale[1] = value;
 			this.markTransformDirty();
@@ -273,7 +273,7 @@ export default class ActorNode extends ActorComponent
 
 	set rotation(value)
 	{
-		if(this._Rotation != value)
+		if (this._Rotation != value)
 		{
 			this._Rotation = value;
 			this.markTransformDirty();
@@ -287,7 +287,7 @@ export default class ActorNode extends ActorComponent
 
 	set opacity(value)
 	{
-		if(this._Opacity != value)
+		if (this._Opacity != value)
 		{
 			this._Opacity = value;
 			this.markTransformDirty();
@@ -296,19 +296,19 @@ export default class ActorNode extends ActorComponent
 
 	update(dirt)
 	{
-		if((dirt & TransformDirty) === TransformDirty)
+		if ((dirt & TransformDirty) === TransformDirty)
 		{
 			_UpdateTransform(this);
 		}
-		if((dirt & WorldTransformDirty) === WorldTransformDirty)
+		if ((dirt & WorldTransformDirty) === WorldTransformDirty)
 		{
 			this.updateWorldTransform();
 			let constraints = this._Constraints;
-			if(constraints)
+			if (constraints)
 			{
-				for(let constraint of constraints)
+				for (let constraint of constraints)
 				{
-					if(constraint.isEnabled)
+					if (constraint.isEnabled)
 					{
 						constraint.constrain(this);
 					}
@@ -319,27 +319,27 @@ export default class ActorNode extends ActorComponent
 
 	getWorldTransform()
 	{
-		if((this._DirtMask & WorldTransformDirty) !== WorldTransformDirty)
+		if ((this._DirtMask & WorldTransformDirty) !== WorldTransformDirty)
 		{
 			return this._WorldTransform;
 		}
 
 		let parent = this.parent;
 		let chain = [this];
-		while(parent)
+		while (parent)
 		{
 			chain.unshift(parent);
 			parent = parent.parent;
 		}
-		for(let item of chain)
+		for (let item of chain)
 		{
-			if(item.hasWorldTransform)
+			if (item.hasWorldTransform)
 			{
-				if((this._DirtMask & TransformDirty) !== TransformDirty)
+				if ((this._DirtMask & TransformDirty) !== TransformDirty)
 				{
 					_UpdateTransform(this);
 				}
-				if((this._DirtMask & WorldTransformDirty) !== WorldTransformDirty)
+				if ((this._DirtMask & WorldTransformDirty) !== WorldTransformDirty)
 				{
 					item.updateWorldTransform();
 				}
@@ -366,7 +366,7 @@ export default class ActorNode extends ActorComponent
 
 	setCollapsedVisibility(v)
 	{
-		if(this._IsCollapsedVisibility === v)
+		if (this._IsCollapsedVisibility === v)
 		{
 			return;
 		}
@@ -379,7 +379,7 @@ export default class ActorNode extends ActorComponent
 	{
 		const node = new ActorNode();
 		node.copy(this, resetActor);
-		return node;	
+		return node;
 	}
 
 	copy(node, resetActor)
@@ -394,12 +394,12 @@ export default class ActorNode extends ActorComponent
 		this._Opacity = node._Opacity;
 		this._RenderOpacity = node._RenderOpacity;
 		this._OverrideWorldTransform = node._OverrideWorldTransform;
-		if(node._Clips)
+		if (node._Clips)
 		{
-			this._Clips = [];	
-			for(let clip of node._Clips)
+			this._Clips = [];
+			for (const clip of node._Clips)
 			{
-				this._Clips.push(clip._Idx);
+				this._Clips.push({ idx: clip.idx, intersect: clip.intersect });
 			}
 		}
 		else
@@ -419,15 +419,14 @@ export default class ActorNode extends ActorComponent
 	{
 		super.resolveComponentIndices(components);
 		let clips = this._Clips;
-		if(!clips)
+		if (!clips)
 		{
 			return;
 		}
 
-		for(let i = 0; i < clips.length; i++)
+		for (const clip of clips)
 		{
-			let idx = clips[i];
-			clips[i] = components[idx];
+			clip.node = components[clip.idx];
 		}
 	}
 }

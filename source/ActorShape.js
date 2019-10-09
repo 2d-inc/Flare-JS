@@ -63,7 +63,12 @@ export default class ActorShape extends ActorDrawable
 			{
 				for (const clip of clipList)
 				{
-					clip.all(function(node)
+					const { node } = clip;
+					if (!node)
+					{
+						continue;
+					}
+					node.all(function(node)
 					{
 						if (node.constructor === ActorShape)
 						{
