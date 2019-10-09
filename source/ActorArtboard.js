@@ -55,7 +55,7 @@ export default class ActorArtboard
 	
 	get originWorld()
     {
-        return vec2.fromValues(this._Translation[0] + this._Width * this._Origin[0], this._Translation[1] + this._Height * this._Origin[1]);
+        return vec2.fromValues(this._Width * this._Origin[0], this._Height * this._Origin[1]);
     }
 
     get translation()
