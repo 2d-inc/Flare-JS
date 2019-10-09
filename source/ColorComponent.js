@@ -97,6 +97,11 @@ export class ColorFill extends ActorColor
 		this._FillRule = FillRule.EvenOdd;
 	}
 
+	get fillRule()
+	{
+		return this._FillRule;
+	}
+
 	makeInstance(resetActor)
 	{
 		const node = new ColorFill();
@@ -395,6 +400,11 @@ export class GradientFill extends GradientColor
 		this._FillRule = FillRule.EvenOdd;
 	}
 
+	get fillRule()
+	{
+		return this._FillRule;
+	}
+
 	makeInstance(resetActor)
 	{
 		const node = new GradientFill();
@@ -525,6 +535,11 @@ export class RadialGradientFill extends RadialGradientColor
 	{
 		super();
 		this._FillRule = FillRule.EvenOdd;
+	}
+
+	get fillRule()
+	{
+		return this._FillRule;
 	}
 
 	makeInstance(resetActor)

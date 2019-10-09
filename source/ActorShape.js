@@ -15,6 +15,12 @@ export default class ActorShape extends ActorDrawable
 		this._TransformAffectsStroke = false;
 	}
 
+	get fill()
+	{
+		const { _Fills } = this;
+		return (_Fills && _Fills.length && _Fills[0]) || null;
+	}
+
 	get transformAffectsStroke()
 	{
 		return this._TransformAffectsStroke;
