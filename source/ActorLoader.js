@@ -397,6 +397,7 @@ function _ReadAnimationBlock(artboard, reader)
 						if (propertyType === _AnimatedPropertyTypes.PathVertices)
 						{
 							const path = artboard._Components[animatedComponent._ComponentIndex];
+							if (!(path instanceof ActorPath)) { continue; }
 							const pointCount = path._Points.length;
 							const points = [];
 
