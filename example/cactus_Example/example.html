@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>2Dimensions - Flare Example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <script src="../build/Flare.min.js"></script>
+    <script src="../build/gl-matrix.js"></script>
+    <script src="../build/canvaskit.js"></script>
+
+    <!-- example implementation is in here -->
+    <script src="./example.js" compile></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
+    <input type="button" value="Change Mustache" onclick="changeStache()">
+    <script>
+
+        let flareExample;
+        function onLoad()
+        {
+            flareExample = new FlareExample(document.getElementById("canvas"), function ()
+            {
+                flareExample.load("./Cactus_No_Joy.flr", function (error)
+                {
+                    if (error)
+                    {
+                        console.log("failed to load actor file...", error);
+                    }
+                });
+
+                flareExample.setSize(684, 387);
+
+
+                document.body.addEventListener("drop", function (evt)
+                {
+                    // Reload another actor by dragging and dropping the file in.
+                    evt.stopPropagation();
+                    evt.preventDefault();
+
+                    const files = evt.dataTransfer.files;
+
+                    flareExample.load(files[0], function (error)
+                    {
+                        if (error)
+                        {
+                            console.log("oh no", error);
+                        }
+                    });
+                }, true);
+            });
+
+        }
+        function changeStache()
+        {
+            //change solo node and animate
+            flareExample.updateActor();
+        }
+    </script>
+</head>
+
+<body onload="onLoad()">
+    <canvas id="canvas" style="position:absolute;margin:0;padding:0;"></canvas>
+</body>
+
+</html>
