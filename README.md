@@ -37,7 +37,7 @@ Use NPM to get the `gl-matrix` dependency:
 npm install gl-matrix
 ```
 
-After the installation completes, copy `gl-matrix.js` from `node_modules/gl-matrix-dist` into the repo's `/build` folder. *(N.B. `canvaskit` is downloaded with this repo, and already present in the `/build` folder.)*
+After the installation completes, copy `gl-matrix.js` from `node_modules/gl-matrix/dist` into the repo's `/build` folder. *(N.B. `canvaskit` is downloaded with this repo, and already present in the `/build` folder.)*
 
 At this point run a webpack build:
 ```
