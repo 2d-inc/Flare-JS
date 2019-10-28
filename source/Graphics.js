@@ -86,6 +86,7 @@ export default class Graphics
 	{
 		this._GLContext = CanvasKit.GetWebGLContext(this._Canvas);
 		this._SkContext = CanvasKit.MakeGrContext(this._GLContext);
+		this._SkContext.setResourceCacheLimitBytes(393216000);
 		this.updateBackendSurface();
 
 		const clearPaint = new CanvasKit.SkPaint();
