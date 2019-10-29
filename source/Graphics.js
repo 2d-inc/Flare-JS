@@ -39,7 +39,7 @@ export default class Graphics
 		this._ViewTransform = mat2d.create();
 	}
 
-	initialize(staticPath, cb)
+	initialize(cb, staticPath)
 	{
 		if (CanvasKit === null)
 		{
@@ -70,7 +70,7 @@ export default class Graphics
 						for(const q of loadQueue)
 						{
 							q.graphics.init();
-							cb();
+							q.cb();
 						}
 					}, 0);
 				});
