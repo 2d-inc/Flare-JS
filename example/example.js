@@ -23,7 +23,7 @@ const FlareExample = (function ()
 			this._ViewTransform = mat2d.create();
 			this._AnimationInstance = null;
 			this._Animation = null;
-			this._SoloSkaterAnimation = null;
+			//this._SoloSkaterAnimation = null;
 
 			const _This = this;
 			
