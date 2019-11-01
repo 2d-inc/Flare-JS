@@ -17,7 +17,7 @@ const FlareExample = (function ()
 	{
 		/** Build and initialize the Graphics object. */
 		this._Graphics = new Flare.Graphics(canvas);
-		this._Graphics.initialize("../build/", () =>
+		this._Graphics.initialize(() =>
 		{
 			this._LastAdvanceTime = Date.now();
 			this._ViewTransform = mat2d.create();
