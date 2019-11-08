@@ -2,6 +2,7 @@ import ActorSkinnable from "./ActorSkinnable.js";
 import ActorDrawable from "./ActorDrawable.js";
 import {vec2} from "gl-matrix";
 import Graphics from "./Graphics.js";
+import Atlas from "./Atlas.js";
 
 export default class ActorImage extends ActorSkinnable(ActorDrawable)
 {
@@ -178,6 +179,55 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 				this._SequenceUVBuffer = null;
 			}
 		}
+	}
+
+	loadDynamicAtlasUV(atlas)
+	{
+		const {
+			_DynamicUV: dynamicUV,
+			_NumVertices: vertexCount,
+			_Triangles: triangles
+		} = this;
+		
+		if(!atlas || !atlas.img || !triangles || !dynamicUV)
+		{
+			return;
+		}
+
+		const { width, height } = atlas;
+
+		const uv = [];
+
+		let idx = 0;
+		for(let i = 0; i < vertexCount; i++)
+		{
+			const s = dynamicUV[idx] * width;
+			const t = dynamicUV[idx+1] * height;
+			idx += 2;
+			uv.push(vec2.fromValues(s, t));
+		}
+
+		this._skUV = uv;
+		this._Atlas = atlas;
+		// Invalidate so vertices are recomputed with the new uvs.
+		this.invalidateDrawable();
+	}
+
+	changeImageFromNetwork(url, graphics)
+	{
+		const self = this;
+		fetch(url)
+			.then((res) => res.arrayBuffer())
+			.then((arrayBuffer) => 
+			{
+					if(arrayBuffer) 
+					{
+							const byteArray = new Uint8Array(arrayBuffer);
+							const atlas = new Atlas(byteArray);
+							atlas.initialize(graphics);
+							self.loadDynamicAtlasUV(atlas);
+					}
+			});
 	}
 
 	initialize(artboard, graphics)
