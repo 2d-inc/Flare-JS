@@ -32,6 +32,7 @@
 		"webpack-cli": "^3.2.3"
 	},
 	"dependencies": {
+		"canvaskit-wasm": "^0.5.1",
 		"npm": "^5.10.0"
 	}
 }
