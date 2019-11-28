@@ -14,7 +14,7 @@ export default class Graphics
 {
 	constructor(canvasOrGraphics)
 	{
-		if(canvasOrGraphics instanceof HTMLCanvasElement)
+		if (canvasOrGraphics instanceof HTMLCanvasElement)
 		{
 			this._Canvas = canvasOrGraphics;
 			this._Cleanup = [];
@@ -43,37 +43,37 @@ export default class Graphics
 	{
 		if (CanvasKit === null)
 		{
-			if(loadQueue)
+			if (loadQueue)
 			{
-				loadQueue.push({graphics:this, cb});
+				loadQueue.push({ graphics: this, cb });
 				return;
 			}
-			loadQueue = [{graphics:this, cb}];
+			loadQueue = [{ graphics: this, cb }];
 			CanvasKitInit(
-				{
+			{
 				/// #if CanvasKitLocation == "embedded"
-					wasmBinary: CanvasKitModule,
+				wasmBinary: CanvasKitModule,
 				/// #else
-					locateFile: (file) => staticPath + file,
+				locateFile: (file) => staticPath + file,
 				/// #endif 
-				}).ready().then((CK) => 
+			}).ready().then((CK) =>
+			{
+				// when debugging, it can be handy to not run directly in the then, because if there
+				// is a failure (for example, miscalling an API), the WASM loader tries to re-load
+				// the web assembly in the (much slower) ArrayBuffer version. This will also fail
+				// and thus there is a lot of extra log spew.
+				// Thus, the setTimeout to run on the next microtask avoids this second loading
+				// and the log spew.
+				setTimeout(() =>
 				{
-					// when debugging, it can be handy to not run directly in the then, because if there
-					// is a failure (for example, miscalling an API), the WASM loader tries to re-load
-					// the web assembly in the (much slower) ArrayBuffer version. This will also fail
-					// and thus there is a lot of extra log spew.
-					// Thus, the setTimeout to run on the next microtask avoids this second loading
-					// and the log spew.
-					setTimeout(() => 
+					CanvasKit = CK;
+					for (const q of loadQueue)
 					{
-						CanvasKit = CK;
-						for(const q of loadQueue)
-						{
-							q.graphics.init();
-							q.cb();
-						}
-					}, 0);
-				});
+						q.graphics.init();
+						q.cb();
+					}
+				}, 0);
+			});
 		}
 		else
 		{
@@ -126,8 +126,9 @@ export default class Graphics
 	{
 		this._SkCanvas.concat(
 			[matrix[0], matrix[2], matrix[4],
-			matrix[1], matrix[3], matrix[5],
-				0, 0, 1]);
+				matrix[1], matrix[3], matrix[5],
+				0, 0, 1
+			]);
 	}
 
 	get canvas()
@@ -142,7 +143,7 @@ export default class Graphics
 
 	dispose()
 	{
-		if(this._proxy)
+		if (this._proxy)
 		{
 			this._proxy.removeEventListener("surfaceUpdate", this._onSurfaceUpdated);
 		}
@@ -190,15 +191,17 @@ export default class Graphics
 	{
 		this._SkCanvas.concat(
 			[matrix[0], matrix[2], matrix[4],
-			matrix[1], matrix[3], matrix[5],
-				0, 0, 1]);
+				matrix[1], matrix[3], matrix[5],
+				0, 0, 1
+			]);
 	}
 
 	addPath(path, addition, matrix)
 	{
 		path.addPath(addition, [matrix[0], matrix[2], matrix[4],
-		matrix[1], matrix[3], matrix[5],
-			0, 0, 1]);
+			matrix[1], matrix[3], matrix[5],
+			0, 0, 1
+		]);
 	}
 
 	makeImage(bytes)
@@ -428,7 +431,8 @@ export default class Graphics
 			{
 				let point = points[i];
 				let nextPoint = points[(i + 1) % pl];
-				let cin = nextPoint.pointType === PointType.Straight ? null : nextPoint.in, cout = point.pointType === PointType.Straight ? null : point.out;
+				let cin = nextPoint.pointType === PointType.Straight ? null : nextPoint.in,
+					cout = point.pointType === PointType.Straight ? null : point.out;
 				if (cin === null && cout === null)
 				{
 					path.lineTo(nextPoint.translation[0], nextPoint.translation[1]);
@@ -467,8 +471,7 @@ export default class Graphics
 		let totalLength = 0.0;
 		{
 			const measure = new CanvasKit.SkPathMeasure(path, false, 1.0);
-			do
-			{
+			do {
 				totalLength += measure.getLength();
 			} while (measure.nextContour());
 			measure.delete();
@@ -479,20 +482,20 @@ export default class Graphics
 		let trimStop = totalLength * stopT;
 		let offset = 0.0;
 
-		if (complement) 
+		if (complement)
 		{
-			if (trimStart > 0.0) 
+			if (trimStart > 0.0)
 			{
 				offset = appendPathSegment(measure, result, offset, 0.0, trimStart);
 			}
-			if (trimStop < totalLength) 
+			if (trimStop < totalLength)
 			{
 				offset = appendPathSegment(measure, result, offset, trimStop, totalLength);
 			}
 		}
-		else 
+		else
 		{
-			if (trimStart < trimStop) 
+			if (trimStart < trimStop)
 			{
 				offset = appendPathSegment(measure, result, offset, trimStart, trimStop);
 			}
@@ -508,27 +511,26 @@ export default class Graphics
 
 		// Reset measure from the start.
 		const measure = new CanvasKit.SkPathMeasure(path, false, 1.0);
-		do
-		{
+		do {
 			const length = measure.getLength();
 			let trimStart = length * startT;
 			let trimStop = length * stopT;
 			let offset = 0.0;
 
-			if (complement) 
+			if (complement)
 			{
-				if (trimStart > 0.0) 
+				if (trimStart > 0.0)
 				{
 					appendPathSegmentSync(measure, result, offset, 0.0, trimStart);
 				}
-				if (trimStop < length) 
+				if (trimStop < length)
 				{
 					appendPathSegmentSync(measure, result, offset, trimStop, length);
 				}
 			}
-			else 
+			else
 			{
-				if (trimStart < trimStop) 
+				if (trimStart < trimStop)
 				{
 					appendPathSegmentSync(measure, result, offset, trimStart, trimStop);
 				}
@@ -540,7 +542,7 @@ export default class Graphics
 	}
 }
 
-function radiansToDegrees(rad) 
+function radiansToDegrees(rad)
 {
 	return (rad / Math.PI) * 180;
 }
@@ -550,20 +552,19 @@ const Identity = [
 	0, 1, 0
 ];
 
-function appendPathSegment(measure, to, offset, start, stop) 
+function appendPathSegment(measure, to, offset, start, stop)
 {
 	let nextOffset = offset;
-	do
-	{
+	do {
 		nextOffset = offset + measure.getLength();
 		if (start < nextOffset)
 		{
-			let extracted = new CanvasKit.SkPath();
-			if (measure.getSegment(start - offset, stop - offset, extracted, true))
+			const extracted = measure.getSegment(start - offset, stop - offset, true);
+			if (!extracted.isEmpty())
 			{
 				to.addPath(extracted, Identity);
-				extracted.delete();
 			}
+			extracted.delete();
 			if (stop < nextOffset)
 			{
 				break;
@@ -574,16 +575,16 @@ function appendPathSegment(measure, to, offset, start, stop)
 	return offset;
 }
 
-function appendPathSegmentSync(measure, to, offset, start, stop) 
+function appendPathSegmentSync(measure, to, offset, start, stop)
 {
 	let nextOffset = offset + measure.getLength();
 	if (start < nextOffset)
 	{
-		let extracted = new CanvasKit.SkPath();
-		if (measure.getSegment(start - offset, stop - offset, extracted, true))
+		const extracted = measure.getSegment(start - offset, stop - offset, true);
+		if (!extracted.isEmpty())
 		{
 			to.addPath(extracted, Identity);
-			extracted.delete();
 		}
+		extracted.delete();
 	}
 }
