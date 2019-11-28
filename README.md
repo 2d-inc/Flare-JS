@@ -4,6 +4,16 @@ Javascript ES6 runtime with Canvas rendering.
 ### CanvasKit vs Canvas
 There are currently two branches: master with CanvasKit rendering (Skia via WebAssembly) and context2d with the standard CanvasRenderingContext2D. The context2d branch is deprecated.
 
+## NPM Installation
+
+You can use Flare-JS directly from npm:
+
+```
+npm install @2dimensions/flare-js
+```
+
+CanvasKit is currently bundled with this package.
+
 ## Building
 Use NPM to get the dependencies and then build with webpack:
 

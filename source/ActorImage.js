@@ -1,9 +1,8 @@
 import ActorSkinnable from "./ActorSkinnable.js";
 import ActorDrawable from "./ActorDrawable.js";
-import {vec2, mat2d} from "gl-matrix";
+import {vec2} from "gl-matrix";
 import Graphics from "./Graphics.js";
 
-const White = [1.0, 1.0, 1.0, 1.0];
 export default class ActorImage extends ActorSkinnable(ActorDrawable)
 {
 	constructor()
@@ -12,6 +11,7 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 		this._AtlasIndex = -1;
 		this._NumVertices = 0;
 		this._Vertices = null;
+		this._DynamicUV = null;
 		this._Triangles = null;
 		this._IsInstance = false;
 
@@ -57,7 +57,7 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 		{
 			let v = worldVertices[i];
 			let x = v[0];
-			let y = v[1]
+			let y = v[1];
 			if(x < min_x)
 			{
 				min_x = x;
@@ -314,6 +314,7 @@ export default class ActorImage extends ActorSkinnable(ActorDrawable)
 		this._VertexStride = node._VertexStride;
 		this._Vertices = node._Vertices;
 		this._Triangles = node._Triangles;
+		this._DynamicUV = node._DynamicUV;
 		// N.B. actor.initialize must've been called before instancing.
 		this._VertexBuffer = node._VertexBuffer;
 		this._IndexBuffer = node._IndexBuffer;

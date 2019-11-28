@@ -1377,6 +1377,18 @@ function _ReadActorImage(version, reader, component)
 		component._VertexStride = vertexStride;
 		component._Vertices = new Float32Array(numVertices * vertexStride);
 		reader.readFloat32Array(component._Vertices, "vertices");
+		
+		// Version 24 includes packing the original UV coords if the
+		// image was marked for dynamic runtime swapping.
+		if (version >= 24) 
+		{
+			const isDynamic = reader.readBool("isDynamic");
+			if (isDynamic) 
+			{
+				component._DynamicUV = new Float32Array(numVertices*2);
+				reader.readFloat32Array(component._DynamicUV, "uv");
+			}
+		}
 
 		const numTris = reader.readUint32("numTriangles");
 		component._Triangles = new Uint16Array(numTris * 3);
