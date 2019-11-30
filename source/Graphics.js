@@ -117,6 +117,11 @@ export default class Graphics
 		this._SkCanvas.save();
 	}
 
+	saveLayer(bounds, paint)
+	{
+		this._SkCanvas.saveLayer(CanvasKit.LTRBRect(bounds[0], bounds[1], bounds[2], bounds[3]), paint);
+	}
+
 	restore()
 	{
 		this._SkCanvas.restore();
@@ -294,6 +299,23 @@ export default class Graphics
 		return paint;
 	}
 
+	setPaintMatrixColorFilter(paint, matrix)
+	{
+		paint.setColorFilter(CanvasKit.SkColorFilter.MakeMatrix(new Float32Array(matrix)));
+	}
+
+	setPaintBlendFilter(paint, color, blend)
+	{
+		const colorFilter = CanvasKit.SkColorFilter.MakeBlend(CanvasKit.Color(Math.round(color[0] * 255), Math.round(color[1] * 255), Math.round(color[2] * 255), color[3]), blend.sk);
+		paint.setColorFilter(colorFilter);
+	}
+
+	setPaintBlur(paint, blurX, blurY)
+	{
+		const imageFilter = CanvasKit.SkImageFilter.MakeBlur(blurX, blurY, CanvasKit.TileMode.Clamp, null);
+		paint.setImageFilter(imageFilter);
+	}
+
 	setPaintFill(paint)
 	{
 		paint.setStyle(CanvasKit.PaintStyle.Fill);
@@ -419,6 +441,11 @@ export default class Graphics
 			return true;
 		}
 		return false;
+	}
+
+	translate(x, y)
+	{
+		this._SkCanvas.translate(x, y);
 	}
 
 	static pointPath(path, points, isClosed)

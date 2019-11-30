@@ -11,6 +11,7 @@ export default class ActorDrawable extends ActorNode
 		this._DrawOrder = 0;
 		this._BlendMode = BlendMode.SrcOver;
 		this._IsHidden = false;
+		this._LayerEffectRenderer = null;
 	}
 
 	get drawOrder()
@@ -144,42 +145,26 @@ export default class ActorDrawable extends ActorNode
 							}
 						}
 					}
-
-					// if (intersect)
-					// {
-					//     const clipPath = graphics.makePath(true);
-
-					//     for (const shape of shapes)
-					//     {
-					//         for (const path of shape.paths)
-					//         {
-					// 			graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
-					//             //path.addPath(node.getPath(graphics), node.getPathTransform());
-					//         }
-					//     }
-					//     if (!clipPath.isEmpty())
-					//     {
-					// 		graphics.clipPath(clipPath);
-					//         // skCanvas.clipPath(path, CanvasKit.ClipOp.Intersect, true);
-					//     }
-					// }
-					// else
-					// {
-					//     for (const shape of shapes)
-					//     {
-					//         for (const path of shape.paths)
-					//         {
-					//             const clipPath = graphics.makePath(true);
-					//             const { originWorld } = artboard;
-					// 			clipPath.addRect(originWorld[0], originWorld[1], originWorld[0] + artboard.width, originWorld[1] + artboard.height);
-					// 			graphics.addPath(clipPath, path.getPath(graphics), path.getPathTransform());
-					// 			graphics.setPathFillType(clipPath, FillRule.EvenOdd);
-					// 			graphics.clipPath(clipPath);
-					//         }
-					//     }
-					// }
 				}
 			}
+		}
+	}
+
+	get layerEffectRenderer() { return this._LayerEffectRenderer; }
+	set layerEffectRenderer(value)
+	{
+		if (this._LayerEffectRenderer == value)
+		{
+			return;
+		}
+		if (this._LayerEffectRenderer)
+		{
+			this._LayerEffectRenderer.removeDrawable(this);
+		}
+		this._LayerEffectRenderer = value;
+		if (value)
+		{
+			value.addDrawable(this);
 		}
 	}
 }

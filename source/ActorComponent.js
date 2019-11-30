@@ -47,7 +47,7 @@ export default class ActorComponent
 		{
 			let parent = components[this._ParentIdx];
 			this._Parent = parent;
-			if(this.isNode && parent && parent._Children)
+			if(parent && parent._Children)
 			{
 				parent._Children.push(this);
 			}

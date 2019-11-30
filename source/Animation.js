@@ -7,19 +7,19 @@ function keyFrameLocation(seconds, list, start, end)
 {
 	let mid;
 	let element;
-	while (start <= end) 
+	while (start <= end)
 	{
 		mid = ((start + end) >> 1);
 		element = list[mid]._Time;
-		if (element < seconds) 
+		if (element < seconds)
 		{
 			start = mid + 1;
 		}
-		else if (element > seconds) 
+		else if (element > seconds)
 		{
 			end = mid - 1;
 		}
-		else 
+		else
 		{
 			return mid;
 		}
@@ -69,54 +69,56 @@ export default class Animation
 				switch (property._Type)
 				{
 					case AnimatedPropertyTypes.Trigger:
+					{
+						const keyFrames = property._KeyFrames;
+
+						const kfl = keyFrames.length;
+						if (kfl === 0)
 						{
-							const keyFrames = property._KeyFrames;
+							continue;
+						}
 
-							const kfl = keyFrames.length;
-							if (kfl === 0)
+						const idx = keyFrameLocation(toTime, keyFrames, 0, keyFrames.length - 1);
+						if (idx === 0)
+						{
+							if (keyFrames.length > 0 && keyFrames[0]._Time === toTime)
 							{
-								continue;
+								const component = artboardComponents[keyedComponent._ComponentIndex];
+								triggered.push(
+								{
+									name: component._Name,
+									component: component,
+									propertyType: property._Type,
+									keyFrameTime: toTime,
+									elapsed: 0
+								});
 							}
-
-							const idx = keyFrameLocation(toTime, keyFrames, 0, keyFrames.length - 1);
-							if (idx === 0)
+						}
+						else
+						{
+							for (let k = idx - 1; k >= 0; k--)
 							{
-								if (keyFrames.length > 0 && keyFrames[0]._Time === toTime)
+								const frame = keyFrames[k];
+								if (frame._Time > fromTime)
 								{
 									const component = artboardComponents[keyedComponent._ComponentIndex];
-									triggered.push({
+									triggered.push(
+									{
 										name: component._Name,
 										component: component,
 										propertyType: property._Type,
-										keyFrameTime: toTime,
-										elapsed: 0
+										keyFrameTime: frame._Time,
+										elapsed: toTime - frame._Time
 									});
 								}
-							}
-							else
-							{
-								for (let k = idx - 1; k >= 0; k--)
+								else
 								{
-									const frame = keyFrames[k];
-									if (frame._Time > fromTime)
-									{
-										const component = artboardComponents[keyedComponent._ComponentIndex];
-										triggered.push({
-											name: component._Name,
-											component: component,
-											propertyType: property._Type,
-											keyFrameTime: frame._Time,
-											elapsed: toTime - frame._Time
-										});
-									}
-									else
-									{
-										break;
-									}
+									break;
 								}
 							}
-							break;
 						}
+						break;
+					}
 					default:
 						break;
 				}
@@ -300,31 +302,31 @@ export default class Animation
 						}
 						break;
 					case AnimatedPropertyTypes.ImageVertices:
+					{
+						const nv = component._NumVertices;
+						const to = component.deformVertices;
+						let fidx = 0;
+						if (mix === 1.0)
 						{
-							const nv = component._NumVertices;
-							const to = component.deformVertices;
-							let fidx = 0;
-							if (mix === 1.0)
+							for (let l = 0; l < nv; l++)
 							{
-								for (let l = 0; l < nv; l++)
-								{
-									const p = to[l];
-									p[0] = value[fidx++];
-									p[1] = value[fidx++];
-								}
+								const p = to[l];
+								p[0] = value[fidx++];
+								p[1] = value[fidx++];
 							}
-							else
-							{
-								for (let l = 0; l < nv; l++)
-								{
-									const p = to[l];
-									p[0] = p[0] * imix + value[fidx++] * mix;
-									p[1] = p[1] * imix + value[fidx++] * mix;
-								}
-							}
-							component.invalidateDrawable();
-							break;
 						}
+						else
+						{
+							for (let l = 0; l < nv; l++)
+							{
+								const p = to[l];
+								p[0] = p[0] * imix + value[fidx++] * mix;
+								p[1] = p[1] * imix + value[fidx++] * mix;
+							}
+						}
+						component.invalidateDrawable();
+						break;
+					}
 					case AnimatedPropertyTypes.StringProperty:
 						component._Value = value;
 						break;
@@ -372,49 +374,49 @@ export default class Animation
 						break;
 
 					case AnimatedPropertyTypes.PathVertices:
+					{
+						component.invalidateDrawable();
+						let readIdx = 0;
+						if (mix !== 1.0)
 						{
-							component.invalidateDrawable();
-							let readIdx = 0;
-							if (mix !== 1.0)
+							for (const point of component._Points)
 							{
-								for (const point of component._Points)
+								point._Translation[0] = point._Translation[0] * imix + value[readIdx++] * mix;
+								point._Translation[1] = point._Translation[1] * imix + value[readIdx++] * mix;
+								if (point.constructor === StraightPathPoint)
 								{
-									point._Translation[0] = point._Translation[0] * imix + value[readIdx++] * mix;
-									point._Translation[1] = point._Translation[1] * imix + value[readIdx++] * mix;
-									if (point.constructor === StraightPathPoint)
-									{
-										point._Radius = point._Radius * imix + value[readIdx++] * mix;
-									}
-									else
-									{
-										point._In[0] = point._In[0] * imix + value[readIdx++] * mix;
-										point._In[1] = point._In[1] * imix + value[readIdx++] * mix;
-										point._Out[0] = point._Out[0] * imix + value[readIdx++] * mix;
-										point._Out[1] = point._Out[1] * imix + value[readIdx++] * mix;
-									}
+									point._Radius = point._Radius * imix + value[readIdx++] * mix;
+								}
+								else
+								{
+									point._In[0] = point._In[0] * imix + value[readIdx++] * mix;
+									point._In[1] = point._In[1] * imix + value[readIdx++] * mix;
+									point._Out[0] = point._Out[0] * imix + value[readIdx++] * mix;
+									point._Out[1] = point._Out[1] * imix + value[readIdx++] * mix;
 								}
 							}
-							else
-							{
-								for (const point of component._Points)
-								{
-									point._Translation[0] = value[readIdx++];
-									point._Translation[1] = value[readIdx++];
-									if (point.constructor === StraightPathPoint)
-									{
-										point._Radius = value[readIdx++];
-									}
-									else
-									{
-										point._In[0] = value[readIdx++];
-										point._In[1] = value[readIdx++];
-										point._Out[0] = value[readIdx++];
-										point._Out[1] = value[readIdx++];
-									}
-								}
-							}
-							break;
 						}
+						else
+						{
+							for (const point of component._Points)
+							{
+								point._Translation[0] = value[readIdx++];
+								point._Translation[1] = value[readIdx++];
+								if (point.constructor === StraightPathPoint)
+								{
+									point._Radius = value[readIdx++];
+								}
+								else
+								{
+									point._In[0] = value[readIdx++];
+									point._In[1] = value[readIdx++];
+									point._Out[0] = value[readIdx++];
+									point._Out[1] = value[readIdx++];
+								}
+							}
+						}
+						break;
+					}
 					case AnimatedPropertyTypes.ShapeWidth:
 					case AnimatedPropertyTypes.StrokeWidth:
 						component.width = mix === 1.0 ? value : component._Width * imix + value * mix;
@@ -442,101 +444,101 @@ export default class Animation
 						break;
 					case AnimatedPropertyTypes.FillColor:
 					case AnimatedPropertyTypes.StrokeColor:
+					{
+						const color = component._Color;
+						if (mix === 1.0)
 						{
-							const color = component._Color;
-							if (mix === 1.0)
-							{
-								color[0] = value[0];
-								color[1] = value[1];
-								color[2] = value[2];
-								color[3] = value[3];
-							}
-							else
-							{
-								color[0] = color[0] * imix + value[0] * mix;
-								color[1] = color[1] * imix + value[1] * mix;
-								color[2] = color[2] * imix + value[2] * mix;
-								color[3] = color[3] * imix + value[3] * mix;
-							}
-							component.markDirty();
-							break;
+							color[0] = value[0];
+							color[1] = value[1];
+							color[2] = value[2];
+							color[3] = value[3];
 						}
+						else
+						{
+							color[0] = color[0] * imix + value[0] * mix;
+							color[1] = color[1] * imix + value[1] * mix;
+							color[2] = color[2] * imix + value[2] * mix;
+							color[3] = color[3] * imix + value[3] * mix;
+						}
+						component.markDirty();
+						break;
+					}
 					case AnimatedPropertyTypes.FillGradient:
 					case AnimatedPropertyTypes.StrokeGradient:
+					{
+						if (mix === 1.0)
 						{
-							if (mix === 1.0)
-							{
-								let ridx = 0;
-								component._Start[0] = value[ridx++];
-								component._Start[1] = value[ridx++];
-								component._End[0] = value[ridx++];
-								component._End[1] = value[ridx++];
+							let ridx = 0;
+							component._Start[0] = value[ridx++];
+							component._Start[1] = value[ridx++];
+							component._End[0] = value[ridx++];
+							component._End[1] = value[ridx++];
 
-								const cs = component._ColorStops;
-								let wi = 0;
-								while (ridx < value.length && wi < cs.length)
-								{
-									cs[wi++] = value[ridx++];
-								}
-							}
-							else
+							const cs = component._ColorStops;
+							let wi = 0;
+							while (ridx < value.length && wi < cs.length)
 							{
-								let ridx = 0;
-								component._Start[0] = component._Start[0] * imix + value[ridx++] * mix;
-								component._Start[1] = component._Start[1] * imix + value[ridx++] * mix;
-								component._End[0] = component._End[0] * imix + value[ridx++] * mix;
-								component._End[1] = component._End[1] * imix + value[ridx++] * mix;
-
-								const cs = component._ColorStops;
-								let wi = 0;
-								while (ridx < value.length && wi < cs.length)
-								{
-									cs[wi] = cs[wi] * imix + value[ridx++];
-									wi++;
-								}
+								cs[wi++] = value[ridx++];
 							}
-							component.markDirty();
-							break;
 						}
+						else
+						{
+							let ridx = 0;
+							component._Start[0] = component._Start[0] * imix + value[ridx++] * mix;
+							component._Start[1] = component._Start[1] * imix + value[ridx++] * mix;
+							component._End[0] = component._End[0] * imix + value[ridx++] * mix;
+							component._End[1] = component._End[1] * imix + value[ridx++] * mix;
+
+							const cs = component._ColorStops;
+							let wi = 0;
+							while (ridx < value.length && wi < cs.length)
+							{
+								cs[wi] = cs[wi] * imix + value[ridx++];
+								wi++;
+							}
+						}
+						component.markDirty();
+						break;
+					}
 					case AnimatedPropertyTypes.FillRadial:
 					case AnimatedPropertyTypes.StrokeRadial:
+					{
+						if (mix === 1.0)
 						{
-							if (mix === 1.0)
-							{
-								let ridx = 0;
-								component._SecondaryRadiusScale = value[ridx++];
-								component._Start[0] = value[ridx++];
-								component._Start[1] = value[ridx++];
-								component._End[0] = value[ridx++];
-								component._End[1] = value[ridx++];
+							let ridx = 0;
+							component._SecondaryRadiusScale = value[ridx++];
+							component._Start[0] = value[ridx++];
+							component._Start[1] = value[ridx++];
+							component._End[0] = value[ridx++];
+							component._End[1] = value[ridx++];
 
-								const cs = component._ColorStops;
-								let wi = 0;
-								while (ridx < value.length && wi < cs.length)
-								{
-									cs[wi++] = value[ridx++];
-								}
-							}
-							else
+							const cs = component._ColorStops;
+							let wi = 0;
+							while (ridx < value.length && wi < cs.length)
 							{
-								let ridx = 0;
-								component._SecondaryRadiusScale = component._SecondaryRadiusScale * imix + value[ridx++] * mix;
-								component._Start[0] = component._Start[0] * imix + value[ridx++] * mix;
-								component._Start[1] = component._Start[1] * imix + value[ridx++] * mix;
-								component._End[0] = component._End[0] * imix + value[ridx++] * mix;
-								component._End[1] = component._End[1] * imix + value[ridx++] * mix;
-
-								const cs = component._ColorStops;
-								let wi = 0;
-								while (ridx < value.length && wi < cs.length)
-								{
-									cs[wi] = cs[wi] * imix + value[ridx++];
-									wi++;
-								}
+								cs[wi++] = value[ridx++];
 							}
-							component.markDirty();
-							break;
 						}
+						else
+						{
+							let ridx = 0;
+							component._SecondaryRadiusScale = component._SecondaryRadiusScale * imix + value[ridx++] * mix;
+							component._Start[0] = component._Start[0] * imix + value[ridx++] * mix;
+							component._Start[1] = component._Start[1] * imix + value[ridx++] * mix;
+							component._End[0] = component._End[0] * imix + value[ridx++] * mix;
+							component._End[1] = component._End[1] * imix + value[ridx++] * mix;
+
+							const cs = component._ColorStops;
+							let wi = 0;
+							while (ridx < value.length && wi < cs.length)
+							{
+								cs[wi] = cs[wi] * imix + value[ridx++];
+								wi++;
+							}
+						}
+						component.markDirty();
+						break;
+					}
 					case AnimatedPropertyTypes.ShapeHeight:
 						component.height = mix === 1.0 ? value : component._Height * imix + value * mix;
 						break;
@@ -545,6 +547,37 @@ export default class Animation
 						break;
 					case AnimatedPropertyTypes.InnerRadius:
 						component.innerRadius = mix === 1.0 ? value : component._InnerRadius * imix + value * mix;
+						break;
+					case AnimatedPropertyTypes.Color:
+					{
+						const color = component._Color;
+						if (mix === 1.0)
+						{
+							color[0] = value[0];
+							color[1] = value[1];
+							color[2] = value[2];
+							color[3] = value[3];
+						}
+						else
+						{
+							color[0] = color[0] * imix + value[0] * mix;
+							color[1] = color[1] * imix + value[1] * mix;
+							color[2] = color[2] * imix + value[2] * mix;
+							color[3] = color[3] * imix + value[3] * mix;
+						}
+						break;
+					}
+					case AnimatedPropertyTypes.OffsetX:
+						component._OffsetX = mix === 1.0 ? value : component._OffsetX * imix + value * mix;
+						break;
+					case AnimatedPropertyTypes.OffsetY:
+						component._OffsetY = mix === 1.0 ? value : component._OffsetY * imix + value * mix;
+						break;
+					case AnimatedPropertyTypes.BlurX:
+						component._BlurX = mix === 1.0 ? value : component._BlurX * imix + value * mix;
+						break;
+					case AnimatedPropertyTypes.BlurY:
+						component._BlurY = mix === 1.0 ? value : component._BlurY * imix + value * mix;
 						break;
 
 				}

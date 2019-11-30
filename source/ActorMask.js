@@ -27,4 +27,11 @@ export default class ActorMask extends ActorLayerEffect
 		super.resolveComponentIndices(components);
 		this._Source = components[this._SourceIndex];
 	}
+
+	makeInstance(resetActor)
+	{
+		const node = new ActorMask();
+		node.copy(this, resetActor);
+		return node;
+	}
 }

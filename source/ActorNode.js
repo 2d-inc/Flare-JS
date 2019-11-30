@@ -161,7 +161,7 @@ export default class ActorNode extends ActorComponent
 		if (parent)
 		{
 			this._RenderCollapsed = this._IsCollapsedVisibility || parent._RenderCollapsed;
-			this._RenderOpacity *= parent._RenderOpacity;
+			this._RenderOpacity *= parent.childOpacity;
 			if (!this._OverrideWorldTransform)
 			{
 				mat2d.mul(this._WorldTransform, parent._WorldTransform, this._Transform);
@@ -283,6 +283,18 @@ export default class ActorNode extends ActorComponent
 	get opacity()
 	{
 		return this._Opacity;
+	}
+
+	get renderOpacity()
+	{
+		return this._RenderOpacity;
+	}
+
+	get hasLayerEffectRenderer() { return this.layerEffectRenderer ? true : false; }
+
+	get childOpacity()
+	{
+		return this.hasLayerEffectRenderer ? 1.0 : this._RenderOpacity;
 	}
 
 	set opacity(value)

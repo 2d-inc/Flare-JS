@@ -1,7 +1,6 @@
-function block(id, key) { return {id,key}; }
+function block(id, key) { return { id, key }; }
 
-const Blocks = 
-{
+const Blocks = {
 	Unknown: block(0, "unknown"),
 	PosX: block(1, "posX"),
 	PosY: block(2, "posY"),
@@ -37,12 +36,17 @@ const Blocks =
 	InnerRadius: block(32, "innerRadius"),
 	StrokeStart: block(33, "strokeStart"),
 	StrokeEnd: block(34, "strokeEnd"),
-	StrokeOffset: block(35, "strokeOffset")
+	StrokeOffset: block(35, "strokeOffset"),
+	Color: block(36, "color"),
+	OffsetX: block(37, "offsetX"),
+	OffsetY: block(38, "offsetY"),
+	BlurX: block(39, "blurX"),
+	BlurY: block(40, "blurY")
 };
 
 const _Types = {};
 const _Map = new Map();
-for(const key in Blocks)
+for (const key in Blocks)
 {
 	const value = Blocks[key];
 	_Types[key] = value.id;
@@ -57,19 +61,18 @@ export default class AnimatedProperty
 		this._KeyFrames = [];
 	}
 
-    static get Types()
-    {
-        return _Types;
-    }
+	static get Types()
+	{
+		return _Types;
+	}
 
-    static fromString(label)
-    {
-        return _Map.get(label) || 0;
-    }
+	static fromString(label)
+	{
+		return _Map.get(label) || 0;
+	}
 }
 
 
-AnimatedProperty.Properties = 
-{
-	
+AnimatedProperty.Properties = {
+
 };

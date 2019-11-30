@@ -5,8 +5,6 @@ import JSONReader from "./Readers/JSONReader.js";
 import Actor from "./Actor.js";
 import ActorEvent from "./ActorEvent.js";
 import ActorNode from "./ActorNode.js";
-import ActorTargetNode from "./ActorTargetNode.js";
-import ActorLayerNode from "./ActorLayerNode.js";
 import ActorNodeSolo from "./ActorNodeSolo.js";
 import ActorBone from "./ActorBone.js";
 import ActorEllipse from "./ActorEllipse.js";
@@ -24,11 +22,9 @@ import ActorColliderTriangle from "./ActorColliderTriangle.js";
 import ActorColliderCircle from "./ActorColliderCircle.js";
 import ActorColliderPolygon from "./ActorColliderPolygon.js";
 import ActorColliderLine from "./ActorColliderLine.js";
-import NestedActorNode from "./NestedActorNode.js";
 import CustomProperty from "./CustomProperty.js";
 import AnimatedComponent from "./AnimatedComponent.js";
 import AnimatedProperty from "./AnimatedProperty.js";
-import NestedActorAsset from "./NestedActorAsset.js";
 import ActorIKConstraint from "./ActorIKConstraint.js";
 import ActorDistanceConstraint from "./ActorDistanceConstraint.js";
 import ActorTransformConstraint from "./ActorTransformConstraint.js";
@@ -47,6 +43,11 @@ import { Hold, Linear, Cubic } from "./Interpolation.js";
 import TrimPath from "./TrimPath.js";
 import Block from "./Block.js";
 import BlendMode from "./BlendMode.js";
+import ActorLayerEffectRenderer from "./ActorLayerEffectRenderer.js";
+import ActorMask from "./ActorMask.js";
+import ActorBlur from "./ActorBlur.js";
+import ActorDropShadow from "./ActorDropShadow.js";
+import ActorInnerShadow from "./ActorInnerShadow.js";
 
 const _BlockTypes = Block.Types;
 const { Off: TrimPathOff } = TrimPath;
@@ -142,14 +143,7 @@ function _ReadComponentsBlock(artboard, reader)
 				component = _ReadActorEvent(block.reader, new ActorEvent());
 				break;
 			case _BlockTypes.ActorNode:
-			case _BlockTypes.ActorCacheNode:
 				component = _ReadActorNode(version, block.reader, new ActorNode());
-				break;
-			case _BlockTypes.ActorTargetNode:
-				component = _ReadActorNode(version, block.reader, new ActorTargetNode());
-				break;
-			case _BlockTypes.ActorLayerNode:
-				component = _ReadDrawable(version, block.reader, new ActorLayerNode());
 				break;
 			case _BlockTypes.ActorBone:
 				component = _ReadActorBone(version, block.reader, new ActorBone());
@@ -171,9 +165,6 @@ function _ReadComponentsBlock(artboard, reader)
 				break;
 			case _BlockTypes.ActorIKTarget:
 				component = _ReadActorIKTarget(version, block.reader, new ActorIKTarget());
-				break;
-			case _BlockTypes.NestedActorNode:
-				component = _ReadNestedActor(version, block.reader, new NestedActorNode(), artboard._NestedActorAssets);
 				break;
 			case _BlockTypes.ActorNodeSolo:
 				component = _ReadActorNodeSolo(version, block.reader, new ActorNodeSolo());
@@ -237,6 +228,21 @@ function _ReadComponentsBlock(artboard, reader)
 				break;
 			case _BlockTypes.ActorSkin:
 				component = _ReadActorComponent(block.reader, new ActorSkin());
+				break;
+			case _BlockTypes.ActorMask:
+				component = _ReadActorMask(block.reader, new ActorMask());
+				break;
+			case _BlockTypes.ActorBlur:
+				component = _ReadActorBlur(block.reader, new ActorBlur());
+				break;
+			case _BlockTypes.ActorDropShadow:
+				component = _ReadActorShadow(block.reader, new ActorDropShadow());
+				break;
+			case _BlockTypes.ActorInnerShadow:
+				component = _ReadActorShadow(block.reader, new ActorInnerShadow());
+				break;
+			case _BlockTypes.ActorLayerEffectRenderer:
+				component = _ReadLayerEffectRenderer(version, block.reader, new ActorLayerEffectRenderer());
 				break;
 		}
 		if (component)
@@ -337,6 +343,11 @@ function _ReadAnimationBlock(artboard, reader)
 						case _AnimatedPropertyTypes.ShapeHeight:
 						case _AnimatedPropertyTypes.CornerRadius:
 						case _AnimatedPropertyTypes.InnerRadius:
+						case _AnimatedPropertyTypes.Color:
+						case _AnimatedPropertyTypes.OffsetX:
+						case _AnimatedPropertyTypes.OffsetY:
+						case _AnimatedPropertyTypes.BlurX:
+						case _AnimatedPropertyTypes.BlurY:
 							validProperty = true;
 							break;
 						default:
@@ -428,7 +439,7 @@ function _ReadAnimationBlock(artboard, reader)
 							propertyReader.closeArray();
 							keyFrame._Value = new Float32Array(points);
 						}
-						else if (propertyType === _AnimatedPropertyTypes.FillColor || propertyType === _AnimatedPropertyTypes.StrokeColor)
+						else if (propertyType === _AnimatedPropertyTypes.FillColor || propertyType === _AnimatedPropertyTypes.StrokeColor || propertyType === _AnimatedPropertyTypes.Color)
 						{
 							keyFrame._Value = propertyReader.readFloat32Array(new Float32Array(4), "value");
 						}
@@ -530,104 +541,6 @@ function _ReadAnimationsBlock(artboard, reader)
 	}
 }
 
-function _ReadNestedActorAssetBlock(actor, reader)
-{
-	let asset = new NestedActorAsset(reader.readString(), reader.readString());
-	actor._NestedActorAssets.push(asset);
-}
-
-function _ReadNestedActorAssets(actor, reader)
-{
-	let nestedActorCount = reader.readUint16();
-	let block = null;
-	while ((block = _ReadNextBlock(reader, function(err) { actor.error = err; })) !== null)
-	{
-		switch (block.type)
-		{
-			case _BlockTypes.NestedActorAsset:
-				_ReadNestedActorAssetBlock(actor, block.reader);
-				break;
-		}
-	}
-}
-
-// function _BuildJpegAtlas(atlas, img, imga, callback)
-// {
-// 	const canvas = document.createElement("canvas");
-// 	canvas.width = img.width;
-//     canvas.height = img.height;
-//     const ctx = canvas.getContext("2d");
-// 	ctx.drawImage(img, 0, 0, img.width, img.height);
-
-// 	if(imga)
-// 	{
-// 		const imageDataRGB = ctx.getImageData(0,0,canvas.width, canvas.height);
-// 		const dataRGB = imageDataRGB.data;
-// 		const canvasAlpha = document.createElement("canvas");
-
-// 		canvasAlpha.width = img.width;
-// 		canvasAlpha.height = img.height;
-// 		const actx = canvasAlpha.getContext("2d");
-// 		actx.drawImage(imga, 0, 0, imga.width, imga.height);
-
-// 		const imageDataAlpha = actx.getImageData(0,0,canvasAlpha.width, canvasAlpha.height);
-// 		const dataAlpha = imageDataAlpha.data;
-
-// 		const pixels = dataAlpha.length/4;
-// 		let widx = 3;
-
-// 		for(let j = 0; j < pixels; j++)
-// 		{
-// 			dataRGB[widx] = dataAlpha[widx-1];
-// 			widx+=4;
-// 		}
-// 		ctx.putImageData(imageDataRGB, 0, 0);
-// 	}
-
-
-// 	const atlasImage = new Image();
-// 	const enc = canvas.toDataURL();
-// 	atlasImage.src = enc;
-// 	atlasImage.onload = function()
-// 	{
-// 		atlas.img = this;
-// 		callback();
-// 	};
-// }
-
-// function _JpegAtlas(dataRGB, dataAlpha, callback)
-// {
-// 	const _This = this;
-// 	const img = document.createElement("img");
-// 	let imga;
-// 	let c = 0;
-// 	let target = 1;
-// 	img.onload = function()
-// 	{
-// 		c++;
-// 		if(c === target)
-// 		{
-// 			_BuildJpegAtlas(_This, img, imga, callback);
-// 		}
-// 	};
-
-// 	if(dataAlpha)
-// 	{
-// 		imga = document.createElement("img");
-// 		imga.onload = function()
-// 		{
-// 			c++;
-// 			if(c == target)
-// 			{
-// 				_BuildJpegAtlas(_This, img, imga, callback);
-// 			}
-// 		};
-// 		imga.src = URL.createObjectURL(dataAlpha);
-// 	}
-// 	img.src = URL.createObjectURL(dataRGB);
-// }
-
-
 function _ReadAtlasesBlock(actor, reader, callback)
 {
 	// Read atlases.
@@ -658,30 +571,6 @@ function _ReadAtlasesBlock(actor, reader, callback)
 	}
 
 	next();
-}
-
-function _LoadNestedAssets(loader, actor, callback)
-{
-	let loadCount = actor._NestedActorAssets.length;
-	let nestedLoad = loader.loadNestedActor;
-	if (loadCount == 0 || !nestedLoad)
-	{
-		callback(actor);
-		return;
-	}
-
-	for (let asset of actor._NestedActorAssets)
-	{
-		nestedLoad(asset, function(nestedActor)
-		{
-			asset._Actor = nestedActor;
-			loadCount--;
-			if (loadCount <= 0)
-			{
-				callback(actor);
-			}
-		});
-	}
 }
 
 function _ReadArtboardsBlock(actor, reader)
@@ -732,7 +621,7 @@ function _ReadActor(loader, data, callback)
 		completeCount++;
 		if (completeCount == waitCount)
 		{
-			_LoadNestedAssets(loader, actor, callback);
+			callback(actor);
 		}
 	}
 
@@ -749,9 +638,6 @@ function _ReadActor(loader, data, callback)
 				{
 					next();
 				});
-				break;
-			case _BlockTypes.NestedActorAssets:
-				_ReadNestedActorAssets(actor, block.reader);
 				break;
 		}
 	}
@@ -789,6 +675,40 @@ function _ReadActorComponent(reader, component)
 {
 	component._Name = reader.readString("name");
 	component._ParentIdx = reader.readId("parent");
+	return component;
+}
+
+function _ReadLayerEffect(reader, component)
+{
+	_ReadActorComponent(reader, component);
+	component._IsActive = reader.readBool("isActive");
+	return component;
+}
+
+function _ReadActorMask(reader, component)
+{
+	_ReadLayerEffect(reader, component);
+	component._SourceIndex = reader.readId("source");
+	component._MaskType = reader.readUint8("maskType");
+	return component;
+}
+
+function _ReadActorBlur(reader, component)
+{
+	_ReadLayerEffect(reader, component);
+	component._BlurX = reader.readFloat32("blurX");
+	component._BlurY = reader.readFloat32("blurY");
+	return component;
+}
+
+function _ReadActorShadow(reader, component)
+{
+	_ReadActorBlur(reader, component);
+	component._OffsetX = reader.readFloat32("offsetX");
+	component._OffsetY = reader.readFloat32("offsetY");
+	reader.readFloat32Array(component._Color, "color");
+	const blendModeId = reader.readUint8("blendMode");
+	component._BlendMode = BlendMode.fromID(blendModeId);
 	return component;
 }
 
@@ -1262,6 +1182,11 @@ function _ReadDrawable(version, reader, component)
 	return component;
 }
 
+function _ReadLayerEffectRenderer(version, reader, component)
+{
+	return _ReadDrawable(version, reader, component);
+}
+
 function _ReadSkinnable(reader, component)
 {
 	reader.openArray("bones");
@@ -1377,15 +1302,15 @@ function _ReadActorImage(version, reader, component)
 		component._VertexStride = vertexStride;
 		component._Vertices = new Float32Array(numVertices * vertexStride);
 		reader.readFloat32Array(component._Vertices, "vertices");
-		
+
 		// Version 24 includes packing the original UV coords if the
 		// image was marked for dynamic runtime swapping.
-		if (version >= 24) 
+		if (version >= 24)
 		{
 			const isDynamic = reader.readBool("isDynamic");
-			if (isDynamic) 
+			if (isDynamic)
 			{
-				component._DynamicUV = new Float32Array(numVertices*2);
+				component._DynamicUV = new Float32Array(numVertices * 2);
 				reader.readFloat32Array(component._DynamicUV, "uv");
 			}
 		}
@@ -1445,23 +1370,6 @@ function _ReadActorImageSequence(version, reader, component)
 		reader.closeArray();
 	}
 
-	return component;
-}
-
-function _ReadNestedActor(version, reader, component, nestedActorAssets)
-{
-	_ReadActorNode(version, reader, component);
-	let isVisible = reader.readUint8();
-	if (isVisible)
-	{
-		// Draw order
-		component._DrawOrder = reader.readUint16();
-		let assetIndex = reader.readUint16();
-		if (assetIndex < nestedActorAssets.length)
-		{
-			component._Asset = nestedActorAssets[assetIndex];
-		}
-	}
 	return component;
 }
 

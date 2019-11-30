@@ -1,7 +1,6 @@
-function block(id, key) { return {id,key}; }
+function block(id, key) { return { id, key }; }
 
-const Blocks = 
-{
+const Blocks = {
 	Nodes: block(1, "nodes"),
 	ActorNode: block(2, "node"),
 	ActorBone: block(3, "bone"),
@@ -20,7 +19,7 @@ const Blocks =
 	ActorImageSequence: block(22, "imageSequence"),
 	ActorNodeSolo: block(23, "solo"),
 	JellyComponent: block(28, "jelly"),
-	ActorJellyBone:  block(29, "jellyBone"),
+	ActorJellyBone: block(29, "jellyBone"),
 	ActorIKConstraint: block(30, "ikConstraint"),
 	ActorDistanceConstraint: block(31, "distanceConstraint"),
 	ActorTranslationConstraint: block(32, "translationConstraint"),
@@ -44,17 +43,16 @@ const Blocks =
 	ActorSkin: block(113, "skin"),
 	ActorArtboard: block(114, "artboard"),
 	Artboards: block(115, "artboards"),
-	ActorCacheNode: block(116, "cacheNode"),
-	ActorTargetNode: block(117, "targetNode"),
-	ActorLayerNode: block(118, "layerNode"),
-	FlareNode: block(24, "flareNode"),
-	EmbeddedAssets: block(25, "embeddedAssets"),
-	FlareAsset: block(26, "flareAsset")
+	ActorLayerEffectRenderer: block(116, "effectRenderer"),
+	ActorMask: block(117, "mask"),
+	ActorBlur: block(118, "blur"),
+	ActorDropShadow: block(119, "dropShadow"),
+	ActorInnerShadow: block(120, "innerShadow")
 };
 
 const _Types = {};
 const _Map = new Map();
-for(const key in Blocks)
+for (const key in Blocks)
 {
 	const value = Blocks[key];
 	_Types[key] = value.id;
@@ -64,13 +62,13 @@ for(const key in Blocks)
 
 export default class Block
 {
-    static get Types()
-    {
-        return _Types;
-    }
+	static get Types()
+	{
+		return _Types;
+	}
 
-    static fromString(label)
-    {
-        return _Map.get(label) || 0;
-    }
+	static fromString(label)
+	{
+		return _Map.get(label) || 0;
+	}
 }
