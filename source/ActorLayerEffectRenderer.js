@@ -64,13 +64,12 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 	completeResolve()
 	{
 		super.completeResolve();
-
 		// When we complete resolve we find all the children and mark their
 		// layers. Alternative way to do this is to have each drawable check for
 		// parent layers when the parent changes. That would be more effective
 		// if nodes were to get moved around at runtime.
 		const { parent } = this;
-		parent.eachChildRecursive((node) =>
+		parent.all((node) =>
 		{
 			if (node instanceof ActorDrawable && node !== this)
 			{
@@ -110,7 +109,7 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 			{
 				if (child instanceof ActorDrawable)
 				{
-					if (child.layerEffectRenderer !== null)
+					if (child.layerEffectRenderer !== null && child.layerEffectRenderer !== this)
 					{
 						// Layer effect is direct discendant of this layer, so we want to
 						// draw it with the other drawables in this layer.
