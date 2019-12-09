@@ -87,18 +87,8 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 		const renderMasks = this._RenderMasks;
 		renderMasks.length = 0;
 		const { parent } = this;
-		let maskSearch = parent;
-		let masks = [];
-
-		while (maskSearch)
-		{
-			if (maskSearch.children)
-			{
-				masks = masks.concat(maskSearch.children.filter((child) => child instanceof ActorMask));
-			}
-			maskSearch = maskSearch.parent;
-		}
-
+		const masks = parent.children.filter((child) => child instanceof ActorMask);
+			
 		for (const mask of masks)
 		{
 			const renderMask = {
@@ -107,6 +97,11 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 			};
 			mask.source.all((child) =>
 			{
+				if(child === parent)
+				{
+					// Looks like a recursive mask was selected.
+					return false;
+				}
 				if (child instanceof ActorDrawable)
 				{
 					if (child.layerEffectRenderer !== null && child.layerEffectRenderer !== this)
