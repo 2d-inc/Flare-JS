@@ -148,8 +148,8 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 		const { _Blur: blur, _DropShadows: dropShadows, _InnerShadows: innerShadows } = this;
 		if (blur && blur.isActive)
 		{
-			baseBlurX = blur.blurX;
-			baseBlurY = blur.blurY;
+			baseBlurX = blur.blurX < 0.1 ? 0 : blur.blurX;
+			baseBlurY = blur.blurY < 0.1 ? 0 : blur.blurY;
 
 			graphics.setPaintBlur(layerPaint, baseBlurX, baseBlurY);
 		}

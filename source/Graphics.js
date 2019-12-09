@@ -312,6 +312,7 @@ export default class Graphics
 
 	setPaintBlur(paint, blurX, blurY)
 	{
+		if (blurX === 0 && blurY === 0) { return; }
 		const imageFilter = CanvasKit.SkImageFilter.MakeBlur(blurX, blurY, CanvasKit.TileMode.Clamp, null);
 		paint.setImageFilter(imageFilter);
 	}
