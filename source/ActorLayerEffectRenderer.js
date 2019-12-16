@@ -30,35 +30,19 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 		this._InnerShadows = children.filter((child) => child.constructor === ActorInnerShadow);
 	}
 
-	addDrawable(drawable)
-	{
-		const drawables = this._Drawables;
-		if (drawables.indexOf(drawable) !== -1)
-		{
-			return false;
-		}
-		drawables.push(drawable);
-		return true;
-	}
-
-	removeDrawable(drawable)
-	{
-		const drawables = this._Drawables;
-		const index = drawables.indexOf(drawable);
-		if (index === -1)
-		{
-			return false;
-		}
-		drawables.splice(index, 1);
-		return true;
-	}
-
 	sortDrawables()
 	{
 		this._Drawables.sort(function(a, b)
 		{
 			return a._DrawOrder - b._DrawOrder;
 		});
+	}
+
+	resolveComponentIndices(components)
+	{
+		super.resolveComponentIndices(components);
+		const { parent } = this;
+		parent.layerEffectRenderer = this;
 	}
 
 	completeResolve()
@@ -69,14 +53,33 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 		// parent layers when the parent changes. That would be more effective
 		// if nodes were to get moved around at runtime.
 		const { parent } = this;
+		const drawables = [];
 		parent.all((node) =>
 		{
-			if (node instanceof ActorDrawable && node !== this)
+			if (node === this)
 			{
-				node.layerEffectRenderer = this;
+				return false;
+			}
+			if (node.layerEffectRenderer && node.layerEffectRenderer !== this)
+			{
+				// Layer effect is direct discendant of this layer,
+				// so we want to draw it with the other drawables in 
+				// this layer.
+				drawables.push(node.layerEffectRenderer);
+				// Don't iterate if node has further layer effect
+				return false;
+			}
+			if (node instanceof ActorDrawable)
+			{
+				drawables.push(node);
 			}
 			return true;
 		});
+		for (const drawable of drawables)
+		{
+			computeLayerNode(drawable);
+		}
+		this._Drawables = drawables;
 		this.sortDrawables();
 		this.computeMasks();
 		this.findEffects();
@@ -88,7 +91,7 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 		renderMasks.length = 0;
 		const { parent } = this;
 		const masks = parent.children.filter((child) => child instanceof ActorMask);
-			
+
 		for (const mask of masks)
 		{
 			const renderMask = {
@@ -97,14 +100,18 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 			};
 			mask.source.all((child) =>
 			{
-				if(child === parent)
+				if (child === parent)
 				{
 					// Looks like a recursive mask was selected.
 					return false;
 				}
 				if (child instanceof ActorDrawable)
 				{
-					if (child.layerEffectRenderer !== null && child.layerEffectRenderer !== this)
+					if (child === this)
+					{
+						return false;
+					}
+					else if (child.layerEffectRenderer)
 					{
 						// Layer effect is direct discendant of this layer, so we want to
 						// draw it with the other drawables in this layer.
@@ -350,4 +357,19 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 			graphics.restore();
 		}
 	}
+}
+
+function computeLayerNode(drawable)
+{
+	let parent = drawable;
+	while (parent)
+	{
+		if (parent.layerEffectRenderer !== null)
+		{
+			drawable._LayerEffectRenderParent = parent;
+			return;
+		}
+		parent = parent.parent;
+	}
+	drawable._LayerEffectRenderParent = null;
 }

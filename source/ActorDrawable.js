@@ -11,7 +11,7 @@ export default class ActorDrawable extends ActorNode
 		this._DrawOrder = 0;
 		this._BlendMode = BlendMode.SrcOver;
 		this._IsHidden = false;
-		this._LayerEffectRenderer = null;
+		this._LayerEffectRenderParent = null;
 	}
 
 	get drawOrder()
@@ -147,24 +147,6 @@ export default class ActorDrawable extends ActorNode
 					}
 				}
 			}
-		}
-	}
-
-	get layerEffectRenderer() { return this._LayerEffectRenderer; }
-	set layerEffectRenderer(value)
-	{
-		if (this._LayerEffectRenderer == value)
-		{
-			return;
-		}
-		if (this._LayerEffectRenderer)
-		{
-			this._LayerEffectRenderer.removeDrawable(this);
-		}
-		this._LayerEffectRenderer = value;
-		if (value)
-		{
-			value.addDrawable(this);
 		}
 	}
 }

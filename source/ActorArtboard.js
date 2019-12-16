@@ -268,13 +268,13 @@ export default class ActorArtboard
 				{
 					case ActorImage:
 					case ActorShape:
-						if (!component.layerEffectRenderer)
+						if (!component._LayerEffectRenderParent)
 						{
 							this._Drawables.push(component);
 						}
 						break;
 					case ActorLayerEffectRenderer:
-						if (!component.layerEffectRenderer)
+						if (!component._LayerEffectRenderParent)
 						{
 							this._Drawables.push(component);
 							this._EffectRenderers.push(component);
