@@ -39,7 +39,7 @@ export default class Graphics
 		this._ViewTransform = mat2d.create();
 	}
 
-	initialize(cb, staticPath)
+	initialize(staticPath, cb)
 	{
 		if (CanvasKit === null)
 		{
