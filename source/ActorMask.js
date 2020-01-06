@@ -19,7 +19,7 @@ export default class ActorMask extends ActorLayerEffect
 		super.copy(node, resetActor);
 
 		this._SourceIndex = node._SourceIndex;
-		this._MaskType = node._SourceType;
+		this._MaskType = node._MaskType;
 	}
 
 	resolveComponentIndices(components)
