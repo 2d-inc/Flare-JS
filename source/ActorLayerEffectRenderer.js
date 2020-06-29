@@ -175,11 +175,18 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 				graphics.save();
 				const color = dropShadow.color;
 				graphics.translate(dropShadow.offsetX, dropShadow.offsetY);
+				// Adjust bounds by shadow offset.
+				const adjustedBounds = new Float32Array([
+					bounds[0] - dropShadow.offsetX,
+					bounds[1] - dropShadow.offsetY,
+					bounds[2] + dropShadow.offsetX,
+					bounds[3] + dropShadow.offsetY
+				]);
 				const shadowPaint = graphics.makePaint(true);
 				graphics.setPaintColor(shadowPaint, layerColor);
 				graphics.setPaintBlur(shadowPaint, dropShadow.blurX + baseBlurX, dropShadow.blurY + baseBlurY);
 				graphics.setPaintBlendFilter(shadowPaint, color, BlendMode.SrcIn);
-				this.drawPass(graphics, bounds, shadowPaint);
+				this.drawPass(graphics, adjustedBounds, shadowPaint);
 				graphics.restore();
 				graphics.restore();
 			}
@@ -223,6 +230,14 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 				graphics.saveLayer(bounds, shadowPaint);
 				graphics.translate(innerShadow.offsetX, innerShadow.offsetY);
 
+				// Adjust bounds by shadow offset.
+				const adjustedBounds = new Float32Array([
+					bounds[0] - innerShadow.offsetX,
+					bounds[1] - innerShadow.offsetY,
+					bounds[2] + innerShadow.offsetX,
+					bounds[3] + innerShadow.offsetY
+				]);
+
 				// Invert the alpha to compute inner part.
 				const invertPaint = graphics.makePaint(true);
 				graphics.setPaintMatrixColorFilter(invertPaint, [
@@ -247,7 +262,7 @@ export default class ActorLayerEffectRenderer extends ActorDrawable
 					-1,
 					1
 				]);
-				this.drawPass(graphics, bounds, invertPaint);
+				this.drawPass(graphics, adjustedBounds, invertPaint);
 				// restore draw pass (inverted aint)
 				graphics.restore();
 				// restore save layer used to that blurs and colors the shadow
